@@ -18,7 +18,8 @@ export type RuleOutcome = "Finding" | "Compliant";
 export type SessionStatus = "New" | "Paused" | "Completed";
 
 export type SectionId =
-  | "summary"
+  | "review-summary"
+  | "all-findings"
   | "general"
   | "standards"
   | "column"
@@ -50,6 +51,16 @@ export interface RuleResult {
   summary: string;
   /** Seeded reviewer state. Used for Batch C's paused session. */
   initialStatus?: FindingStatus;
+
+  /*
+   * "Why is this important?" — teaching context behind the rule, collapsed by
+   * default in the evidence panel. Findings only; compliant rules omit these.
+   * Entry point for the future Guided Review Engine.
+   */
+  laboratoryPractice?: string;
+  typicalMistake?: string;
+  regulatoryExpectation?: string;
+  companySOP?: string;
 }
 
 export interface AssemblyStep {
@@ -85,6 +96,9 @@ export const REVIEWER = "Shrikrishna";
 
 export const REVIEWER_USER_ID = "skrishna";
 
+/** Placeholder until a customer's own SOP reference is configured. */
+const SOP_NOT_SET = "Configured per customer SOP — not yet set";
+
 /** The ten rules evaluated by the prototype, in canonical order. */
 export const RULES: RuleDefinition[] = [
   { id: "RULE-001", name: "Review SLA Met" },
@@ -105,7 +119,8 @@ export const RULE_NAMES: Record<string, string> = Object.fromEntries(
 
 /** Left-column section navigation. Filters the findings list. */
 export const SECTIONS: Section[] = [
-  { id: "summary", label: "Summary", ruleIds: null },
+  { id: "review-summary", label: "Review Summary", ruleIds: [] },
+  { id: "all-findings", label: "All Findings", ruleIds: null },
   { id: "general", label: "General", ruleIds: ["RULE-001", "RULE-014", "RULE-015"] },
   { id: "standards", label: "Standards", ruleIds: ["RULE-003", "RULE-004", "RULE-006"] },
   { id: "column", label: "Column", ruleIds: ["RULE-009", "RULE-010"] },
@@ -309,6 +324,13 @@ const batchB: Batch = {
       source: "Empower — WorkingStandard custom field",
       explanation:
         "Working standard WS-2024-44 was set to Inactive in Empower on 20-Jul-2026 and was still inactive when sample set HPLC-2026-SS-439 was acquired on 30-Jul-2026. An inactive standard is withdrawn from use in regulated analysis, so it should not have appeared in the standard bracket at all. The assay result on this AR was calculated against that standard, which means the reported potency rests on a standard the laboratory had already withdrawn. Establish why an inactive standard was still selectable in the method, and confirm whether a re-analysis against a current standard exists, before recording your disposition.",
+      laboratoryPractice:
+        "A working standard must be active and qualified before use. Its potency assignment is only valid while it holds active status in the system.",
+      typicalMistake:
+        "Analyst selects a standard that was recently inactivated but remains visible in the Empower method — the system does not block selection of an inactive standard.",
+      regulatoryExpectation:
+        "21 CFR 211.194 and EU GMP Annex 11 require that reference and working standards are qualified, stored and used within their authorised conditions. Use of an inactive standard is a data integrity risk.",
+      companySOP: SOP_NOT_SET,
     },
     {
       ruleId: "RULE-004",
@@ -320,6 +342,13 @@ const batchB: Batch = {
       source: "Empower — WorkingStandard custom field",
       explanation:
         "Working standard WS-2024-44 carried an expiry date of 18-Jul-2026. The sample set was acquired on 30-Jul-2026, twelve days past that date. Beyond expiry the assigned potency of a standard is no longer supported by its qualification data, so the standard response used in the assay calculation cannot be relied on and the reported result is not defensible as it stands. This compounds RULE-003 — the same standard was both withdrawn and out of date on the analysis date, so the two findings share one root cause and should be investigated together rather than closed separately.",
+      laboratoryPractice:
+        "Every standard carries an expiry date after which its assigned potency is no longer supported by its qualification data. Analysis must not be performed with an expired standard.",
+      typicalMistake:
+        "Standard was not re-qualified before expiry, or the expiry date in Empower was not updated after a re-qualification was completed elsewhere.",
+      regulatoryExpectation:
+        "ICH Q7 and USP <1> require reference standards to be within their certified validity period at the time of use.",
+      companySOP: SOP_NOT_SET,
     },
     {
       ruleId: "RULE-006",
@@ -351,6 +380,13 @@ const batchB: Batch = {
       source: "Empower — Column custom field, Injection Counter",
       explanation:
         "Column COL-2024-09 is qualified for 400 injections. The counter stood at 412 when sample set HPLC-2026-SS-439 closed, so the last 12 injections in the sequence were acquired past the column's qualified life. System suitability criteria were met across the sample set, so the chromatography itself gives no sign of degradation and the result is not invalid on its face. The column is nonetheless outside its qualified range and must be withdrawn or re-qualified before further use. Identify which injections in the sequence fall past 400, and confirm the sample injections concerned were bracketed by system suitability injections that met their acceptance criteria.",
+      laboratoryPractice:
+        "Chromatography columns degrade with use. A maximum injection count is qualified and validated — results obtained past this limit may show peak shape degradation, retention time shift, or reduced resolution.",
+      typicalMistake:
+        "Column counter not checked before starting a sample set, or a long sequence runs the counter past the limit during acquisition.",
+      regulatoryExpectation:
+        "FDA expects column usage to be within a validated and documented range. Exceeding the limit without justification is a GMP deviation.",
+      companySOP: SOP_NOT_SET,
     },
     {
       ruleId: "RULE-013",
@@ -430,6 +466,13 @@ const batchC: Batch = {
       source: "Caliber LIMS — AR Header, Review Due Date",
       explanation:
         "Sample set HPLC-2026-SS-438 was submitted for QA review on 29-Jul-2026 14:00 against a Caliber review due date of 30-Jul-2026 14:00. The review was not commenced until 31-Jul-2026 15:10, one day past that date. A late review does not affect the validity of the analytical result — the data itself is unchanged — but the delay is a recorded breach of the review turnaround commitment for this AR and will be visible in Caliber's SLA reporting. Record the reason for the delay when you record your disposition.",
+      laboratoryPractice:
+        "Timely review ensures that any anomaly, OOS result, or data integrity issue is identified and investigated within the regulatory window.",
+      typicalMistake:
+        "Review queue builds up at month-end, or a reviewer is absent with no cover assigned.",
+      regulatoryExpectation:
+        "FDA OOS guidance requires investigation initiation within a defined timeframe. Many sites adopt a 2-working-day internal SLA to stay comfortably inside the 72-hour reporting window.",
+      companySOP: SOP_NOT_SET,
     },
     {
       ruleId: "RULE-002",
@@ -502,6 +545,13 @@ const batchC: Batch = {
       source: "Empower — Project Audit Trail, Reason field",
       explanation:
         "Two entries in the audit trail for sample set HPLC-2026-SS-438 were saved without a reason for change: at 29-Jul-2026 16:42, integration parameters were modified by A. Patel (peak width 0.20 to 0.35); at 29-Jul-2026 16:58, the result set was reprocessed by the same user. Both actions changed processed data and both therefore require a recorded reason. Without one, the change cannot be justified to an inspector and the reprocessed result cannot be shown to be a considered decision rather than an attempt to obtain a different outcome. This is the kind of gap that attracts a data integrity observation even when the underlying result is sound. Obtain the reason from the analyst, confirm it is contemporaneous with the change, and have it recorded against both entries before disposition.",
+      laboratoryPractice:
+        "Every change to electronic data in a GMP system must be attributable — who changed it, when, and why. Without a reason, the change cannot be justified to an inspector.",
+      typicalMistake:
+        "Analyst reprocesses data without entering a reason, or the system does not enforce reason entry for all action types.",
+      regulatoryExpectation:
+        "21 CFR Part 11 and EU GMP Annex 11 both require that audit trail entries include the reason for change. Missing reasons attract data integrity observations at inspection.",
+      companySOP: SOP_NOT_SET,
     },
     {
       ruleId: "RULE-014",

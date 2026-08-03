@@ -22,6 +22,7 @@ import {
 import { useReview, type FindingState } from "@/context/ReviewContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
@@ -64,6 +65,15 @@ const SEVERITY_RANK: Record<Severity, number> = {
   Minor: 2,
 };
 
+/**
+ * Display label for a finding state. The stored values stay "Pending" /
+ * "Acknowledged" / "Escalated" — this only changes what the reviewer reads.
+ */
+function displayState(state: FindingState): string {
+  if (state === "Pending") return "Needs Review";
+  return state;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Notes editor                                                               */
 /* -------------------------------------------------------------------------- */
@@ -105,6 +115,49 @@ function NotesEditor({
 /* Evidence panel                                                             */
 /* -------------------------------------------------------------------------- */
 
+/** One row of the "Why is this important?" panel. Stacked — the panel is narrow. */
+function GuidanceRow({
+  label,
+  value,
+  muted = false,
+}: {
+  label: string;
+  value: string;
+  muted?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <span
+        className={cn(
+          "text-sm leading-relaxed",
+          muted && "text-muted-foreground italic",
+        )}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+/** One row of the Review Context card. */
+function ContextRow({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
+  return (
+    <>
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd className={cn("text-sm", mono && "font-mono text-[0.8rem]")}>{value}</dd>
+    </>
+  );
+}
+
 function EvidenceRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid grid-cols-[7.5rem_1fr] gap-2">
@@ -141,7 +194,8 @@ export default function WorkspacePage() {
 
   const centreRef = useRef<HTMLDivElement>(null);
 
-  const [section, setSection] = useState<SectionId>("summary");
+  // Findings first — the reviewer never lands on the context card.
+  const [section, setSection] = useState<SectionId>("all-findings");
   const [paused, setPaused] = useState(false);
 
   /**
@@ -351,7 +405,8 @@ export default function WorkspacePage() {
                 {progress.findings} Findings · {progress.compliant} Compliant
               </p>
               <p>
-                {progress.acknowledged} Acknowledged · {progress.pending} Pending
+                {progress.acknowledged} Acknowledged · {progress.pending}{" "}
+                {displayState("Pending")}
               </p>
             </div>
           </div>
@@ -391,6 +446,42 @@ export default function WorkspacePage() {
                 </Button>
               </div>
             </section>
+          ) : section === "review-summary" ? (
+            /* ---------------------------- Review context --------------- */
+            <>
+              <Card className="[--card-spacing:--spacing(5)]">
+                <CardHeader>
+                  <CardTitle className="text-lg">Review Context</CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Assembled from Empower and Caliber LIMS — read-only
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <dl className="grid grid-cols-[10.5rem_1fr] gap-x-4 gap-y-2.5">
+                    <ContextRow label="AR Number" value={batch.arNumber} mono />
+                    <ContextRow label="Product" value={batch.product} />
+                    <ContextRow label="Test Type" value={batch.testType} />
+                    <ContextRow label="Method" value={batch.method} mono />
+                    <ContextRow label="Analyst" value={batch.analyst} />
+                    <ContextRow label="Submitted" value={batch.submitted} />
+                    <ContextRow
+                      label="Working Standard"
+                      value={batch.workingStandard}
+                    />
+                    <ContextRow
+                      label="Reference Standard"
+                      value={batch.referenceStandard}
+                    />
+                    <ContextRow label="Column" value={batch.column} />
+                    <ContextRow label="Audit Events" value={batch.auditEvents} />
+                  </dl>
+                </CardContent>
+              </Card>
+
+              <p className="text-xs text-muted-foreground">
+                All data read-only. Source systems are not modified.
+              </p>
+            </>
           ) : section === "notes" ? (
             /* ---------------------------- Notes ------------------------ */
             <section className="flex flex-col gap-2">
@@ -482,7 +573,7 @@ export default function WorkspacePage() {
                         {severity}
                       </Badge>
                       <Badge variant="secondary" className={STATE_TONES[state]}>
-                        {state}
+                        {displayState(state)}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">{result.summary}</p>
@@ -533,12 +624,17 @@ export default function WorkspacePage() {
               {RULE_NAMES[selected.ruleId]}
             </h2>
             {selected.outcome === "Finding" ? (
-              <Badge
-                variant="secondary"
-                className={SEVERITY_TONES[selected.severity ?? "Minor"]}
-              >
-                {selected.severity}
-              </Badge>
+              <>
+                <Badge
+                  variant="secondary"
+                  className={SEVERITY_TONES[selected.severity ?? "Minor"]}
+                >
+                  {selected.severity}
+                </Badge>
+                <Badge variant="secondary" className={STATE_TONES[selectedState]}>
+                  {displayState(selectedState)}
+                </Badge>
+              </>
             ) : (
               <Badge variant="secondary" className={COMPLIANT_TONE}>
                 Compliant
@@ -563,6 +659,34 @@ export default function WorkspacePage() {
               </dd>
             </div>
           </dl>
+
+          {selected.outcome === "Finding" && selected.laboratoryPractice ? (
+            <Collapsible className="mt-4">
+              <CollapsibleTrigger className="group/why flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+                <ChevronDown className="size-3.5 transition-transform group-data-[panel-open]/why:rotate-180" />
+                Why is this important?
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 flex flex-col gap-3 rounded-lg border px-3 py-3">
+                <GuidanceRow
+                  label="Laboratory Practice"
+                  value={selected.laboratoryPractice}
+                />
+                <GuidanceRow
+                  label="Typical Mistake"
+                  value={selected.typicalMistake ?? ""}
+                />
+                <GuidanceRow
+                  label="Regulatory Expectation"
+                  value={selected.regulatoryExpectation ?? ""}
+                />
+                <GuidanceRow
+                  label="Company SOP"
+                  value={selected.companySOP ?? ""}
+                  muted
+                />
+              </CollapsibleContent>
+            </Collapsible>
+          ) : null}
 
           {selected.outcome === "Finding" ? (
             <>
