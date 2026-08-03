@@ -17,14 +17,7 @@ export type RuleOutcome = "Finding" | "Compliant";
 
 export type SessionStatus = "New" | "Paused" | "Completed";
 
-export type SectionId =
-  | "review-summary"
-  | "all-findings"
-  | "general"
-  | "standards"
-  | "column"
-  | "audit-trail"
-  | "notes";
+export type SectionId = "review-summary" | "all-findings" | "notes";
 
 export interface Section {
   id: SectionId;
@@ -117,15 +110,16 @@ export const RULE_NAMES: Record<string, string> = Object.fromEntries(
   RULES.map((rule) => [rule.id, rule.name]),
 );
 
-/** Left-column section navigation. Filters the findings list. */
+/**
+ * Left-column section navigation.
+ *
+ * Category filters were removed deliberately — the reviewer reaches findings
+ * through the findings list, not through implementation-oriented categories.
+ */
 export const SECTIONS: Section[] = [
   { id: "review-summary", label: "Review Summary", ruleIds: [] },
   { id: "all-findings", label: "All Findings", ruleIds: null },
-  { id: "general", label: "General", ruleIds: ["RULE-001", "RULE-014", "RULE-015"] },
-  { id: "standards", label: "Standards", ruleIds: ["RULE-003", "RULE-004", "RULE-006"] },
-  { id: "column", label: "Column", ruleIds: ["RULE-009", "RULE-010"] },
-  { id: "audit-trail", label: "Audit Trail", ruleIds: ["RULE-002", "RULE-013"] },
-  { id: "notes", label: "Notes", ruleIds: [] },
+  { id: "notes", label: "Reviewer Notes", ruleIds: [] },
 ];
 
 /* -------------------------------------------------------------------------- */
