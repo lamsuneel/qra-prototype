@@ -1,65 +1,217 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { ClipboardCheck, PauseCircle, Search } from "lucide-react";
+
+import { BATCHES, getBatch, type Batch } from "@/data/batches";
+import { useReview, type SessionStatus } from "@/context/ReviewContext";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+
+/**
+ * The seed status recorded in the batch data, before any session exists.
+ * Aliased because the live session union in ReviewContext shares the name.
+ */
+type SeedStatus = Batch["sessionStatus"];
+
+type CardStatus = SessionStatus | SeedStatus;
+
+/** Which action a Recent Reviews card offers, derived from its status. */
+type CardAction = "summary" | "resume" | "begin";
+
+const STATUS_LABELS: Record<CardStatus, string> = {
+  NotStarted: "New",
+  New: "New",
+  ContextBuilding: "Building Context",
+  ReadyForReview: "In Review",
+  InReview: "In Review",
+  Paused: "Paused",
+  Completed: "Completed",
+};
+
+const STATUS_TONES: Record<CardStatus, string> = {
+  NotStarted: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
+  New: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
+  ContextBuilding: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
+  ReadyForReview: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
+  InReview: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
+  Paused: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300",
+  Completed:
+    "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
+};
+
+function actionFor(status: CardStatus): CardAction {
+  if (status === "Completed") return "summary";
+  if (status === "Paused") return "resume";
+  return "begin";
+}
+
+/** "AR-2026-000121, AR-2026-000122, or AR-2026-000123" — derived, never typed. */
+function listArNumbers(): string {
+  const numbers = BATCHES.map((batch) => batch.arNumber);
+  if (numbers.length < 2) return numbers.join("");
+  return `${numbers.slice(0, -1).join(", ")}, or ${numbers[numbers.length - 1]}`;
+}
+
+export default function LandingPage() {
+  const router = useRouter();
+  const { getSession, startReview, resumeReview } = useReview();
+
+  const [arInput, setArInput] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  function beginReview(arNumber: string) {
+    startReview(arNumber);
+    router.push(`/review/${arNumber}/assembling`);
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const batch = getBatch(arInput);
+    if (!batch) {
+      // Replaces any previous error rather than stacking.
+      setError(`AR Number not found. Try ${listArNumbers()}`);
+      return;
+    }
+
+    setError(null);
+    beginReview(batch.arNumber);
+  }
+
+  function handleCardAction(arNumber: string, action: CardAction) {
+    if (action === "summary") {
+      router.push(`/review/${arNumber}/summary`);
+      return;
+    }
+
+    if (action === "resume") {
+      // One click, straight to the workspace. Assembly is skipped entirely.
+      resumeReview(arNumber);
+      router.push(`/review/${arNumber}/workspace`);
+      return;
+    }
+
+    beginReview(arNumber);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="flex min-h-full flex-1 flex-col">
+      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center gap-10 px-6 py-16">
+        {/* Section 1 — AR entry */}
+        <Card className="[--card-spacing:--spacing(6)]">
+          <CardHeader>
+            <CardTitle className="text-2xl">QA Compliance Review</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Enter an AR Number to begin or resume a review
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} noValidate>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <div className="relative flex-1">
+                  <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={arInput}
+                    onChange={(event) => setArInput(event.target.value)}
+                    placeholder="e.g. AR-2026-000121"
+                    aria-label="AR Number"
+                    aria-invalid={error ? true : undefined}
+                    aria-describedby={error ? "ar-entry-error" : undefined}
+                    autoComplete="off"
+                    autoFocus
+                    className="h-11 pl-9 font-mono tracking-tight"
+                  />
+                </div>
+                <Button type="submit" size="lg" className="h-11 px-6">
+                  Begin Review
+                </Button>
+              </div>
+
+              {error ? (
+                <p
+                  id="ar-entry-error"
+                  role="alert"
+                  className="mt-3 text-sm text-destructive"
+                >
+                  {error}
+                </p>
+              ) : null}
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Section 2 — Recent Reviews */}
+        <section className="flex flex-col gap-4">
+          <h2 className="font-heading text-sm font-medium tracking-wide text-muted-foreground uppercase">
+            Recent Reviews
+          </h2>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {BATCHES.map((batch) => {
+              const session = getSession(batch.arNumber);
+              const status: CardStatus = session?.status ?? batch.sessionStatus;
+              const action = actionFor(status);
+
+              return (
+                <Card key={batch.arNumber} className="justify-between">
+                  <CardHeader className="gap-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="font-mono text-sm font-semibold tracking-tight">
+                        {batch.arNumber}
+                      </span>
+                      <Badge variant="secondary" className={STATUS_TONES[status]}>
+                        {STATUS_LABELS[status]}
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-base">{batch.product}</CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                      Submitted {batch.submitted}
+                    </p>
+                  </CardHeader>
+
+                  <CardContent>
+                    {action === "summary" ? (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => handleCardAction(batch.arNumber, action)}
+                      >
+                        <ClipboardCheck data-icon="inline-start" />
+                        View Summary
+                      </Button>
+                    ) : action === "resume" ? (
+                      <Button
+                        className="w-full bg-amber-600 text-white hover:bg-amber-600/85"
+                        onClick={() => handleCardAction(batch.arNumber, action)}
+                      >
+                        <PauseCircle data-icon="inline-start" />
+                        Resume Review
+                      </Button>
+                    ) : (
+                      <Button
+                        className="w-full"
+                        onClick={() => handleCardAction(batch.arNumber, action)}
+                      >
+                        Begin Review
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
       </main>
+
+      {/* Section 3 — Footer */}
+      <footer className="px-6 pb-8 text-center text-xs text-muted-foreground">
+        QRA · Compliance Intelligence · Read-only · QA retains final disposition
+        authority
+      </footer>
     </div>
   );
 }
