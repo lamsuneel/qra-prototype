@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   AlertTriangle,
@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 /* -------------------------------------------------------------------------- */
@@ -84,10 +85,13 @@ export default function WorkspacePage() {
     getAllTestsProgress,
     setCurrentSection,
     markSectionReviewed,
+    addNote,
     pauseReview,
     resumeReview,
     completeReview,
   } = useReview();
+
+  const notesRef = useRef<HTMLTextAreaElement>(null);
 
   const batch = getBatch(params.arNumber);
   const arNumber = batch?.arNumber ?? "";
@@ -204,6 +208,20 @@ export default function WorkspacePage() {
     router.push(`/review/${arNumber}/summary`);
   }
 
+  /**
+   * Starts a note about the selected entry in the shared reviewer notes.
+   * Appends rather than replaces — one notes field serves the whole review.
+   */
+  function startFindingNote(label: string) {
+    const field = notesRef.current;
+    if (!field) return;
+
+    const existing = field.value.replace(/\s+$/, "");
+    field.value = `${existing ? `${existing}\n\n` : ""}Re: ${label} — `;
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+  }
+
   function handlePause() {
     pauseReview(arNumber);
     setPaused(true);
@@ -301,6 +319,33 @@ export default function WorkspacePage() {
             <p className="text-xs text-muted-foreground tabular-nums">
               {progress.reviewed} reviewed · {progress.remaining} remaining
             </p>
+          </div>
+
+          <Separator />
+
+          {/* Scratchpad — one shared notes field for the whole review.
+              Uncontrolled so typing never round-trips through context; the
+              key remounts it whenever the committed value changes. */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col">
+              <label htmlFor="reviewer-notes" className="text-sm font-medium">
+                Reviewer Notes
+              </label>
+              <span className="text-xs text-muted-foreground">
+                Shared across this review — not per finding
+              </span>
+            </div>
+            <Textarea
+              id="reviewer-notes"
+              key={session.reviewerNotes}
+              ref={notesRef}
+              defaultValue={session.reviewerNotes}
+              rows={4}
+              placeholder="Add notes about this review..."
+              onBlur={(event) => addNote(arNumber, event.target.value)}
+              // Capped so a long note never pushes Pause Review off the fold.
+              className="max-h-40 min-h-24 overflow-y-auto text-sm"
+            />
           </div>
 
           <Button variant="outline" className="w-full" onClick={handlePause}>
@@ -644,6 +689,16 @@ export default function WorkspacePage() {
                   {selected.advisory}
                 </p>
               </div>
+            ) : null}
+
+            {selected.status === "flagged" || selected.status === "advisory" ? (
+              <button
+                type="button"
+                onClick={() => startFindingNote(selected.label)}
+                className="mt-3 text-xs text-primary transition-colors hover:underline"
+              >
+                Add note about this finding
+              </button>
             ) : null}
           </>
         )}

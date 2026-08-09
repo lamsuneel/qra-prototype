@@ -188,7 +188,7 @@ function seededSessions(): Record<string, ReviewSession> {
         ...freshSectionStatuses(batch),
         [seed.currentTestId]: { ...seed.sectionStatuses },
       },
-      reviewerNotes: "",
+      reviewerNotes: seed.reviewerNotes ?? "",
       sessionStartTime: SEEDED_START_TIME,
       lastActiveTime: SEEDED_LAST_ACTIVE,
     };

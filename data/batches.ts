@@ -122,6 +122,8 @@ export interface SessionState {
   currentTestId: string;
   currentSectionType: SectionType;
   sectionStatuses: Record<SectionType, SectionStatus>;
+  /** Notes carried over from the paused session. Reappear on resume. */
+  reviewerNotes?: string;
 }
 
 export interface Batch {
@@ -1435,6 +1437,8 @@ const batchC: Batch = {
   sessionState: {
     currentTestId: "ASSAY",
     currentSectionType: "column",
+    reviewerNotes:
+      "SLA overdue due to analyst leave — confirmed with QA Manager. Proceeding with review.",
     sectionStatuses: {
       chemicals: "Reviewed",
       chromatographySystem: "Reviewed",
