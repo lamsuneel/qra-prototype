@@ -2,16 +2,21 @@
 
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronDown, Home } from "lucide-react";
+import { ChevronDown, Download, Home } from "lucide-react";
 
 import {
+  CHECKLIST_REFERENCES,
   getBatch,
-  REVIEWER,
   SECTION_LABELS,
   sectionRecordLabel,
   type Entry,
   type Section,
 } from "@/data/batches";
+import {
+  buildReviewRecord,
+  checklistStatus,
+  splitChecklistReference,
+} from "@/lib/review-record-pdf";
 import { useReview } from "@/context/ReviewContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,6 +45,12 @@ const SLA_TONES = {
   within: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
   overdue: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
 } as const;
+
+const CHECKLIST_TONES: Record<string, string> = {
+  Reviewed: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
+  "Needs Review": "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
+  "N/A": "bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-300",
+};
 
 function truncate(value: string, max = 60): string {
   const clean = value.trim();
@@ -199,7 +210,13 @@ function DetailItem({ label, children }: { label: string; children: React.ReactN
 export default function DigitalReviewRecordPage() {
   const router = useRouter();
   const params = useParams<{ arNumber: string }>();
-  const { getSession, getSlaStatus, startReview, completeReview } = useReview();
+  const {
+    getSession,
+    getSlaStatus,
+    getAllTestsProgress,
+    startReview,
+    completeReview,
+  } = useReview();
 
   const batch = getBatch(params.arNumber);
 
@@ -230,6 +247,23 @@ export default function DigitalReviewRecordPage() {
   const sla = getSlaStatus(batch.arNumber);
   const notes = session?.reviewerNotes.trim() ?? "";
 
+  const reviewDate = session?.lastActiveTime ?? "";
+  const progress = getAllTestsProgress(batch.arNumber);
+  const allReviewed =
+    progress.totalSections > 0 && progress.totalSections === progress.reviewedSections;
+
+  function handleExport() {
+    if (!batch) return;
+    const doc = buildReviewRecord({
+      batch,
+      sectionStatuses: session?.sectionStatuses ?? {},
+      reviewDate,
+      slaLabel: sla?.status === "overdue" ? "Breached" : "Within SLA",
+      reviewerNotes: notes,
+    });
+    doc.save(`${batch.arNumber}-review-record.pdf`);
+  }
+
   return (
     <div className="flex min-h-full flex-col">
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-12">
@@ -259,7 +293,7 @@ export default function DigitalReviewRecordPage() {
 
         {/* Details strip */}
         <section className="grid grid-cols-2 gap-4 rounded-xl border px-5 py-4 sm:grid-cols-5">
-          <DetailItem label="Reviewer">{REVIEWER}</DetailItem>
+          <DetailItem label="Reviewer">{batch.reviewerName}</DetailItem>
           <DetailItem label="Analyst">{batch.analyst}</DetailItem>
           <DetailItem label="Completed">{session?.lastActiveTime ?? ""}</DetailItem>
           <DetailItem label="SLA Status">
@@ -298,6 +332,58 @@ export default function DigitalReviewRecordPage() {
           </p>
         </section>
 
+        {/* Review checklist — always visible, not gated behind completion */}
+        <section className="flex flex-col gap-3">
+          <h2 className="font-heading text-base font-medium">Review Checklist</h2>
+
+          <div className="overflow-x-auto rounded-xl border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/60 text-xs text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-2 text-left font-medium">Checklist Ref</th>
+                  <th className="px-4 py-2 text-left font-medium">Description</th>
+                  <th className="px-4 py-2 text-left font-medium">Test</th>
+                  <th className="px-4 py-2 text-left font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {batch.tests.flatMap((test) =>
+                  test.sections.map((section) => {
+                    const { ref, description } = splitChecklistReference(
+                      CHECKLIST_REFERENCES[section.type],
+                    );
+                    const state = checklistStatus(
+                      section,
+                      session?.sectionStatuses[test.id],
+                    );
+
+                    return (
+                      <tr key={`${test.id}-${section.type}`} className="border-t">
+                        <td className="px-4 py-2 whitespace-nowrap">{ref}</td>
+                        <td className="px-4 py-2 text-muted-foreground">
+                          {description}
+                        </td>
+                        <td className="px-4 py-2 whitespace-nowrap">{test.name}</td>
+                        <td className="px-4 py-2">
+                          <Badge variant="secondary" className={CHECKLIST_TONES[state]}>
+                            {state}
+                          </Badge>
+                        </td>
+                      </tr>
+                    );
+                  }),
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Reviewer: {batch.reviewerName}
+            <span className="mx-2">·</span>
+            Review date: {reviewDate}
+          </p>
+        </section>
+
         {/* Reviewer notes */}
         <section className="flex flex-col gap-3">
           <h2 className="font-heading text-base font-medium">Reviewer Notes</h2>
@@ -327,10 +413,21 @@ export default function DigitalReviewRecordPage() {
           the 17-item Analytical Data Review Checklist provided by Shrikrishna.
         </p>
 
-        <div className="flex justify-center">
-          <Button variant="outline" onClick={() => router.push("/")}>
-            Return to Home
-          </Button>
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-wrap justify-center gap-2">
+            <Button onClick={handleExport} disabled={!allReviewed}>
+              <Download data-icon="inline-start" />
+              Export Review Record
+            </Button>
+            <Button variant="outline" onClick={() => router.push("/")}>
+              Return to Home
+            </Button>
+          </div>
+          {!allReviewed ? (
+            <p className="text-xs text-muted-foreground">
+              Available once every section of every test is marked as reviewed.
+            </p>
+          ) : null}
         </div>
       </main>
 

@@ -272,6 +272,9 @@ export default function WorkspacePage() {
             {batch.product} · <span className="font-mono">{batch.batchNumber}</span>
           </p>
           <p className="text-xs text-muted-foreground">Analyst: {batch.analyst}</p>
+          <p className="text-xs text-muted-foreground">
+            Reviewer: {batch.reviewerName}
+          </p>
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
             <span className="text-sm font-medium">{test.name}</span>
             <Badge variant="outline">{test.methodType}</Badge>
@@ -524,6 +527,61 @@ export default function WorkspacePage() {
                   <p className="text-xs text-muted-foreground">
                     Source: Test method configuration
                   </p>
+                </section>
+              ) : activeSection.type === "column" && activeSection.expectedEntries ? (
+                /* --------- SST parameters as a comparison table ----------- */
+                <section className="overflow-x-auto rounded-lg border">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/60 text-xs text-muted-foreground">
+                      <tr>
+                        <th className="px-3 py-2 text-left font-medium">Parameter</th>
+                        <th className="px-3 py-2 text-left font-medium">Spec Limit</th>
+                        <th className="px-3 py-2 text-left font-medium">Result</th>
+                        <th className="px-3 py-2 text-left font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {activeSection.actualEntries.map((entry) => (
+                        <tr
+                          key={entry.id}
+                          tabIndex={0}
+                          onClick={() => selectEntry(entry.id)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              selectEntry(entry.id);
+                            }
+                          }}
+                          className={cn(
+                            "cursor-pointer border-t transition-colors",
+                            entry.status === "flagged" &&
+                              "bg-red-50 dark:bg-red-950/30",
+                            entry.id === selectedId && "ring-2 ring-inset ring-blue-500/50",
+                          )}
+                        >
+                          <td className="px-3 py-2">{entry.label}</td>
+                          <td className="px-3 py-2 text-muted-foreground">
+                            {entry.details.Expected}
+                          </td>
+                          <td className="px-3 py-2 tabular-nums">
+                            {entry.details.Actual}
+                          </td>
+                          <td className="px-3 py-2">
+                            <Badge
+                              variant="secondary"
+                              className={
+                                entry.status === "flagged"
+                                  ? ENTRY_TONES.flagged
+                                  : ENTRY_TONES.ok
+                              }
+                            >
+                              {entry.status === "flagged" ? "Flagged" : "Compliant"}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </section>
               ) : activeSection.expectedEntries ? (
                 /* ------------------- Expected vs Actual ------------------- */
