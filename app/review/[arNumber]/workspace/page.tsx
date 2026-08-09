@@ -1,170 +1,73 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  ArrowUpRight,
+  AlertTriangle,
+  Ban,
   Check,
   CheckCircle2,
-  ChevronDown,
+  ChevronLeft,
+  ClipboardCheck,
   PauseCircle,
   X,
 } from "lucide-react";
 
 import {
+  applicableSections,
   getBatch,
-  RULE_NAMES,
-  SECTIONS,
-  type RuleResult,
-  type SectionId,
-  type Severity,
+  SECTION_LABELS,
+  type Entry,
+  type Section,
+  type SectionType,
 } from "@/data/batches";
-import { useReview, type FindingState } from "@/context/ReviewContext";
+import { useReview } from "@/context/ReviewContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 /* -------------------------------------------------------------------------- */
 /* Tones                                                                      */
 /* -------------------------------------------------------------------------- */
 
-const SEVERITY_TONES: Record<Severity, string> = {
-  Critical: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
-  Major: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300",
-  Minor: "bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-300",
+const SLA_TONES = {
+  within: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
+  overdue: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
+} as const;
+
+const ENTRY_TONES: Record<Entry["status"], string> = {
+  ok: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
+  flagged: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
+  advisory: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300",
+  na: "bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-300",
 };
 
-const SEVERITY_BORDERS: Record<Severity, string> = {
-  Critical: "border-l-red-500",
-  Major: "border-l-amber-500",
-  Minor: "border-l-slate-400",
+const ENTRY_LABELS: Record<Entry["status"], string> = {
+  ok: "OK",
+  flagged: "FLAGGED",
+  advisory: "ADVISORY",
+  na: "N/A",
 };
 
-const STATE_TONES: Record<FindingState, string> = {
-  Pending: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
-  Acknowledged:
-    "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
-  Escalated: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300",
-};
-
-const COMPLIANT_TONE =
-  "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300";
-
-const SEVERITY_RANK: Record<Severity, number> = {
-  Critical: 0,
-  Major: 1,
-  Minor: 2,
-};
-
-/**
- * Display label for a finding state. The stored values stay "Pending" /
- * "Acknowledged" / "Escalated" — this only changes what the reviewer reads.
- */
-function displayState(state: FindingState): string {
-  if (state === "Pending") return "Needs Review";
-  return state;
+function EntryIcon({ status }: { status: Entry["status"] }) {
+  if (status === "flagged") {
+    return <X className="size-4 shrink-0 text-red-600 dark:text-red-400" />;
+  }
+  if (status === "advisory") {
+    return <AlertTriangle className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />;
+  }
+  return <Check className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Notes editor                                                               */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Reviewer notes are a single shared string on the session, so the workspace
- * can show two editors at once — the Notes section and the evidence panel.
- *
- * The textarea is uncontrolled so typing never round-trips through context.
- * The value is committed on blur, and the key remounts the field whenever the
- * committed value changes, which keeps the other editor in sync.
- */
-function NotesEditor({
-  value,
-  onCommit,
-  placeholder,
-  rows,
-  className,
-}: {
-  value: string;
-  onCommit: (next: string) => void;
-  placeholder: string;
-  rows: number;
-  className?: string;
-}) {
-  return (
-    <Textarea
-      key={value}
-      defaultValue={value}
-      rows={rows}
-      placeholder={placeholder}
-      onBlur={(event) => onCommit(event.target.value)}
-      className={className}
-    />
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Evidence panel                                                             */
-/* -------------------------------------------------------------------------- */
-
-/** One row of the "Why is this important?" panel. Stacked — the panel is narrow. */
-function GuidanceRow({
-  label,
-  value,
-  muted = false,
-}: {
-  label: string;
-  value: string;
-  muted?: boolean;
-}) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <span
-        className={cn(
-          "text-sm leading-relaxed",
-          muted && "text-muted-foreground italic",
-        )}
-      >
-        {value}
-      </span>
-    </div>
-  );
-}
-
-/** One row of the Review Context card. */
-function ContextRow({
-  label,
-  value,
-  mono = false,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
-  return (
-    <>
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className={cn("text-sm", mono && "font-mono text-[0.8rem]")}>{value}</dd>
-    </>
-  );
-}
-
-function EvidenceRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="grid grid-cols-[7.5rem_1fr] gap-2">
-      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
-      <dd className="text-sm leading-relaxed">{value}</dd>
-    </div>
-  );
+/** First flagged entry, else first advisory, else first entry. */
+function defaultEntryId(section: Section): string | null {
+  const flagged = section.actualEntries.find((entry) => entry.status === "flagged");
+  if (flagged) return flagged.id;
+  const advisory = section.actualEntries.find((entry) => entry.status === "advisory");
+  if (advisory) return advisory.id;
+  return section.actualEntries[0]?.id ?? null;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -176,14 +79,11 @@ export default function WorkspacePage() {
   const params = useParams<{ arNumber: string }>();
   const {
     getSession,
-    getFindingState,
+    getSlaStatus,
     getProgress,
-    getNextPendingFinding,
-    startReview,
-    setStatus,
-    acknowledgeFinding,
-    escalateFinding,
-    addNote,
+    getAllTestsProgress,
+    setCurrentSection,
+    markSectionReviewed,
     pauseReview,
     resumeReview,
     completeReview,
@@ -191,116 +91,112 @@ export default function WorkspacePage() {
 
   const batch = getBatch(params.arNumber);
   const arNumber = batch?.arNumber ?? "";
+  const session = batch ? getSession(batch.arNumber) : null;
+  const test = batch?.tests.find((candidate) => candidate.id === session?.currentTestId);
 
-  const centreRef = useRef<HTMLDivElement>(null);
-
-  // Findings first — the reviewer never lands on the context card.
-  const [section, setSection] = useState<SectionId>("all-findings");
+  const [selectedBySection, setSelectedBySection] = useState<Record<string, string>>({});
+  const [viewedSections, setViewedSections] = useState<Record<string, boolean>>({});
   const [paused, setPaused] = useState(false);
+  /** Set when the reviewer navigates back into a section after completing all. */
+  const [browsingSection, setBrowsingSection] = useState(false);
 
   /**
-   * A resumed session is one that already carries a checklistPosition — the
-   * reviewer had been working before. Checking session.status === "Paused"
-   * would never fire, because the landing screen's Resume button calls
-   * resumeReview() before navigating here.
+   * A resumed session is one that already carries reviewed sections and a
+   * position. Checking status === "Paused" would never fire, because both
+   * resume paths call resumeReview() before navigating here.
    */
   const [showResumeBanner, setShowResumeBanner] = useState(() => {
-    const session = getSession(batch?.arNumber ?? "");
-    return Boolean(session?.checklistPosition);
+    const seed = getSession(batch?.arNumber ?? "");
+    if (!seed?.currentTestId || !seed.currentSectionType) return false;
+    const statuses = seed.sectionStatuses[seed.currentTestId] ?? {};
+    return Object.values(statuses).some((status) => status === "Reviewed");
   });
 
-  const [selectedRuleId, setSelectedRuleId] = useState<string | null>(() => {
-    if (!batch) return null;
-
-    const session = getSession(batch.arNumber);
-
-    // The next finding still needing a decision, not the last one acted on.
-    const resumeTarget =
-      getNextPendingFinding(batch.arNumber) ?? session?.checklistPosition;
-    if (resumeTarget) return resumeTarget;
-
-    const findings = batch.results.filter((r) => r.outcome === "Finding");
-    if (findings.length === 0) return null;
-
-    const firstCritical = findings.find((r) => r.severity === "Critical");
-    return (firstCritical ?? findings[0]).ruleId;
-  });
-
-  /* -------------------------------------------------------------------- */
-  /* Lifecycle                                                            */
-  /* -------------------------------------------------------------------- */
-
   useEffect(() => {
-    if (!batch) router.replace("/");
-  }, [batch, router]);
-
-  useEffect(() => {
-    if (!batch) return;
-
-    const session = getSession(batch.arNumber);
-
-    // Reached directly without assembly (or after a refresh cleared state) —
-    // create a session so the workspace is not a dead end.
-    if (!session) {
-      startReview(batch.arNumber);
+    if (!batch || !session) {
+      router.replace("/");
       return;
     }
-
-    if (session.status === "ReadyForReview" || session.status === "ContextBuilding") {
-      setStatus(batch.arNumber, "InReview");
+    if (!session.currentTestId) {
+      router.replace(`/review/${batch.arNumber}/tests`);
     }
-  }, [batch, getSession, startReview, setStatus]);
+  }, [batch, session, router]);
+
+  if (!batch || !session || !test) return null;
 
   /* -------------------------------------------------------------------- */
   /* Derived                                                              */
   /* -------------------------------------------------------------------- */
 
-  const session = batch ? getSession(batch.arNumber) : null;
-  const progress = getProgress(arNumber);
-  const notes = session?.reviewerNotes ?? "";
+  const firstApplicable = applicableSections(test)[0] ?? test.sections[0];
+  const activeSection =
+    test.sections.find((candidate) => candidate.type === session.currentSectionType) ??
+    firstApplicable;
 
-  // Critical first, Major second, original rule order preserved within each.
-  const findings: RuleResult[] = batch
-    ? batch.results
-        .filter((result) => result.outcome === "Finding")
-        .sort(
-          (a, b) =>
-            SEVERITY_RANK[a.severity ?? "Minor"] - SEVERITY_RANK[b.severity ?? "Minor"],
-        )
-    : [];
+  const sectionStatuses = session.sectionStatuses[test.id] ?? {};
+  const progress = getProgress(arNumber, test.id);
+  const sla = getSlaStatus(arNumber);
 
-  const compliant: RuleResult[] = batch
-    ? batch.results.filter((result) => result.outcome === "Compliant")
-    : [];
+  // Derived, not stored — no effect needed when the section changes.
+  const autoSelectedId = defaultEntryId(activeSection);
+  const selectedId = selectedBySection[activeSection.type] ?? autoSelectedId;
+  const selected =
+    activeSection.actualEntries.find((entry) => entry.id === selectedId) ?? null;
 
-  const activeSection = SECTIONS.find((entry) => entry.id === section) ?? SECTIONS[0];
+  const isReviewed = sectionStatuses[activeSection.type] === "Reviewed";
 
-  const inSection = (ruleId: string) =>
-    activeSection.ruleIds === null || activeSection.ruleIds.includes(ruleId);
+  const applicable = applicableSections(test);
+  const allReviewed = progress.total > 0 && progress.remaining === 0;
+  const showCompletion = allReviewed && !browsingSection && !paused;
 
-  const visibleFindings = findings.filter((result) => inSection(result.ruleId));
-  const visibleCompliant = compliant.filter((result) => inSection(result.ruleId));
+  /**
+   * Complete Review is gated on the whole AR, not one test. A Digital Review
+   * Record built from partial coverage would be meaningless in a GMP context.
+   */
+  const batchProgress = getAllTestsProgress(arNumber);
+  const allTestsReviewed =
+    batchProgress.totalSections > 0 &&
+    batchProgress.totalSections === batchProgress.reviewedSections;
 
-  const selected = batch?.results.find((result) => result.ruleId === selectedRuleId) ?? null;
-  const selectedState = selected ? getFindingState(arNumber, selected.ruleId) : "Pending";
-
-  const isCleanBatch = findings.length === 0;
-  const showEvidencePanel = selected !== null;
-
-  if (!batch) return null;
+  const testEntries = applicable.flatMap((section) => section.actualEntries);
+  const flaggedCount = testEntries.filter((entry) => entry.status === "flagged").length;
+  const advisoryCount = testEntries.filter((entry) => entry.status === "advisory").length;
+  const allCompliant = flaggedCount === 0 && advisoryCount === 0;
+  // N/A sections have no entries to open, so they are ready immediately.
+  const canMarkReviewed =
+    !activeSection.applicable || viewedSections[activeSection.type] === true;
 
   /* -------------------------------------------------------------------- */
   /* Handlers                                                             */
   /* -------------------------------------------------------------------- */
 
-  function handlePause() {
-    pauseReview(arNumber);
-    setPaused(true);
+  function selectSection(type: SectionType) {
+    setCurrentSection(arNumber, type);
+    // Stepping back into a section replaces the completion banner.
+    setBrowsingSection(true);
   }
 
-  function handleResumeFromPause() {
-    resumeReview(arNumber);
-    setPaused(false);
+  function selectEntry(entryId: string) {
+    setSelectedBySection((current) => ({ ...current, [activeSection.type]: entryId }));
+    setViewedSections((current) => ({ ...current, [activeSection.type]: true }));
+  }
+
+  function handleMarkReviewed() {
+    markSectionReviewed(arNumber, test!.id, activeSection.type);
+
+    // Advance to the next section that still needs review.
+    const next = test!.sections.find(
+      (candidate) =>
+        candidate.applicable &&
+        candidate.type !== activeSection.type &&
+        sectionStatuses[candidate.type] !== "Reviewed",
+    );
+    if (next) {
+      setCurrentSection(arNumber, next.type);
+    } else {
+      // That was the last section — surface the completion banner.
+      setBrowsingSection(false);
+    }
   }
 
   function handleCompleteReview() {
@@ -308,82 +204,88 @@ export default function WorkspacePage() {
     router.push(`/review/${arNumber}/summary`);
   }
 
-  function handleAddNote() {
-    setSection("notes");
-    centreRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  function handlePause() {
+    pauseReview(arNumber);
+    setPaused(true);
   }
 
-  function handleDismissResumeBanner() {
-    setStatus(arNumber, "InReview");
-    setShowResumeBanner(false);
+  function handleResume() {
+    resumeReview(arNumber);
+    setPaused(false);
   }
 
   /* -------------------------------------------------------------------- */
   /* Render                                                               */
   /* -------------------------------------------------------------------- */
 
-  const resumeTargetRuleId =
-    getNextPendingFinding(arNumber) ?? session?.checklistPosition;
-  const resumeRuleName = resumeTargetRuleId ? RULE_NAMES[resumeTargetRuleId] : null;
-
   return (
-    <div className="flex h-[100dvh] overflow-hidden">
+    <div className="flex h-full overflow-hidden">
       {/* ---------------------------------------------------------------- */}
       {/* LEFT COLUMN                                                      */}
       {/* ---------------------------------------------------------------- */}
-      <aside className="flex w-60 shrink-0 flex-col gap-4 overflow-y-auto border-r bg-card px-4 py-5">
-        <div>
-          <p className="font-mono text-sm font-bold tracking-tight">
-            {batch.arNumber}
+      <aside className="flex w-60 shrink-0 flex-col gap-4 overflow-y-auto border-r bg-card px-4 py-4">
+        {/* Primary lateral navigation — client-side push so browser back
+            returns here, and so in-memory state survives. */}
+        <button
+          type="button"
+          onClick={() => router.push(`/review/${arNumber}/tests`)}
+          className="flex w-fit items-center gap-1 text-sm font-medium text-primary transition-colors hover:underline"
+        >
+          <ChevronLeft className="size-4" />
+          All Tests
+        </button>
+
+        <div className="flex flex-col gap-1">
+          <p className="font-mono text-sm font-bold tracking-tight">{batch.arNumber}</p>
+          <p className="text-xs text-muted-foreground">
+            {batch.product} · <span className="font-mono">{batch.batchNumber}</span>
           </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{batch.product}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <span className="text-sm font-medium">{test.name}</span>
+            <Badge variant="outline">{test.methodType}</Badge>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-1 text-sm">
-          {progress.findings > 0 ? (
-            <>
-              {findings.filter((f) => f.severity === "Critical").length > 0 ? (
-                <p className="text-red-700 dark:text-red-400">
-                  <span className="font-semibold tabular-nums">
-                    {findings.filter((f) => f.severity === "Critical").length}
-                  </span>{" "}
-                  Critical
-                </p>
-              ) : null}
-              {findings.filter((f) => f.severity === "Major").length > 0 ? (
-                <p className="text-amber-700 dark:text-amber-400">
-                  <span className="font-semibold tabular-nums">
-                    {findings.filter((f) => f.severity === "Major").length}
-                  </span>{" "}
-                  Major
-                </p>
-              ) : null}
-            </>
-          ) : null}
-          <p className="text-muted-foreground">
-            <span className="font-semibold tabular-nums">{progress.compliant}</span>{" "}
-            Compliant
-          </p>
-        </div>
+        {sla ? (
+          <div className="flex flex-col gap-1">
+            <Badge variant="secondary" className={cn("w-fit", SLA_TONES[sla.status])}>
+              {sla.status === "overdue" ? "OVERDUE" : "Within SLA"}
+            </Badge>
+            <p className="text-xs text-muted-foreground">{sla.detail}</p>
+          </div>
+        ) : null}
 
         <Separator />
 
         <nav className="flex flex-col gap-0.5">
-          {SECTIONS.map((entry) => (
-            <button
-              key={entry.id}
-              type="button"
-              onClick={() => setSection(entry.id)}
-              className={cn(
-                "rounded-md px-2 py-1.5 text-left text-sm transition-colors",
-                section === entry.id
-                  ? "bg-muted font-medium text-foreground"
-                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-              )}
-            >
-              {entry.label}
-            </button>
-          ))}
+          {test.sections.map((section) => {
+            const reviewed = sectionStatuses[section.type] === "Reviewed";
+            const active = section.type === activeSection.type;
+
+            return (
+              <button
+                key={section.type}
+                type="button"
+                disabled={paused}
+                onClick={() => selectSection(section.type)}
+                className={cn(
+                  paused && "cursor-not-allowed opacity-40",
+                  "flex items-center justify-between gap-2 rounded-md border-l-2 px-2 py-1.5 text-left text-sm transition-colors",
+                  active
+                    ? "border-l-blue-500 bg-muted font-medium text-foreground"
+                    : "border-l-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                  !section.applicable && "opacity-55",
+                )}
+              >
+                <span>{SECTION_LABELS[section.type]}</span>
+                {!section.applicable ? (
+                  <span className="text-xs">N/A</span>
+                ) : reviewed ? (
+                  <Check className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                ) : null}
+              </button>
+            );
+          })}
         </nav>
 
         <Separator />
@@ -391,24 +293,14 @@ export default function WorkspacePage() {
         <div className="mt-auto flex flex-col gap-3">
           <div className="flex flex-col gap-2">
             <p className="text-sm font-medium tabular-nums">
-              {progress.rulesAddressed} / {progress.total} rules addressed
+              {progress.reviewed} / {progress.total} sections reviewed
             </p>
             <Progress
-              value={
-                progress.total === 0
-                  ? 0
-                  : (progress.rulesAddressed / progress.total) * 100
-              }
+              value={progress.total === 0 ? 0 : (progress.reviewed / progress.total) * 100}
             />
-            <div className="flex flex-col gap-0.5 text-xs text-muted-foreground tabular-nums">
-              <p>
-                {progress.findings} Findings · {progress.compliant} Compliant
-              </p>
-              <p>
-                {progress.acknowledged} Acknowledged · {progress.pending}{" "}
-                {displayState("Pending")}
-              </p>
-            </div>
+            <p className="text-xs text-muted-foreground tabular-nums">
+              {progress.reviewed} reviewed · {progress.remaining} remaining
+            </p>
           </div>
 
           <Button variant="outline" className="w-full" onClick={handlePause}>
@@ -421,10 +313,9 @@ export default function WorkspacePage() {
       {/* ---------------------------------------------------------------- */}
       {/* CENTRE COLUMN                                                    */}
       {/* ---------------------------------------------------------------- */}
-      <div ref={centreRef} className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-6 py-6">
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-6 py-6">
           {paused ? (
-            /* ---------------------------- Pause state ------------------ */
             <section className="rounded-xl border border-amber-300 bg-amber-50 p-6 dark:border-amber-900 dark:bg-amber-950/40">
               <h2 className="font-heading text-lg font-medium text-amber-900 dark:text-amber-200">
                 Review Paused
@@ -433,112 +324,99 @@ export default function WorkspacePage() {
                 Your progress has been saved.
               </p>
               <p className="mt-3 font-mono text-sm text-amber-900 dark:text-amber-200">
-                {batch.arNumber} · {progress.addressed} of {progress.findings}{" "}
-                findings addressed
+                {batch.arNumber} · {progress.reviewed} of {progress.total} sections
+                reviewed
               </p>
               <p className="mt-3 text-sm text-amber-900/90 dark:text-amber-200/90">
                 Return to the landing screen to resume.
               </p>
               <div className="mt-5 flex gap-2">
-                <Button onClick={handleResumeFromPause}>Resume Review</Button>
+                <Button onClick={handleResume}>Resume Review</Button>
                 <Button variant="outline" onClick={() => router.push("/")}>
                   Return to Home
                 </Button>
               </div>
             </section>
-          ) : section === "review-summary" ? (
-            /* ---------------------------- Review context --------------- */
-            <>
-              <Card className="[--card-spacing:--spacing(5)]">
-                <CardHeader>
-                  <CardTitle className="text-lg">Review Context</CardTitle>
-                  <p className="text-xs text-muted-foreground">
-                    Assembled from Empower and Caliber LIMS — read-only
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <dl className="grid grid-cols-[10.5rem_1fr] gap-x-4 gap-y-2.5">
-                    <ContextRow label="AR Number" value={batch.arNumber} mono />
-                    <ContextRow label="Product" value={batch.product} />
-                    <ContextRow label="Test Type" value={batch.testType} />
-                    <ContextRow label="Method" value={batch.method} mono />
-                    <ContextRow label="Analyst" value={batch.analyst} />
-                    <ContextRow label="Submitted" value={batch.submitted} />
-                    <ContextRow
-                      label="Working Standard"
-                      value={batch.workingStandard}
-                    />
-                    <ContextRow
-                      label="Reference Standard"
-                      value={batch.referenceStandard}
-                    />
-                    <ContextRow label="Column" value={batch.column} />
-                    <ContextRow label="Audit Events" value={batch.auditEvents} />
-                  </dl>
-                </CardContent>
-              </Card>
-
-              <p className="text-xs text-muted-foreground">
-                All data read-only. Source systems are not modified.
-              </p>
-            </>
-          ) : section === "notes" ? (
-            /* ---------------------------- Notes ------------------------ */
-            <section className="flex flex-col gap-2">
-              <h2 className="font-heading text-base font-medium">Reviewer Notes</h2>
-              <NotesEditor
-                value={notes}
-                onCommit={(next) => addNote(arNumber, next)}
-                placeholder="Add notes about this review..."
-                rows={6}
-                className="min-h-40"
-              />
-            </section>
-          ) : isCleanBatch ? (
-            /* ---------------------------- Clean batch ------------------ */
-            <>
-              <section className="flex flex-col items-center gap-3 py-10 text-center">
+          ) : showCompletion ? (
+            /* ------------------------ Completion banner ------------------ */
+            <section className="flex flex-col items-center gap-3 py-12 text-center">
+              {allCompliant ? (
                 <CheckCircle2 className="size-14 text-emerald-600 dark:text-emerald-400" />
-                <h2 className="font-heading text-2xl font-medium">
-                  No Compliance Exceptions Found
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {progress.total} Rules Executed · {progress.compliant} Compliant ·{" "}
-                  {progress.findings} Findings
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Test Type: {batch.testType}
-                </p>
-                <Button size="lg" className="mt-3" onClick={handleCompleteReview}>
-                  Complete Review
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  Ready for QA Review — record disposition in Caliber LIMS
-                </p>
-              </section>
+              ) : (
+                <ClipboardCheck className="size-14 text-muted-foreground" />
+              )}
 
-              <CompliantSection
-                rules={visibleCompliant}
-                selectedRuleId={selectedRuleId}
-                onSelect={setSelectedRuleId}
-              />
-            </>
-          ) : (
-            /* ---------------------------- Findings --------------------- */
-            <>
-              {showResumeBanner && resumeRuleName ? (
-                <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-                  <p className="flex-1 leading-relaxed">
-                    Resuming{" "}
-                    <span className="font-mono font-medium">{batch.arNumber}</span> ·{" "}
-                    {batch.product} · You left off at:{" "}
-                    <span className="font-medium">{resumeRuleName}</span> ·{" "}
-                    {progress.pending} of {progress.findings} findings remaining
+              <h2 className="font-heading text-2xl font-medium">
+                All sections reviewed
+              </h2>
+
+              <p className="text-sm text-muted-foreground">
+                {applicable.map((section) => SECTION_LABELS[section.type]).join(" · ")}
+              </p>
+
+              <p className="text-sm font-medium">
+                {allCompliant
+                  ? "All Compliant"
+                  : [
+                      flaggedCount > 0
+                        ? `${flaggedCount} ${flaggedCount === 1 ? "exception" : "exceptions"}`
+                        : null,
+                      advisoryCount > 0
+                        ? `${advisoryCount} ${advisoryCount === 1 ? "advisory" : "advisories"}`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+              </p>
+
+              <p className="text-sm text-muted-foreground">Ready for QA Review</p>
+
+              {allTestsReviewed ? (
+                <>
+                  <Button
+                    size="lg"
+                    className="mt-3 w-full max-w-xs"
+                    onClick={handleCompleteReview}
+                  >
+                    Complete Review
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Record QA disposition in Caliber LIMS
                   </p>
+                </>
+              ) : (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {batchProgress.totalSections - batchProgress.reviewedSections}{" "}
+                  {batchProgress.totalSections - batchProgress.reviewedSections === 1
+                    ? "section"
+                    : "sections"}{" "}
+                  remaining in other tests before this review can be completed.
+                </p>
+              )}
+            </section>
+          ) : (
+            <>
+              {showResumeBanner ? (
+                <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                  <div className="flex flex-1 flex-col gap-0.5 leading-relaxed">
+                    <p>
+                      Resuming{" "}
+                      <span className="font-mono font-medium">{batch.arNumber}</span> —{" "}
+                      {batch.product}
+                    </p>
+                    <p>
+                      Test: {test.name} &nbsp;|&nbsp; Section:{" "}
+                      {SECTION_LABELS[activeSection.type]}
+                    </p>
+                    <p>
+                      {progress.reviewed} of {progress.total} sections reviewed —{" "}
+                      {progress.remaining} remaining
+                    </p>
+                  </div>
                   <button
                     type="button"
                     aria-label="Dismiss resume banner"
-                    onClick={handleDismissResumeBanner}
+                    onClick={() => setShowResumeBanner(false)}
                     className="rounded-md p-0.5 transition-colors hover:bg-amber-200/60 dark:hover:bg-amber-900/60"
                   >
                     <X className="size-4" />
@@ -546,68 +424,157 @@ export default function WorkspacePage() {
                 </div>
               ) : null}
 
-              {visibleFindings.map((result) => {
-                const state = getFindingState(arNumber, result.ruleId);
-                const severity = result.severity ?? "Minor";
-                const isSelected = result.ruleId === selectedRuleId;
-
-                return (
-                  <button
-                    key={result.ruleId}
-                    type="button"
-                    onClick={() => setSelectedRuleId(result.ruleId)}
-                    className={cn(
-                      "flex flex-col gap-2 rounded-lg border border-l-4 bg-card px-4 py-3 text-left transition-all",
-                      isSelected
-                        ? "border-l-blue-500 ring-1 ring-blue-500/40"
-                        : SEVERITY_BORDERS[severity],
-                      // Addressed findings stay visible but recede.
-                      state !== "Pending" && !isSelected && "opacity-60",
-                    )}
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium">
-                        {RULE_NAMES[result.ruleId]}
-                      </span>
-                      <Badge variant="secondary" className={SEVERITY_TONES[severity]}>
-                        {severity}
-                      </Badge>
-                      <Badge variant="secondary" className={STATE_TONES[state]}>
-                        {displayState(state)}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{result.summary}</p>
-                  </button>
-                );
-              })}
-
-              {visibleFindings.length === 0 ? (
-                <p className="py-6 text-sm text-muted-foreground">
-                  No findings in this section.
+              <header className="flex flex-col gap-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="font-heading text-xl font-medium">
+                    {SECTION_LABELS[activeSection.type]}
+                  </h1>
+                  {isReviewed ? (
+                    <Badge
+                      variant="secondary"
+                      className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                    >
+                      <Check className="size-3" />
+                      Reviewed
+                    </Badge>
+                  ) : null}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {activeSection.applicable
+                    ? "Simulated LIMS data (Caliber LIMS in production)"
+                    : "Test method configuration"}
                 </p>
-              ) : null}
+              </header>
 
-              <CompliantSection
-                rules={visibleCompliant}
-                selectedRuleId={selectedRuleId}
-                onSelect={setSelectedRuleId}
-              />
-
-              <Separator className="mt-4" />
-
-              <div className="flex flex-col items-center gap-2 pb-2">
-                {progress.pending > 0 ? (
-                  <>
-                    <Button variant="outline" disabled>
-                      Complete Review
-                    </Button>
-                    <p className="text-xs text-muted-foreground">
-                      Acknowledge or escalate all findings to complete review
+              {!activeSection.applicable ? (
+                /* ------------------------- N/A panel ---------------------- */
+                <section className="flex flex-col gap-3 rounded-xl border bg-muted/40 px-5 py-5">
+                  <div className="flex items-center gap-2">
+                    <Ban className="size-5 text-muted-foreground" />
+                    <p className="font-medium">
+                      {SECTION_LABELS[activeSection.type]} — Not applicable
                     </p>
-                  </>
-                ) : (
-                  <Button onClick={handleCompleteReview}>Complete Review</Button>
-                )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {activeSection.naReason}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Source: Test method configuration
+                  </p>
+                </section>
+              ) : activeSection.expectedEntries ? (
+                /* ------------------- Expected vs Actual ------------------- */
+                <section className="grid gap-4 md:grid-cols-2">
+                  <div className="flex flex-col gap-2">
+                    <h2 className="text-xs font-medium text-muted-foreground">
+                      Expected (configured specification)
+                    </h2>
+                    <ol className="flex flex-col gap-1.5">
+                      {activeSection.expectedEntries.map((expected, index) => (
+                        <li
+                          key={expected.id}
+                          className="flex gap-2 rounded-md border border-dashed px-3 py-2 text-sm"
+                        >
+                          <span className="text-muted-foreground tabular-nums">
+                            {index + 1}.
+                          </span>
+                          <span className="flex-1">
+                            {expected.label}
+                            {expected.requirement ? (
+                              <span className="block text-xs text-muted-foreground">
+                                {expected.requirement}
+                              </span>
+                            ) : null}
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <h2 className="text-xs font-medium text-muted-foreground">
+                      Actual (Simulated LIMS data)
+                    </h2>
+                    <ol className="flex flex-col gap-1.5">
+                      {activeSection.actualEntries.map((entry, index) => (
+                        <li key={entry.id}>
+                          <button
+                            type="button"
+                            onClick={() => selectEntry(entry.id)}
+                            className={cn(
+                              "flex w-full items-start gap-2 rounded-md border px-3 py-2 text-left text-sm transition-all",
+                              entry.status === "flagged" &&
+                                "border-red-300 bg-red-50 dark:border-red-900 dark:bg-red-950/40",
+                              entry.status === "advisory" &&
+                                "border-amber-300 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40",
+                              entry.id === selectedId && "ring-2 ring-blue-500/50",
+                            )}
+                          >
+                            <span className="text-muted-foreground tabular-nums">
+                              {index + 1}.
+                            </span>
+                            <span className="flex-1">
+                              <span className="block">{entry.label}</span>
+                              <span className="block text-xs text-muted-foreground">
+                                {entry.value}
+                              </span>
+                            </span>
+                            <EntryIcon status={entry.status} />
+                          </button>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                </section>
+              ) : (
+                /* ---------------------- Simple entry list ------------------ */
+                <section className="flex flex-col gap-1.5">
+                  {activeSection.actualEntries.map((entry) => (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      onClick={() => selectEntry(entry.id)}
+                      className={cn(
+                        "flex items-start gap-3 rounded-md border px-3 py-2.5 text-left text-sm transition-all",
+                        entry.status === "flagged" &&
+                          "border-red-300 bg-red-50 dark:border-red-900 dark:bg-red-950/40",
+                        entry.status === "advisory" &&
+                          "border-amber-300 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40",
+                        entry.id === selectedId && "ring-2 ring-blue-500/50",
+                      )}
+                    >
+                      <span className="flex-1">
+                        <span className="block font-medium">{entry.label}</span>
+                        <span className="block text-xs text-muted-foreground">
+                          {entry.value}
+                        </span>
+                      </span>
+                      <Badge variant="secondary" className={ENTRY_TONES[entry.status]}>
+                        {ENTRY_LABELS[entry.status]}
+                      </Badge>
+                      <EntryIcon status={entry.status} />
+                    </button>
+                  ))}
+                </section>
+              )}
+
+              <Separator className="mt-2" />
+
+              <div className="flex flex-col items-start gap-2 pb-2">
+                <Button onClick={handleMarkReviewed} disabled={!canMarkReviewed || isReviewed}>
+                  {isReviewed ? "Section Reviewed" : "Mark as Reviewed"}
+                </Button>
+                {!canMarkReviewed && !isReviewed ? (
+                  <p className="text-xs text-muted-foreground">
+                    Open an entry to review its detail before marking this section.
+                  </p>
+                ) : null}
+
+                {allTestsReviewed ? (
+                  <Button className="mt-2 w-full" onClick={handleCompleteReview}>
+                    Complete Review
+                  </Button>
+                ) : null}
               </div>
             </>
           )}
@@ -617,180 +584,70 @@ export default function WorkspacePage() {
       {/* ---------------------------------------------------------------- */}
       {/* RIGHT COLUMN — evidence, always inline, never a modal            */}
       {/* ---------------------------------------------------------------- */}
-      {showEvidencePanel && selected ? (
-        <aside className="w-95 shrink-0 overflow-y-auto border-l bg-card px-5 py-5">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-heading text-base font-medium">
-              {RULE_NAMES[selected.ruleId]}
-            </h2>
-            {selected.outcome === "Finding" ? (
-              <>
-                <Badge
-                  variant="secondary"
-                  className={SEVERITY_TONES[selected.severity ?? "Minor"]}
-                >
-                  {selected.severity}
-                </Badge>
-                <Badge variant="secondary" className={STATE_TONES[selectedState]}>
-                  {displayState(selectedState)}
-                </Badge>
-              </>
-            ) : (
-              <Badge variant="secondary" className={COMPLIANT_TONE}>
-                Compliant
+      <aside className="w-95 shrink-0 overflow-y-auto border-l bg-card px-5 py-5">
+        {!selected ? (
+          <p className="text-sm text-muted-foreground">
+            {activeSection.applicable
+              ? "Select an entry to view details"
+              : "This section does not apply to this test."}
+          </p>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-heading text-base font-medium">{selected.label}</h2>
+              <Badge variant="secondary" className={ENTRY_TONES[selected.status]}>
+                {ENTRY_LABELS[selected.status]}
               </Badge>
-            )}
-          </div>
+            </div>
 
-          <dl className="mt-4 flex flex-col gap-3">
-            <EvidenceRow label="Expected" value={selected.expected} />
-            <EvidenceRow label="Actual" value={selected.actual} />
-            <EvidenceRow label="Source" value={selected.source} />
-            {batch.analysisDate ? (
-              <EvidenceRow label="Analysis Date" value={batch.analysisDate} />
+            <dl className="mt-4 flex flex-col gap-2.5">
+              {Object.entries(selected.details).map(([key, value]) => (
+                <div key={key} className="grid grid-cols-[8.5rem_1fr] gap-2">
+                  <dt className="text-xs font-medium text-muted-foreground">{key}</dt>
+                  <dd className="text-sm leading-relaxed">{value}</dd>
+                </div>
+              ))}
+              <div className="grid grid-cols-[8.5rem_1fr] gap-2">
+                <dt className="text-xs font-medium text-muted-foreground">Source</dt>
+                <dd className="text-sm leading-relaxed">{selected.sourceLabel}</dd>
+              </div>
+            </dl>
+
+            {selected.status === "flagged" ? (
+              <>
+                <div className="mt-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2.5 dark:border-red-900 dark:bg-red-950/40">
+                  <p className="text-xs font-medium text-red-800 dark:text-red-300">
+                    Finding
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-red-900 dark:text-red-200">
+                    {selected.finding}
+                  </p>
+                </div>
+
+                {selected.action ? (
+                  <div className="mt-3 rounded-lg border bg-muted/50 px-3 py-2.5">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Action required
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed">{selected.action}</p>
+                  </div>
+                ) : null}
+              </>
             ) : null}
 
-            <div className="flex flex-col gap-1.5">
-              <dt className="text-xs font-medium text-muted-foreground">
-                Explanation
-              </dt>
-              <dd className="rounded-lg bg-muted/50 px-3 py-2.5 text-sm leading-relaxed">
-                {selected.explanation}
-              </dd>
-            </div>
-          </dl>
-
-          {selected.outcome === "Finding" && selected.laboratoryPractice ? (
-            <Collapsible className="mt-4">
-              <CollapsibleTrigger className="group/why flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
-                <ChevronDown className="size-3.5 transition-transform group-data-[panel-open]/why:rotate-180" />
-                Why is this important?
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2 flex flex-col gap-3 rounded-lg border px-3 py-3">
-                <GuidanceRow
-                  label="Laboratory Practice"
-                  value={selected.laboratoryPractice}
-                />
-                <GuidanceRow
-                  label="Typical Mistake"
-                  value={selected.typicalMistake ?? ""}
-                />
-                <GuidanceRow
-                  label="Regulatory Expectation"
-                  value={selected.regulatoryExpectation ?? ""}
-                />
-                <GuidanceRow
-                  label="Company SOP"
-                  value={selected.companySOP ?? ""}
-                  muted
-                />
-              </CollapsibleContent>
-            </Collapsible>
-          ) : null}
-
-          {selected.outcome === "Finding" ? (
-            <>
-              <div className="mt-5 flex flex-wrap gap-2">
-                {selectedState === "Acknowledged" ? (
-                  <Button
-                    disabled
-                    className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                  >
-                    <Check data-icon="inline-start" />
-                    Acknowledged
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => acknowledgeFinding(arNumber, selected.ruleId)}
-                  >
-                    Acknowledge
-                  </Button>
-                )}
-
-                {selectedState === "Escalated" ? (
-                  <Button
-                    disabled
-                    variant="outline"
-                    className="border-amber-300 text-amber-800 dark:border-amber-900 dark:text-amber-300"
-                  >
-                    <ArrowUpRight data-icon="inline-start" />
-                    Escalated
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    onClick={() => escalateFinding(arNumber, selected.ruleId)}
-                  >
-                    Mark for Follow-up
-                  </Button>
-                )}
-
-                <Button variant="ghost" onClick={handleAddNote}>
-                  Add Note
-                </Button>
+            {selected.status === "advisory" ? (
+              <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 dark:border-amber-900 dark:bg-amber-950/40">
+                <p className="text-xs font-medium text-amber-900 dark:text-amber-300">
+                  Advisory
+                </p>
+                <p className="mt-1 text-sm leading-relaxed text-amber-900 dark:text-amber-200">
+                  {selected.advisory}
+                </p>
               </div>
-
-              <div className="mt-3">
-                <NotesEditor
-                  value={notes}
-                  onCommit={(next) => addNote(arNumber, next)}
-                  placeholder="Add to reviewer notes..."
-                  rows={3}
-                />
-              </div>
-            </>
-          ) : (
-            <p className="mt-5 text-sm text-muted-foreground">
-              This rule is compliant. No action required.
-            </p>
-          )}
-        </aside>
-      ) : null}
+            ) : null}
+          </>
+        )}
+      </aside>
     </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Compliant rules — visible but collapsed. Never hidden.                     */
-/* -------------------------------------------------------------------------- */
-
-function CompliantSection({
-  rules,
-  selectedRuleId,
-  onSelect,
-}: {
-  rules: RuleResult[];
-  selectedRuleId: string | null;
-  onSelect: (ruleId: string) => void;
-}) {
-  if (rules.length === 0) return null;
-
-  return (
-    <Collapsible className="mt-2">
-      <CollapsibleTrigger className="group/trigger flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
-        <ChevronDown className="size-4 transition-transform group-data-[panel-open]/trigger:rotate-180" />
-        {rules.length} rules compliant — show
-      </CollapsibleTrigger>
-      <CollapsibleContent className="mt-2 flex flex-col gap-1">
-        {rules.map((result) => (
-          <button
-            key={result.ruleId}
-            type="button"
-            onClick={() => onSelect(result.ruleId)}
-            className={cn(
-              "flex items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors",
-              result.ruleId === selectedRuleId
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-            )}
-          >
-            <span>{RULE_NAMES[result.ruleId]}</span>
-            <Badge variant="secondary" className={COMPLIANT_TONE}>
-              Compliant
-            </Badge>
-          </button>
-        ))}
-      </CollapsibleContent>
-    </Collapsible>
   );
 }

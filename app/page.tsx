@@ -10,24 +10,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
-/**
- * The seed status recorded in the batch data, before any session exists.
- * Aliased because the live session union in ReviewContext shares the name.
- */
+/** The seed status on the batch, before any session exists. */
 type SeedStatus = Batch["sessionStatus"];
 
 type CardStatus = SessionStatus | SeedStatus;
 
-/** Which action a Recent Reviews card offers, derived from its status. */
 type CardAction = "summary" | "resume" | "begin";
 
 const STATUS_LABELS: Record<CardStatus, string> = {
   NotStarted: "New",
   New: "New",
-  ContextBuilding: "Building Context",
-  ReadyForReview: "In Review",
-  InReview: "In Review",
+  ContextBuilding: "In Progress",
+  InProgress: "In Progress",
   Paused: "Paused",
   Completed: "Completed",
 };
@@ -36,12 +33,16 @@ const STATUS_TONES: Record<CardStatus, string> = {
   NotStarted: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
   New: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
   ContextBuilding: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
-  ReadyForReview: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
-  InReview: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
+  InProgress: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
   Paused: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300",
   Completed:
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
 };
+
+const SLA_TONES = {
+  within: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
+  overdue: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
+} as const;
 
 function actionFor(status: CardStatus): CardAction {
   if (status === "Completed") return "summary";
@@ -56,16 +57,41 @@ function listArNumbers(): string {
   return `${numbers.slice(0, -1).join(", ")}, or ${numbers[numbers.length - 1]}`;
 }
 
-export default function LandingPage() {
+export default function EntryPage() {
   const router = useRouter();
-  const { getSession, startReview, resumeReview } = useReview();
+  const {
+    getSession,
+    getSlaStatus,
+    startReview,
+    resumeReview,
+    activeSlaProfileId,
+    slaProfiles,
+    setSlaProfile,
+  } = useReview();
 
   const [arInput, setArInput] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  function beginReview(arNumber: string) {
+  const activeProfile =
+    slaProfiles.find((profile) => profile.id === activeSlaProfileId) ?? slaProfiles[0];
+  const otherProfile =
+    slaProfiles.find((profile) => profile.id !== activeSlaProfileId) ?? slaProfiles[0];
+
+  function openReview(arNumber: string, action: CardAction) {
+    if (action === "summary") {
+      router.push(`/review/${arNumber}/summary`);
+      return;
+    }
+
+    if (action === "resume") {
+      // Resume goes straight to the workspace at the paused position.
+      resumeReview(arNumber);
+      router.push(`/review/${arNumber}/workspace`);
+      return;
+    }
+
     startReview(arNumber);
-    router.push(`/review/${arNumber}/assembling`);
+    router.push(`/review/${arNumber}/tests`);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -73,35 +99,73 @@ export default function LandingPage() {
 
     const batch = getBatch(arInput);
     if (!batch) {
-      // Replaces any previous error rather than stacking.
       setError(`AR Number not found. Try ${listArNumbers()}`);
       return;
     }
 
     setError(null);
-    beginReview(batch.arNumber);
-  }
 
-  function handleCardAction(arNumber: string, action: CardAction) {
-    if (action === "summary") {
-      router.push(`/review/${arNumber}/summary`);
-      return;
-    }
-
-    if (action === "resume") {
-      // One click, straight to the workspace. Assembly is skipped entirely.
-      resumeReview(arNumber);
-      router.push(`/review/${arNumber}/workspace`);
-      return;
-    }
-
-    beginReview(arNumber);
+    // A paused session resumes; anything else starts fresh at test parameters.
+    const paused = getSession(batch.arNumber)?.status === "Paused";
+    openReview(batch.arNumber, paused ? "resume" : "begin");
   }
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center gap-10 px-6 py-16">
-        {/* Section 1 — AR entry */}
+      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-12">
+        {/* Section 1 — SLA banner and profile toggle */}
+        <Card className="[--card-spacing:--spacing(5)]">
+          <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-base">Review SLA Status</CardTitle>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  Active profile: {activeProfile.name} — {activeProfile.workingDays}{" "}
+                  working {activeProfile.workingDays === 1 ? "day" : "days"}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSlaProfile(otherProfile.id)}
+              >
+                Switch to {otherProfile.name}
+              </Button>
+            </div>
+          </CardHeader>
+
+          <CardContent className="flex flex-col gap-3">
+            {BATCHES.map((batch) => {
+              const sla = getSlaStatus(batch.arNumber);
+              if (!sla) return null;
+
+              return (
+                <div key={batch.arNumber} className="flex flex-col gap-1">
+                  <p className="text-sm">
+                    <span className="font-mono">{batch.arNumber}</span>
+                    <span className="text-muted-foreground"> · {batch.product}</span>
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                    <span>Due: {sla.dueDate}</span>
+                    <span>·</span>
+                    <Badge variant="secondary" className={SLA_TONES[sla.status]}>
+                      {sla.status === "overdue" ? "OVERDUE" : "Within SLA"}
+                    </Badge>
+                    <span>{sla.detail}</span>
+                  </div>
+                </div>
+              );
+            })}
+
+            <Separator className="mt-1" />
+
+            <p className="text-xs text-muted-foreground">
+              Review timelines are configurable per customer SOP.
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Section 2 — AR number entry */}
         <Card className="[--card-spacing:--spacing(6)]">
           <CardHeader>
             <CardTitle className="text-2xl">QA Compliance Review</CardTitle>
@@ -144,7 +208,7 @@ export default function LandingPage() {
           </CardContent>
         </Card>
 
-        {/* Section 2 — Recent Reviews */}
+        {/* Section 3 — Recent Reviews */}
         <section className="flex flex-col gap-4">
           <h2 className="font-heading text-sm font-medium tracking-wide text-muted-foreground uppercase">
             Recent Reviews
@@ -169,36 +233,34 @@ export default function LandingPage() {
                     </div>
                     <CardTitle className="text-base">{batch.product}</CardTitle>
                     <p className="text-xs text-muted-foreground">
-                      Submitted {batch.submitted}
+                      Submitted {batch.submittedAt}
                     </p>
                   </CardHeader>
 
                   <CardContent>
-                    {action === "summary" ? (
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => handleCardAction(batch.arNumber, action)}
-                      >
-                        <ClipboardCheck data-icon="inline-start" />
-                        View Summary
-                      </Button>
-                    ) : action === "resume" ? (
-                      <Button
-                        className="w-full bg-amber-600 text-white hover:bg-amber-600/85"
-                        onClick={() => handleCardAction(batch.arNumber, action)}
-                      >
-                        <PauseCircle data-icon="inline-start" />
-                        Resume Review
-                      </Button>
-                    ) : (
-                      <Button
-                        className="w-full"
-                        onClick={() => handleCardAction(batch.arNumber, action)}
-                      >
-                        Begin Review
-                      </Button>
-                    )}
+                    <Button
+                      variant={action === "summary" ? "outline" : "default"}
+                      className={cn(
+                        "w-full",
+                        action === "resume" &&
+                          "bg-amber-600 text-white hover:bg-amber-600/85",
+                      )}
+                      onClick={() => openReview(batch.arNumber, action)}
+                    >
+                      {action === "summary" ? (
+                        <>
+                          <ClipboardCheck data-icon="inline-start" />
+                          View Summary
+                        </>
+                      ) : action === "resume" ? (
+                        <>
+                          <PauseCircle data-icon="inline-start" />
+                          Resume Review
+                        </>
+                      ) : (
+                        "Begin Review"
+                      )}
+                    </Button>
                   </CardContent>
                 </Card>
               );
@@ -207,7 +269,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      {/* Section 3 — Footer */}
+      {/* Section 4 — Footer */}
       <footer className="px-6 pb-8 text-center text-xs text-muted-foreground">
         QRA · Compliance Intelligence · Read-only · QA retains final disposition
         authority

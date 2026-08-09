@@ -1,13 +1,16 @@
 "use client";
 
 /**
- * The single global state container for the prototype.
+ * The single global state container for the V2 prototype.
  *
  * No backend, no API, no database, no localStorage. All state lives here in
  * React memory and is lost on refresh — that is intentional.
  *
  * This file imports nothing from next/navigation or any other Next.js API.
  * Pure React only: createContext, useContext, useState, useMemo, useCallback.
+ *
+ * Review state is tracked per section, not per finding. V2 has no
+ * finding-state machine — a reviewer marks a whole section as reviewed.
  */
 
 import {
@@ -19,79 +22,89 @@ import {
   type ReactNode,
 } from "react";
 
-import { getBatch, type Batch, type RuleResult } from "@/data/batches";
+import {
+  applicableSections,
+  BATCHES,
+  getBatch,
+  getSlaProfile,
+  getTest,
+  SLA_PROFILES,
+  type Batch,
+  type SectionStatus,
+  type SectionType,
+  type SlaProfile,
+  type SlaProfileId,
+} from "@/data/batches";
 
 /* -------------------------------------------------------------------------- */
 /* Types                                                                      */
 /* -------------------------------------------------------------------------- */
 
-export type FindingState = "Pending" | "Acknowledged" | "Escalated";
-
 export type SessionStatus =
   | "NotStarted"
   | "ContextBuilding"
-  | "ReadyForReview"
-  | "InReview"
+  | "InProgress"
   | "Paused"
   | "Completed";
+
+/** testId -> sectionType -> status. */
+export type SectionStatusMap = Record<string, Record<string, SectionStatus>>;
 
 export interface ReviewSession {
   arNumber: string;
   status: SessionStatus;
-  /**
-   * Keyed by rule id — "RULE-001", "RULE-013". Findings and rules share one
-   * identifier namespace across the prototype; see note in ReviewContext docs.
-   */
-  findingStates: Record<string, FindingState>;
+  currentTestId: string | null;
+  currentSectionType: string | null;
+  sectionStatuses: SectionStatusMap;
   reviewerNotes: string;
-  checklistPosition: string | null;
   sessionStartTime: string;
   lastActiveTime: string;
 }
 
-export interface ReviewProgress {
-  /** Findings the reviewer has acted on: Acknowledged + Escalated. */
-  addressed: number;
-  /** Rules evaluated for this AR. Always 10. */
-  total: number;
-  /** Rules that raised a finding. */
-  findings: number;
-  /** Rules that did not raise a finding. */
-  compliant: number;
-  acknowledged: number;
-  pending: number;
-  escalated: number;
-  /**
-   * compliant + addressed. Compliant rules need no reviewer action, so this is
-   * the numerator that lets "N / 10 rules addressed" actually reach 10 / 10.
-   * `addressed` above is the raw finding count, exactly as specified.
-   */
-  rulesAddressed: number;
+export interface SlaStatus {
+  status: "within" | "overdue";
+  daysOverdue?: number;
+  dueDate: string;
+  profileName: string;
+  /** Qualifier shown beside the status, e.g. "1 working day past due". */
+  detail: string;
 }
 
-export interface ReviewDuration {
-  minutes: number;
-  /** Rendered form for the Review Summary, e.g. "18 minutes". */
-  label: string;
+export interface TestProgress {
+  /** Applicable sections only — N/A sections are never counted. */
+  total: number;
+  reviewed: number;
+  remaining: number;
+}
+
+export interface BatchProgress {
+  totalSections: number;
+  reviewedSections: number;
 }
 
 interface ReviewContextValue {
   sessions: Record<string, ReviewSession>;
+  activeSlaProfileId: SlaProfileId;
+  slaProfiles: SlaProfile[];
 
   startReview: (arNumber: string) => void;
-  setStatus: (arNumber: string, status: SessionStatus) => void;
-  acknowledgeFinding: (arNumber: string, findingId: string) => void;
-  escalateFinding: (arNumber: string, findingId: string) => void;
+  resumeReview: (arNumber: string) => void;
+  setCurrentTest: (arNumber: string, testId: string) => void;
+  setCurrentSection: (arNumber: string, sectionType: SectionType) => void;
+  markSectionReviewed: (
+    arNumber: string,
+    testId: string,
+    sectionType: SectionType,
+  ) => void;
   addNote: (arNumber: string, note: string) => void;
   pauseReview: (arNumber: string) => void;
-  resumeReview: (arNumber: string) => void;
   completeReview: (arNumber: string) => void;
+  setSlaProfile: (profileId: SlaProfileId) => void;
 
   getSession: (arNumber: string) => ReviewSession | null;
-  getFindingState: (arNumber: string, findingId: string) => FindingState;
-  getProgress: (arNumber: string) => ReviewProgress;
-  getNextPendingFinding: (arNumber: string) => string | null;
-  getDuration: (arNumber: string) => ReviewDuration | null;
+  getSlaStatus: (arNumber: string) => SlaStatus | null;
+  getProgress: (arNumber: string, testId: string) => TestProgress;
+  getAllTestsProgress: (arNumber: string) => BatchProgress;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -113,80 +126,78 @@ export function formatTimestamp(date: Date): string {
   );
 }
 
-/** Parses "03-Aug-2026 14:32" back to epoch ms. Returns null if unparseable. */
-function parseTimestamp(value: string): number | null {
-  const match = /^(\d{2})-([A-Za-z]{3})-(\d{4})\s+(\d{2}):(\d{2})$/.exec(value.trim());
-  if (!match) return null;
-
-  const month = MONTHS.indexOf(match[2]);
-  if (month < 0) return null;
-
-  return new Date(
-    Number(match[3]),
-    month,
-    Number(match[1]),
-    Number(match[4]),
-    Number(match[5]),
-  ).getTime();
-}
-
 const now = () => formatTimestamp(new Date());
 
 /* -------------------------------------------------------------------------- */
-/* Initial state                                                              */
+/* Session construction                                                       */
 /* -------------------------------------------------------------------------- */
+
+/** When Batch C's paused session was opened and last touched. */
+const SEEDED_START_TIME = "31-Jul-2026 10:15";
+const SEEDED_LAST_ACTIVE = "31-Jul-2026 17:35";
+
+/**
+ * Every applicable section of every test, set to NotStarted.
+ * N/A sections are omitted — they can never be reviewed.
+ */
+function freshSectionStatuses(batch: Batch): SectionStatusMap {
+  const map: SectionStatusMap = {};
+  for (const test of batch.tests) {
+    const perTest: Record<string, SectionStatus> = {};
+    for (const section of applicableSections(test)) {
+      perTest[section.type] = "NotStarted";
+    }
+    map[test.id] = perTest;
+  }
+  return map;
+}
+
+function newSession(batch: Batch, timestamp: string): ReviewSession {
+  return {
+    arNumber: batch.arNumber,
+    // V2 has no assembly screen — a fresh review is immediately in progress.
+    status: "InProgress",
+    currentTestId: null,
+    currentSectionType: null,
+    sectionStatuses: freshSectionStatuses(batch),
+    reviewerNotes: "",
+    sessionStartTime: timestamp,
+    lastActiveTime: timestamp,
+  };
+}
 
 /**
  * Batch C ships as a paused session so the cold resume demo works on first
- * load, without anyone having to run Task C Part 1 first.
+ * load. The seed is read from the batch data rather than duplicated here.
  *
- * Batch A and Batch B have no session. One is created only by startReview().
+ * Batches without a sessionState have no session until startReview() runs.
  */
-const SEEDED_SESSIONS: Record<string, ReviewSession> = {
-  "AR-2026-000123": {
-    arNumber: "AR-2026-000123",
-    status: "Paused",
-    findingStates: {
-      "RULE-001": "Acknowledged",
-      "RULE-013": "Pending",
-    },
-    reviewerNotes: "",
-    checklistPosition: "RULE-013",
-    sessionStartTime: "31-Jul-2026 10:15",
-    lastActiveTime: "31-Jul-2026 17:35",
-  },
-};
+function seededSessions(): Record<string, ReviewSession> {
+  const sessions: Record<string, ReviewSession> = {};
 
-/**
- * A brand new review starts with every finding Pending.
- *
- * `initialStatus` in the batch data is the seed for Batch C's *paused* session
- * only — replaying it here would hand Shrikrishna a fresh review with RULE-001
- * already acknowledged, which contradicts a restart being a restart.
- */
-function freshFindingStates(batch: Batch): Record<string, FindingState> {
-  const states: Record<string, FindingState> = {};
-  for (const result of batch.results) {
-    if (result.outcome === "Finding") {
-      states[result.ruleId] = "Pending";
-    }
+  for (const batch of BATCHES) {
+    const seed = batch.sessionState;
+    if (!seed) continue;
+
+    sessions[batch.arNumber] = {
+      arNumber: batch.arNumber,
+      status: "Paused",
+      currentTestId: seed.currentTestId,
+      currentSectionType: seed.currentSectionType,
+      sectionStatuses: {
+        ...freshSectionStatuses(batch),
+        [seed.currentTestId]: { ...seed.sectionStatuses },
+      },
+      reviewerNotes: "",
+      sessionStartTime: SEEDED_START_TIME,
+      lastActiveTime: SEEDED_LAST_ACTIVE,
+    };
   }
-  return states;
+
+  return sessions;
 }
 
-const findingsOf = (batch: Batch): RuleResult[] =>
-  batch.results.filter((result) => result.outcome === "Finding");
-
-const EMPTY_PROGRESS: ReviewProgress = {
-  addressed: 0,
-  total: 0,
-  findings: 0,
-  compliant: 0,
-  acknowledged: 0,
-  pending: 0,
-  escalated: 0,
-  rulesAddressed: 0,
-};
+const EMPTY_TEST_PROGRESS: TestProgress = { total: 0, reviewed: 0, remaining: 0 };
 
 /* -------------------------------------------------------------------------- */
 /* Context                                                                    */
@@ -196,7 +207,10 @@ const ReviewContext = createContext<ReviewContextValue | null>(null);
 
 export function ReviewProvider({ children }: { children: ReactNode }) {
   const [sessions, setSessions] = useState<Record<string, ReviewSession>>(
-    () => SEEDED_SESSIONS,
+    () => seededSessions(),
+  );
+  const [activeSlaProfileId, setActiveSlaProfileId] = useState<SlaProfileId>(
+    "shrikrishna-site",
   );
 
   /** Applies a patch to one session. No-ops if the session does not exist. */
@@ -219,55 +233,65 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
     const batch = getBatch(arNumber);
     if (!batch) return;
 
-    const timestamp = now();
-
     // Replaces any existing session outright. This is what makes typing a
     // paused AR number restart the review rather than resume it.
     setSessions((current) => ({
       ...current,
-      [batch.arNumber]: {
-        arNumber: batch.arNumber,
-        status: "ContextBuilding",
-        findingStates: freshFindingStates(batch),
-        reviewerNotes: "",
-        checklistPosition: null,
-        sessionStartTime: timestamp,
-        lastActiveTime: timestamp,
-      },
+      [batch.arNumber]: newSession(batch, now()),
     }));
   }, []);
 
-  const setStatus = useCallback(
-    (arNumber: string, status: SessionStatus) => {
-      patchSession(arNumber, (session) => ({ ...session, status }));
-    },
-    [patchSession],
-  );
-
-  const setFindingState = useCallback(
-    (arNumber: string, findingId: string, state: FindingState) => {
+  const resumeReview = useCallback(
+    (arNumber: string) => {
+      // Deliberately leaves sectionStatuses and position untouched.
       patchSession(arNumber, (session) => ({
         ...session,
-        findingStates: { ...session.findingStates, [findingId]: state },
-        checklistPosition: findingId,
+        status: "InProgress",
         lastActiveTime: now(),
       }));
     },
     [patchSession],
   );
 
-  const acknowledgeFinding = useCallback(
-    (arNumber: string, findingId: string) => {
-      setFindingState(arNumber, findingId, "Acknowledged");
+  const setCurrentTest = useCallback(
+    (arNumber: string, testId: string) => {
+      patchSession(arNumber, (session) => ({
+        ...session,
+        status: session.status === "Completed" ? session.status : "InProgress",
+        currentTestId: testId,
+        currentSectionType: null,
+        lastActiveTime: now(),
+      }));
     },
-    [setFindingState],
+    [patchSession],
   );
 
-  const escalateFinding = useCallback(
-    (arNumber: string, findingId: string) => {
-      setFindingState(arNumber, findingId, "Escalated");
+  const setCurrentSection = useCallback(
+    (arNumber: string, sectionType: SectionType) => {
+      patchSession(arNumber, (session) => ({
+        ...session,
+        currentSectionType: sectionType,
+        lastActiveTime: now(),
+      }));
     },
-    [setFindingState],
+    [patchSession],
+  );
+
+  const markSectionReviewed = useCallback(
+    (arNumber: string, testId: string, sectionType: SectionType) => {
+      patchSession(arNumber, (session) => ({
+        ...session,
+        sectionStatuses: {
+          ...session.sectionStatuses,
+          [testId]: {
+            ...session.sectionStatuses[testId],
+            [sectionType]: "Reviewed",
+          },
+        },
+        lastActiveTime: now(),
+      }));
+    },
+    [patchSession],
   );
 
   const addNote = useCallback(
@@ -292,18 +316,6 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
     [patchSession],
   );
 
-  const resumeReview = useCallback(
-    (arNumber: string) => {
-      // Deliberately leaves findingStates and checklistPosition untouched.
-      patchSession(arNumber, (session) => ({
-        ...session,
-        status: "InReview",
-        lastActiveTime: now(),
-      }));
-    },
-    [patchSession],
-  );
-
   const completeReview = useCallback(
     (arNumber: string) => {
       patchSession(arNumber, (session) => ({
@@ -315,6 +327,10 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
     [patchSession],
   );
 
+  const setSlaProfile = useCallback((profileId: SlaProfileId) => {
+    setActiveSlaProfileId(profileId);
+  }, []);
+
   /* ---------------------------------------------------------------------- */
   /* Derived values                                                         */
   /* ---------------------------------------------------------------------- */
@@ -324,132 +340,100 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
     [sessions],
   );
 
-  const getFindingState = useCallback(
-    (arNumber: string, findingId: string): FindingState => {
-      const fromSession = sessions[arNumber]?.findingStates[findingId];
-      if (fromSession) return fromSession;
-
-      // No session yet — fall back to the seed recorded in the batch data.
-      const result = getBatch(arNumber)?.results.find(
-        (candidate) => candidate.ruleId === findingId,
-      );
-      return result?.initialStatus ?? "Pending";
-    },
-    [sessions],
-  );
-
-  const getProgress = useCallback(
-    (arNumber: string): ReviewProgress => {
-      const batch = getBatch(arNumber);
-      if (!batch) return EMPTY_PROGRESS;
-
-      const findings = findingsOf(batch);
-      const compliant = batch.results.length - findings.length;
-
-      let acknowledged = 0;
-      let escalated = 0;
-      let pending = 0;
-
-      for (const finding of findings) {
-        switch (getFindingState(arNumber, finding.ruleId)) {
-          case "Acknowledged":
-            acknowledged += 1;
-            break;
-          case "Escalated":
-            escalated += 1;
-            break;
-          default:
-            pending += 1;
-        }
-      }
-
-      const addressed = acknowledged + escalated;
-
-      return {
-        addressed,
-        total: batch.results.length,
-        findings: findings.length,
-        compliant,
-        acknowledged,
-        pending,
-        escalated,
-        rulesAddressed: compliant + addressed,
-      };
-    },
-    [getFindingState],
-  );
-
-  const getNextPendingFinding = useCallback(
-    (arNumber: string): string | null => {
+  const getSlaStatus = useCallback(
+    (arNumber: string): SlaStatus | null => {
       const batch = getBatch(arNumber);
       if (!batch) return null;
 
-      const next = findingsOf(batch).find(
-        (finding) => getFindingState(arNumber, finding.ruleId) === "Pending",
-      );
-      return next?.ruleId ?? null;
+      const assessment = batch.slaByProfile[activeSlaProfileId];
+      const overdue = assessment.status === "Overdue";
+
+      return {
+        status: overdue ? "overdue" : "within",
+        daysOverdue: assessment.daysOverdue,
+        dueDate: assessment.deadline,
+        profileName: getSlaProfile(activeSlaProfileId).name,
+        detail: assessment.detail,
+      };
     },
-    [getFindingState],
+    [activeSlaProfileId],
   );
 
-  const getDuration = useCallback(
-    (arNumber: string): ReviewDuration | null => {
-      const session = sessions[arNumber];
-      if (!session) return null;
+  const getProgress = useCallback(
+    (arNumber: string, testId: string): TestProgress => {
+      const test = getTest(arNumber, testId);
+      if (!test) return EMPTY_TEST_PROGRESS;
 
-      const start = parseTimestamp(session.sessionStartTime);
-      const end = parseTimestamp(session.lastActiveTime);
-      if (start === null || end === null) return null;
+      const applicable = applicableSections(test);
+      const statuses = sessions[arNumber]?.sectionStatuses[testId] ?? {};
 
-      const minutes = Math.max(0, Math.round((end - start) / 60000));
-      if (minutes < 1) return { minutes: 0, label: "Less than a minute" };
-      if (minutes < 60) {
-        return { minutes, label: `${minutes} minute${minutes === 1 ? "" : "s"}` };
-      }
+      const reviewed = applicable.filter(
+        (section) => statuses[section.type] === "Reviewed",
+      ).length;
 
-      const hours = Math.floor(minutes / 60);
-      const rest = minutes % 60;
-      const label =
-        rest === 0
-          ? `${hours} hour${hours === 1 ? "" : "s"}`
-          : `${hours} hour${hours === 1 ? "" : "s"} ${rest} minutes`;
-      return { minutes, label };
+      return {
+        total: applicable.length,
+        reviewed,
+        remaining: applicable.length - reviewed,
+      };
     },
     [sessions],
+  );
+
+  const getAllTestsProgress = useCallback(
+    (arNumber: string): BatchProgress => {
+      const batch = getBatch(arNumber);
+      if (!batch) return { totalSections: 0, reviewedSections: 0 };
+
+      let totalSections = 0;
+      let reviewedSections = 0;
+
+      for (const test of batch.tests) {
+        const progress = getProgress(arNumber, test.id);
+        totalSections += progress.total;
+        reviewedSections += progress.reviewed;
+      }
+
+      return { totalSections, reviewedSections };
+    },
+    [getProgress],
   );
 
   const value = useMemo<ReviewContextValue>(
     () => ({
       sessions,
+      activeSlaProfileId,
+      slaProfiles: SLA_PROFILES,
       startReview,
-      setStatus,
-      acknowledgeFinding,
-      escalateFinding,
+      resumeReview,
+      setCurrentTest,
+      setCurrentSection,
+      markSectionReviewed,
       addNote,
       pauseReview,
-      resumeReview,
       completeReview,
+      setSlaProfile,
       getSession,
-      getFindingState,
+      getSlaStatus,
       getProgress,
-      getNextPendingFinding,
-      getDuration,
+      getAllTestsProgress,
     }),
     [
       sessions,
+      activeSlaProfileId,
       startReview,
-      setStatus,
-      acknowledgeFinding,
-      escalateFinding,
+      resumeReview,
+      setCurrentTest,
+      setCurrentSection,
+      markSectionReviewed,
       addNote,
       pauseReview,
-      resumeReview,
       completeReview,
+      setSlaProfile,
       getSession,
-      getFindingState,
+      getSlaStatus,
       getProgress,
-      getNextPendingFinding,
-      getDuration,
+      getAllTestsProgress,
     ],
   );
 

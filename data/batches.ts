@@ -1,579 +1,1710 @@
 /**
- * Hardcoded sample data for the workflow validation prototype.
+ * V2 sample data — a unified QA review workspace.
  *
- * No backend, no API, no database. Every value below is fixed data that
- * imitates real Empower and Caliber LIMS records.
+ * No backend, no API, no database. Everything below is fixed data shaped to
+ * look like Caliber LIMS and Empower records, and labelled as simulated
+ * wherever it reaches the screen.
  *
- * Vocabulary rules enforced throughout this file:
- *   - A rule that does not raise a finding is "Compliant". Never "Pass"/"Passed".
- *   - No use of "Approve", "Approved" or "Released" anywhere.
+ * Structure follows Shrikrishna's flow diagram:
+ *   Batch -> TestParameter -> Section -> Entry
+ * where the five sections are the five icons he drew under Assay.
+ *
+ * Vocabulary rules enforced throughout:
+ *   - A section or entry with no exception is "Compliant". Never "Pass".
+ *   - The product never states that anything is approved or released. The one
+ *     deliberate exception is the LIMS master-data field "Inactivation
+ *     approved", which reports whether a human completed that action in
+ *     Caliber — it is the finding itself on the extra chemical entry.
  */
 
-export type Severity = "Critical" | "Major" | "Minor";
+/* -------------------------------------------------------------------------- */
+/* Types                                                                      */
+/* -------------------------------------------------------------------------- */
 
-export type FindingStatus = "Pending" | "Acknowledged" | "Escalated";
+export type MethodType = "HPLC" | "UV" | "Titration" | "GC";
 
-export type RuleOutcome = "Finding" | "Compliant";
+export type TestStatus = "NotStarted" | "InProgress" | "Paused" | "Reviewed";
 
-export type SessionStatus = "New" | "Paused" | "Completed";
+export type SectionType =
+  | "chemicals"
+  | "chromatographySystem"
+  | "standards"
+  | "instruments"
+  | "column";
 
-export type SectionId = "review-summary" | "all-findings" | "notes";
+export type SectionStatus = "NotStarted" | "Reviewed";
 
-export interface Section {
-  id: SectionId;
-  label: string;
-  /** Rules surfaced by this filter. `null` means "every rule" (Summary). */
-  ruleIds: string[] | null;
-}
+export type EntryStatus = "ok" | "flagged" | "advisory" | "na";
 
-export interface RuleDefinition {
-  id: string;
+/**
+ * Drives both the badge in the workspace and the label printed in the Digital
+ * Review Record. Three distinct record labels all present as `flagged`
+ * entries, so severity is what tells them apart.
+ */
+export type EntrySeverity = "Critical" | "Major" | "NeedsVerification" | "Advisory";
+
+export type BatchSessionStatus = "New" | "Paused" | "Completed";
+
+export type SlaProfileId = "shrikrishna-site" | "lupin-cipla";
+
+export type SlaStatus = "WithinSla" | "Overdue";
+
+export interface SlaProfile {
+  id: SlaProfileId;
   name: string;
+  workingDays: number;
 }
 
-export interface RuleResult {
-  ruleId: string;
-  outcome: RuleOutcome;
-  /** Present only when outcome is "Finding". */
-  severity?: Severity;
-  expected: string;
-  actual: string;
-  source: string;
-  explanation: string;
-  /** One-line value summary shown on the finding card in the centre column. */
-  summary: string;
-  /** Seeded reviewer state. Used for Batch C's paused session. */
-  initialStatus?: FindingStatus;
-
-  /*
-   * "Why is this important?" — teaching context behind the rule, collapsed by
-   * default in the evidence panel. Findings only; compliant rules omit these.
-   * Entry point for the future Guided Review Engine.
-   */
-  laboratoryPractice?: string;
-  typicalMistake?: string;
-  regulatoryExpectation?: string;
-  companySOP?: string;
+/** Per-batch SLA outcome under one profile. Precomputed — no runtime date math. */
+export interface SlaAssessment {
+  deadline: string;
+  status: SlaStatus;
+  /** Short qualifier shown beside the status, e.g. "1 working day past due". */
+  detail: string;
+  /** Working days past the deadline. Present only when status is Overdue. */
+  daysOverdue?: number;
 }
 
-export interface AssemblyStep {
+export interface ExpectedEntry {
+  id: string;
+  label: string;
+  /** Scalar form where the expectation is a rule rather than a list item. */
+  requirement?: string;
+  /** id of the actual entry satisfying this expectation, when one does. */
+  matchedEntryId?: string;
+}
+
+export interface Inactivation {
+  initiated: boolean;
+  initiatedBy?: string;
+  initiatedAt?: string;
+  approved: boolean;
+}
+
+export interface Entry {
+  id: string;
   label: string;
   value: string;
-  state: "ok" | "warning";
+  status: EntryStatus;
+  severity?: EntrySeverity;
+  /** Ordered rows for the evidence panel. Insertion order is display order. */
+  details: Record<string, string>;
+  inactivation?: Inactivation;
+  finding?: string;
+  advisory?: string;
+  /** What the reviewer does next — always in Caliber LIMS, never here. */
+  action?: string;
+  sourceLabel: string;
+}
+
+export interface Section {
+  type: SectionType;
+  applicable: boolean;
+  /** Why this section does not apply. Shown on the N/A panel. */
+  naReason?: string;
+  expectedEntries?: ExpectedEntry[];
+  actualEntries: Entry[];
+  status: SectionStatus;
+  /** Short phrase printed against this section in the Digital Review Record. */
+  recordNote?: string;
+}
+
+export interface TestParameter {
+  id: string;
+  name: string;
+  methodType: MethodType;
+  status: TestStatus;
+  sections: Section[];
+}
+
+/** Seeded reviewer position and progress. Batch C only. */
+export interface SessionState {
+  currentTestId: string;
+  currentSectionType: SectionType;
+  sectionStatuses: Record<SectionType, SectionStatus>;
 }
 
 export interface Batch {
   arNumber: string;
+  batchNumber: string;
   product: string;
-  testType: string;
   analyst: string;
-  analystUserId: string;
-  submitted: string;
+  submittedAt: string;
   analysisDate: string;
-  sampleSet: string;
-  method: string;
-  workingStandard: string;
-  referenceStandard: string;
-  column: string;
-  auditEvents: string;
-  sessionStatus: SessionStatus;
+  sessionStatus: BatchSessionStatus;
   /** Sub-line on the Recent Reviews card. */
   activityLabel: string;
-  assembly: AssemblyStep[];
-  results: RuleResult[];
-  /** Rule id the reviewer was last on. Seeded for paused sessions only. */
-  checklistPosition?: string;
+  slaByProfile: Record<SlaProfileId, SlaAssessment>;
+  tests: TestParameter[];
+  sessionState?: SessionState;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Constants                                                                  */
+/* -------------------------------------------------------------------------- */
 
 export const REVIEWER = "Shrikrishna";
 
-export const REVIEWER_USER_ID = "skrishna";
+/** Required on every entry, and shown wherever data is displayed. */
+export const SOURCE_LABEL = "Simulated LIMS data (Caliber LIMS in production)";
 
-/** Placeholder until a customer's own SOP reference is configured. */
-const SOP_NOT_SET = "Configured per customer SOP — not yet set";
+/** Source of the N/A determination — configuration, not LIMS. */
+const METHOD_CONFIG_SOURCE = "Test method configuration";
 
-/** The ten rules evaluated by the prototype, in canonical order. */
-export const RULES: RuleDefinition[] = [
-  { id: "RULE-001", name: "Review SLA Met" },
-  { id: "RULE-002", name: "Audit Trail Exists" },
-  { id: "RULE-003", name: "Working Standard Active" },
-  { id: "RULE-004", name: "Working Standard Not Expired" },
-  { id: "RULE-006", name: "Reference Standard Active" },
-  { id: "RULE-009", name: "Column Active" },
-  { id: "RULE-010", name: "Column Usage Within Limit" },
-  { id: "RULE-013", name: "Audit Reason Present" },
-  { id: "RULE-014", name: "Role Segregation" },
-  { id: "RULE-015", name: "Analyst Present" },
+export const SLA_PROFILES: SlaProfile[] = [
+  { id: "shrikrishna-site", name: "Shrikrishna's site", workingDays: 2 },
+  { id: "lupin-cipla", name: "Lupin/Cipla profile", workingDays: 1 },
 ];
 
-export const RULE_NAMES: Record<string, string> = Object.fromEntries(
-  RULES.map((rule) => [rule.id, rule.name]),
-);
+export const DEFAULT_SLA_PROFILE: SlaProfileId = "shrikrishna-site";
 
-/**
- * Left-column section navigation.
- *
- * Category filters were removed deliberately — the reviewer reaches findings
- * through the findings list, not through implementation-oriented categories.
- */
-export const SECTIONS: Section[] = [
-  { id: "review-summary", label: "Review Summary", ruleIds: [] },
-  { id: "all-findings", label: "All Findings", ruleIds: null },
-  { id: "notes", label: "Reviewer Notes", ruleIds: [] },
+/** The date the review session is taking place. Monday. */
+export const REVIEW_DATE = "03-Aug-2026";
+
+export const SECTION_LABELS: Record<SectionType, string> = {
+  chemicals: "Chemicals",
+  chromatographySystem: "Chromatography System",
+  standards: "Standards",
+  instruments: "Instruments",
+  column: "Column",
+};
+
+/** Canonical section order, matching the icons on the flow diagram. */
+export const SECTION_ORDER: SectionType[] = [
+  "chemicals",
+  "chromatographySystem",
+  "standards",
+  "instruments",
+  "column",
 ];
 
-/* -------------------------------------------------------------------------- */
-/* Batch A — AR-2026-000121 — Paracetamol 500mg                               */
-/* Purpose: validate the clean-batch path. Zero findings, ten rules compliant. */
-/* -------------------------------------------------------------------------- */
+/** Label printed against a section in the Digital Review Record. */
+export const RECORD_LABELS: Record<EntrySeverity, string> = {
+  Critical: "CRITICAL",
+  Major: "EXCEPTION",
+  NeedsVerification: "NEEDS VERIFICATION",
+  Advisory: "ADVISORY",
+};
+
+/** Most serious first — used to pick a section's record label. */
+export const SEVERITY_RANK: EntrySeverity[] = [
+  "Critical",
+  "Major",
+  "NeedsVerification",
+  "Advisory",
+];
+
+/** Every N/A section carries the same source attribution. */
+const naSection = (type: SectionType, naReason: string): Section => ({
+  type,
+  applicable: false,
+  naReason,
+  actualEntries: [],
+  status: "NotStarted",
+  recordNote: METHOD_CONFIG_SOURCE,
+});
+
+/* ========================================================================== */
+/* BATCH A — AR-2026-000121 — Paracetamol 500mg                              */
+/* Clean path. Assay only. Every applicable section compliant.               */
+/* ========================================================================== */
 
 const batchA: Batch = {
   arNumber: "AR-2026-000121",
+  batchNumber: "ABF-2026-121",
   product: "Paracetamol 500mg",
-  testType: "InstrumentBased (HPLC Assay)",
   analyst: "Rajesh Kumar",
-  analystUserId: "rkumar",
-  submitted: "01-Aug-2026 09:00",
+  submittedAt: "01-Aug-2026 09:00",
   analysisDate: "01-Aug-2026",
-  sampleSet: "HPLC-2026-SS-441",
-  method: "USP-HPLC-PARA-v3.2",
-  workingStandard: "WS-2024-41 (Active)",
-  referenceStandard: "RS-2024-18 (Active)",
-  column: "COL-2024-07 (380 injections)",
-  auditEvents: "14 events, all with reasons",
   sessionStatus: "Completed",
   activityLabel: "Reviewed 02-Aug-2026 10:00",
-  assembly: [
-    { label: "AR Found", value: "AR-2026-000121", state: "ok" },
-    { label: "Sample Set", value: "HPLC-2026-SS-441", state: "ok" },
-    { label: "Method", value: "USP-HPLC-PARA-v3.2", state: "ok" },
-    { label: "Working Standard", value: "WS-2024-41", state: "ok" },
-    { label: "Reference Standard", value: "RS-2024-18", state: "ok" },
-    { label: "Column", value: "COL-2024-07", state: "ok" },
-    { label: "Audit Trail", value: "14 events loaded", state: "ok" },
-  ],
-  results: [
-    {
-      ruleId: "RULE-001",
-      outcome: "Compliant",
-      summary: "Commenced 02-Aug-2026 10:00, 2 days ahead of due date",
-      expected: "QA review commenced on or before the Caliber review due date of 04-Aug-2026 09:00",
-      actual: "QA review commenced 02-Aug-2026 10:00 — 2 days ahead of due date",
-      source: "Caliber LIMS — AR Header, Review Due Date",
-      explanation:
-        "The review was picked up inside the window Caliber recorded against this AR. No turnaround deviation to justify.",
+  slaByProfile: {
+    "shrikrishna-site": {
+      deadline: "04-Aug-2026 09:00",
+      status: "WithinSla",
+      detail: "1 working day remaining",
     },
-    {
-      ruleId: "RULE-002",
-      outcome: "Compliant",
-      summary: "14 events retrieved for HPLC-2026-SS-441",
-      expected: "An Empower audit trail retrievable for the sample set",
-      actual: "14 events retrieved for HPLC-2026-SS-441, covering 01-Aug-2026 07:12 to 01-Aug-2026 08:54",
-      source: "Empower — Project Audit Trail",
-      explanation:
-        "The audit trail is present and continuous from acquisition through final processing. Nothing in the sequence is missing a corresponding entry.",
+    "lupin-cipla": {
+      deadline: "03-Aug-2026 09:00",
+      status: "WithinSla",
+      detail: "Due today",
     },
+  },
+  tests: [
     {
-      ruleId: "RULE-003",
-      outcome: "Compliant",
-      summary: "WS-2024-41 — Status = Active",
-      expected: "Working standard status = Active on the analysis date",
-      actual: "WS-2024-41 — Status = Active",
-      source: "Empower — WorkingStandard custom field",
-      explanation:
-        "WS-2024-41 was active in Empower on 01-Aug-2026. There is no restriction on its use in this analysis.",
-    },
-    {
-      ruleId: "RULE-004",
-      outcome: "Compliant",
-      summary: "WS-2024-41 — Expiry 30-Nov-2026, 121 days remaining",
-      expected: "Working standard expiry date on or after the analysis date of 01-Aug-2026",
-      actual: "WS-2024-41 — Expiry 30-Nov-2026 (121 days remaining at analysis)",
-      source: "Empower — WorkingStandard custom field",
-      explanation:
-        "The working standard was well inside its assigned validity period when the sample set was acquired. Its assigned potency holds for this calculation.",
-    },
-    {
-      ruleId: "RULE-006",
-      outcome: "Compliant",
-      summary: "RS-2024-18 — Status = Active, Expiry 31-Dec-2026",
-      expected: "Reference standard status = Active on the analysis date",
-      actual: "RS-2024-18 — Status = Active, Expiry 31-Dec-2026",
-      source: "Empower — ReferenceStandard custom field",
-      explanation:
-        "The reference standard used to qualify WS-2024-41 was active and unexpired on the analysis date. The traceability chain back to the pharmacopoeial standard holds.",
-    },
-    {
-      ruleId: "RULE-009",
-      outcome: "Compliant",
-      summary: "COL-2024-07 — Status = Active",
-      expected: "Column status = Active on the analysis date",
-      actual: "COL-2024-07 — Status = Active, qualified 12-Jan-2026",
-      source: "Empower — Column custom field",
-      explanation:
-        "The column was in its qualified state for the whole sample set. No hold or withdrawal is recorded against it in Empower.",
-    },
-    {
-      ruleId: "RULE-010",
-      outcome: "Compliant",
-      summary: "COL-2024-07 — 380 of 400 injections used",
-      expected: "Cumulative injection count at or below the qualified limit of 400",
-      actual: "COL-2024-07 — 380 injections at close of sample set (20 remaining)",
-      source: "Empower — Column custom field, Injection Counter",
-      explanation:
-        "The column stayed inside its qualified injection life across the sample set. 20 injections remain before re-qualification falls due — worth noting for scheduling, but it is not a finding against this AR.",
-    },
-    {
-      ruleId: "RULE-013",
-      outcome: "Compliant",
-      summary: "14 of 14 events carry a reason for change",
-      expected: "A reason for change recorded against every audit trail event that requires one",
-      actual: "14 of 14 events carry a reason for change",
-      source: "Empower — Project Audit Trail, Reason field",
-      explanation:
-        "Every modification to processed data in this sample set carries a recorded reason. Each change is justified on its own entry.",
-    },
-    {
-      ruleId: "RULE-014",
-      outcome: "Compliant",
-      summary: "Analyst rkumar, reviewer skrishna — different users",
-      expected: "The analyst and the QA reviewer are different Empower users",
-      actual: "Analyst: Rajesh Kumar (rkumar) · Reviewer: Shrikrishna (skrishna)",
-      source: "Empower — User Group assignment / Caliber LIMS — Reviewer field",
-      explanation:
-        "The user who acquired and processed the data is not the user performing this review. Segregation of duties is intact for the AR.",
-    },
-    {
-      ruleId: "RULE-015",
-      outcome: "Compliant",
-      summary: "Rajesh Kumar recorded on all injections",
-      expected: "A named analyst recorded against every injection in the sample set",
-      actual: "Rajesh Kumar (rkumar) recorded on all injections in HPLC-2026-SS-441",
-      source: "Empower — Sample Set, Acquired By",
-      explanation:
-        "Every injection in the sample set is attributable to a named analyst. No injection is recorded against a shared or system account.",
+      id: "ASSAY",
+      name: "Assay",
+      methodType: "HPLC",
+      status: "NotStarted",
+      sections: [
+        {
+          type: "chemicals",
+          applicable: true,
+          status: "NotStarted",
+          recordNote: "3 chemicals — all match specification",
+          expectedEntries: [
+            {
+              id: "A-ASSAY-EXP-CHEM-1",
+              label: "Acetonitrile HPLC grade",
+              matchedEntryId: "A-ASSAY-CHEM-1",
+            },
+            {
+              id: "A-ASSAY-EXP-CHEM-2",
+              label: "Water HPLC grade",
+              matchedEntryId: "A-ASSAY-CHEM-2",
+            },
+            {
+              id: "A-ASSAY-EXP-CHEM-3",
+              label: "Phosphate buffer",
+              matchedEntryId: "A-ASSAY-CHEM-3",
+            },
+          ],
+          actualEntries: [
+            {
+              id: "A-ASSAY-CHEM-1",
+              label: "Acetonitrile HPLC grade",
+              value: "ACN-2024-441 · 1000ml",
+              status: "ok",
+              details: {
+                Chemical: "Acetonitrile HPLC grade",
+                Lot: "ACN-2024-441",
+                Quantity: "1000ml",
+                Expected: "In specification",
+                Actual: "Entry matches specification",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+            {
+              id: "A-ASSAY-CHEM-2",
+              label: "Water HPLC grade",
+              value: "WTR-2024-112 · 500ml",
+              status: "ok",
+              details: {
+                Chemical: "Water HPLC grade",
+                Lot: "WTR-2024-112",
+                Quantity: "500ml",
+                Expected: "In specification",
+                Actual: "Entry matches specification",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+            {
+              id: "A-ASSAY-CHEM-3",
+              label: "Phosphate buffer",
+              value: "PB-2024-089 · 200ml",
+              status: "ok",
+              details: {
+                Chemical: "Phosphate buffer",
+                Lot: "PB-2024-089",
+                Quantity: "200ml",
+                Expected: "In specification",
+                Actual: "Entry matches specification",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+          ],
+        },
+        {
+          type: "chromatographySystem",
+          applicable: true,
+          status: "NotStarted",
+          recordNote: "HPLC-001 only — active, within range",
+          actualEntries: [
+            {
+              id: "A-ASSAY-SYS-1",
+              label: "HPLC-001",
+              value: "Waters Alliance e2695 · 08:20 to 13:10",
+              status: "ok",
+              details: {
+                "System ID": "HPLC-001",
+                Instrument: "Waters Alliance e2695",
+                "Usage start": "01-Aug-2026 08:20",
+                "Usage end": "01-Aug-2026 13:10",
+                Status: "Active, within range",
+                Expected: "One system per test, active and within range",
+                Actual: "Single system used — HPLC-001",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+          ],
+        },
+        {
+          type: "standards",
+          applicable: true,
+          status: "NotStarted",
+          recordNote: "WS-2024-41 and RS-2024-18 active and unexpired",
+          expectedEntries: [
+            {
+              id: "A-ASSAY-EXP-STD-1",
+              label: "Working standard",
+              requirement: "Active, expiry on or after 01-Aug-2026",
+              matchedEntryId: "A-ASSAY-STD-1",
+            },
+            {
+              id: "A-ASSAY-EXP-STD-2",
+              label: "Reference standard",
+              requirement: "Active, expiry on or after 01-Aug-2026",
+              matchedEntryId: "A-ASSAY-STD-2",
+            },
+          ],
+          actualEntries: [
+            {
+              id: "A-ASSAY-STD-1",
+              label: "Working Standard WS-2024-41",
+              value: "Active · Expiry 31-Oct-2026",
+              status: "ok",
+              details: {
+                "Working Standard": "WS-2024-41",
+                Status: "Active",
+                Expiry: "31-Oct-2026",
+                "Analysis date": "01-Aug-2026",
+                Potency: "99.6%",
+                Consumption: "52.0mg",
+                Expected: "Active, not expired",
+                Actual: "Active, 91 days before expiry",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+            {
+              id: "A-ASSAY-STD-2",
+              label: "Reference Standard RS-2024-18",
+              value: "Active · Expiry 30-Nov-2026",
+              status: "ok",
+              details: {
+                "Reference Standard": "RS-2024-18",
+                Status: "Active",
+                Expiry: "30-Nov-2026",
+                "Analysis date": "01-Aug-2026",
+                Potency: "99.8%",
+                Consumption: "10.0mg",
+                Expected: "Active, not expired",
+                Actual: "Active, 121 days before expiry",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+          ],
+        },
+        {
+          type: "instruments",
+          applicable: true,
+          status: "NotStarted",
+          recordNote: "All instruments active and calibrated",
+          actualEntries: [
+            {
+              id: "A-ASSAY-INS-1",
+              label: "BAL-2024-003",
+              value: "Weighing Balance · Active, calibrated",
+              status: "ok",
+              details: {
+                "Instrument ID": "BAL-2024-003",
+                Type: "Weighing Balance",
+                Status: "Active, calibrated",
+                Expected: "Active and within calibration",
+                Actual: "Active, calibration current",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+            {
+              id: "A-ASSAY-INS-2",
+              label: "SON-2024-001",
+              value: "Sonicator · Active",
+              status: "ok",
+              details: {
+                "Instrument ID": "SON-2024-001",
+                Type: "Sonicator",
+                Status: "Active, calibrated",
+                Expected: "Active and within calibration",
+                Actual: "Active, calibration current",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+          ],
+        },
+        {
+          type: "column",
+          applicable: true,
+          status: "NotStarted",
+          recordNote: "COL-2024-07 — 380 of 400 injections",
+          expectedEntries: [
+            {
+              id: "A-ASSAY-EXP-COL-1",
+              label: "Column injection count",
+              requirement: "Count <= 400",
+              matchedEntryId: "A-ASSAY-COL-1",
+            },
+          ],
+          actualEntries: [
+            {
+              id: "A-ASSAY-COL-1",
+              label: "COL-2024-07",
+              value: "380 of 400 injections",
+              status: "ok",
+              details: {
+                Column: "COL-2024-07",
+                Type: "Waters Symmetry C18",
+                Expected: "Count <= 400",
+                Actual: "380 injections",
+                Remaining: "20 injections",
+                Status: "Within qualified limit",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+          ],
+        },
+      ],
     },
   ],
 };
 
-/* -------------------------------------------------------------------------- */
-/* Batch B — AR-2026-000122 — Amoxicillin 250mg                               */
-/* Purpose: validate the exception path.                                      */
-/* 2 Critical (RULE-003, RULE-004) + 1 Major (RULE-010) + 7 Compliant = 10.   */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+/* BATCH B — AR-2026-000122 — Amoxicillin 250mg                              */
+/* Primary demonstration batch. Five tests, Assay at full depth.             */
+/* ========================================================================== */
+
+const batchBAssay: TestParameter = {
+  id: "ASSAY",
+  name: "Assay",
+  methodType: "HPLC",
+  status: "NotStarted",
+  sections: [
+    {
+      type: "chemicals",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "Extra entry, inactivation not approved",
+      expectedEntries: [
+        {
+          id: "B-ASSAY-EXP-CHEM-1",
+          label: "Acetonitrile HPLC grade",
+          matchedEntryId: "B-ASSAY-CHEM-1",
+        },
+        {
+          id: "B-ASSAY-EXP-CHEM-2",
+          label: "Water HPLC grade",
+          matchedEntryId: "B-ASSAY-CHEM-2",
+        },
+        {
+          id: "B-ASSAY-EXP-CHEM-3",
+          label: "Phosphate buffer",
+          matchedEntryId: "B-ASSAY-CHEM-3",
+        },
+        {
+          id: "B-ASSAY-EXP-CHEM-4",
+          label: "Methanol HPLC grade",
+          matchedEntryId: "B-ASSAY-CHEM-4",
+        },
+      ],
+      actualEntries: [
+        {
+          id: "B-ASSAY-CHEM-1",
+          label: "Acetonitrile HPLC grade",
+          value: "ACN-2024-441 · 1000ml",
+          status: "ok",
+          details: {
+            Chemical: "Acetonitrile HPLC grade",
+            Lot: "ACN-2024-441",
+            Quantity: "1000ml",
+            Expected: "In specification",
+            Actual: "Entry matches specification",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-ASSAY-CHEM-2",
+          label: "Water HPLC grade",
+          value: "WTR-2024-112 · 500ml",
+          status: "ok",
+          details: {
+            Chemical: "Water HPLC grade",
+            Lot: "WTR-2024-112",
+            Quantity: "500ml",
+            Expected: "In specification",
+            Actual: "Entry matches specification",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-ASSAY-CHEM-3",
+          label: "Phosphate buffer",
+          value: "PB-2024-089 · 200ml",
+          status: "ok",
+          details: {
+            Chemical: "Phosphate buffer",
+            Lot: "PB-2024-089",
+            Quantity: "200ml",
+            Expected: "In specification",
+            Actual: "Entry matches specification",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-ASSAY-CHEM-4",
+          label: "Methanol HPLC grade",
+          value: "MET-2024-221 · 1000ml",
+          status: "ok",
+          details: {
+            Chemical: "Methanol HPLC grade",
+            Lot: "MET-2024-221",
+            Quantity: "1000ml",
+            Expected: "In specification",
+            Actual: "Entry matches specification",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-ASSAY-CHEM-5",
+          label: "Acetonitrile HPLC grade (extra)",
+          value: "ACN-2024-441 · 500ml",
+          status: "flagged",
+          severity: "Major",
+          details: {
+            Chemical: "Acetonitrile HPLC grade (extra)",
+            Lot: "ACN-2024-441",
+            Quantity: "500ml",
+            Expected: "Not in specification",
+            Actual: "Entry found in LIMS",
+            "Inactivation initiated": "Yes — apatel 30-Jul-2026 11:34",
+            "Inactivation approved": "No",
+          },
+          inactivation: {
+            initiated: true,
+            initiatedBy: "apatel",
+            initiatedAt: "30-Jul-2026 11:34",
+            approved: false,
+          },
+          finding:
+            "Extra chemical entry not in the configured specification. Inactivation was initiated but has not been completed.",
+          action: "Go to Caliber LIMS to verify approval chain.",
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    {
+      type: "chromatographySystem",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "Duplicate entry",
+      actualEntries: [
+        {
+          id: "B-ASSAY-SYS-1",
+          label: "HPLC-001",
+          value: "Waters Alliance e2695 · 08:15 to 14:32",
+          status: "ok",
+          details: {
+            "System ID": "HPLC-001",
+            Instrument: "Waters Alliance e2695",
+            "Usage start": "30-Jul-2026 08:15",
+            "Usage end": "30-Jul-2026 14:32",
+            Status: "Active, within range",
+            Expected: "One system per test, active and within range",
+            Actual: "Primary system for this test",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-ASSAY-SYS-2",
+          label: "HPLC-003",
+          value: "Waters Alliance e2695 · 11:00 to 11:45",
+          status: "flagged",
+          severity: "NeedsVerification",
+          details: {
+            "System ID": "HPLC-003",
+            Instrument: "Waters Alliance e2695",
+            "Usage start": "30-Jul-2026 11:00",
+            "Usage end": "30-Jul-2026 11:45",
+            Expected: "One system per test",
+            Actual: "Second system recorded during HPLC-001 usage window",
+            Inactivation: "Not initiated",
+          },
+          inactivation: { initiated: false, approved: false },
+          finding:
+            "Possible duplicate entry. A second chromatography system is recorded inside the usage window of HPLC-001.",
+          action:
+            "Confirm in Caliber LIMS whether HPLC-003 was genuinely used or recorded in error.",
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    {
+      type: "standards",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "WS inactive and expired at analysis",
+      expectedEntries: [
+        {
+          id: "B-ASSAY-EXP-STD-1",
+          label: "Working standard",
+          requirement: "Active, expiry on or after 30-Jul-2026",
+          matchedEntryId: "B-ASSAY-STD-1",
+        },
+        {
+          id: "B-ASSAY-EXP-STD-2",
+          label: "Reference standard",
+          requirement: "Active, expiry on or after 30-Jul-2026",
+          matchedEntryId: "B-ASSAY-STD-2",
+        },
+      ],
+      actualEntries: [
+        {
+          id: "B-ASSAY-STD-1",
+          label: "Working Standard WS-2024-44",
+          value: "INACTIVE · Expired 18-Jul-2026",
+          status: "flagged",
+          severity: "Critical",
+          details: {
+            "Working Standard": "WS-2024-44",
+            Status: "Inactive",
+            Expiry: "18-Jul-2026",
+            "Analysis date": "30-Jul-2026",
+            Potency: "99.2%",
+            Consumption: "55.5mg",
+            Expected: "Active, not expired",
+            Actual: "Inactive, expired 12 days before analysis",
+            Inactivation: "Not initiated",
+          },
+          inactivation: { initiated: false, approved: false },
+          finding:
+            "1. Standard inactive at time of analysis. 2. Standard expired 12 days before analysis.",
+          action:
+            "Verify whether re-analysis was performed with a valid standard. Do not release batch until resolved.",
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-ASSAY-STD-2",
+          label: "Reference Standard RS-2024-18",
+          value: "Active · Expiry 30-Nov-2026",
+          status: "ok",
+          details: {
+            "Reference Standard": "RS-2024-18",
+            Status: "Active",
+            Expiry: "30-Nov-2026",
+            "Analysis date": "30-Jul-2026",
+            Potency: "99.8%",
+            Consumption: "10.0mg",
+            Expected: "Active, not expired",
+            Actual: "Active, 123 days before expiry",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    {
+      type: "instruments",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "All instruments active and calibrated",
+      actualEntries: [
+        {
+          id: "B-ASSAY-INS-1",
+          label: "BAL-2024-003",
+          value: "Weighing Balance · Active, calibrated",
+          status: "ok",
+          details: {
+            "Instrument ID": "BAL-2024-003",
+            Type: "Weighing Balance",
+            Status: "Active, calibrated",
+            Expected: "Active and within calibration",
+            Actual: "Active, calibration current",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-ASSAY-INS-2",
+          label: "SON-2024-001",
+          value: "Sonicator · Active",
+          status: "ok",
+          details: {
+            "Instrument ID": "SON-2024-001",
+            Type: "Sonicator",
+            Status: "Active",
+            Expected: "Active and within calibration",
+            Actual: "Active, calibration current",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-ASSAY-INS-3",
+          label: "STR-2024-002",
+          value: "Magnetic Stirrer · Active",
+          status: "ok",
+          details: {
+            "Instrument ID": "STR-2024-002",
+            Type: "Magnetic Stirrer",
+            Status: "Active",
+            Expected: "Active and within calibration",
+            Actual: "Active, calibration current",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    {
+      type: "column",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "Usage exceeded qualified limit",
+      expectedEntries: [
+        {
+          id: "B-ASSAY-EXP-COL-1",
+          label: "Column injection count",
+          requirement: "Count <= 400",
+          matchedEntryId: "B-ASSAY-COL-1",
+        },
+      ],
+      actualEntries: [
+        {
+          id: "B-ASSAY-COL-1",
+          label: "COL-2024-09",
+          value: "412 of 400 injections — exceeded by 12",
+          status: "flagged",
+          severity: "Major",
+          details: {
+            Column: "COL-2024-09",
+            Type: "Waters Symmetry C18",
+            Expected: "Count <= 400",
+            Actual: "412 injections",
+            "Exceeded by": "12 injections",
+            Inactivation: "Not initiated",
+          },
+          inactivation: { initiated: false, approved: false },
+          finding:
+            "Column exceeded qualified injection limit. Column must be retired or re-qualified. Inactivation not initiated.",
+          action: "Action required in Caliber LIMS.",
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+  ],
+};
+
+const batchBRs: TestParameter = {
+  id: "RS",
+  name: "RS",
+  methodType: "HPLC",
+  status: "NotStarted",
+  sections: [
+    {
+      type: "chemicals",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "3 chemicals — all match specification",
+      expectedEntries: [
+        { id: "B-RS-EXP-CHEM-1", label: "Acetonitrile HPLC grade", matchedEntryId: "B-RS-CHEM-1" },
+        { id: "B-RS-EXP-CHEM-2", label: "Water HPLC grade", matchedEntryId: "B-RS-CHEM-2" },
+        { id: "B-RS-EXP-CHEM-3", label: "Phosphate buffer", matchedEntryId: "B-RS-CHEM-3" },
+      ],
+      actualEntries: [
+        {
+          id: "B-RS-CHEM-1",
+          label: "Acetonitrile HPLC grade",
+          value: "ACN-2024-441 · 500ml",
+          status: "ok",
+          details: {
+            Chemical: "Acetonitrile HPLC grade",
+            Lot: "ACN-2024-441",
+            Quantity: "500ml",
+            Expected: "In specification",
+            Actual: "Entry matches specification",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-RS-CHEM-2",
+          label: "Water HPLC grade",
+          value: "WTR-2024-112 · 500ml",
+          status: "ok",
+          details: {
+            Chemical: "Water HPLC grade",
+            Lot: "WTR-2024-112",
+            Quantity: "500ml",
+            Expected: "In specification",
+            Actual: "Entry matches specification",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-RS-CHEM-3",
+          label: "Phosphate buffer",
+          value: "PB-2024-089 · 200ml",
+          status: "ok",
+          details: {
+            Chemical: "Phosphate buffer",
+            Lot: "PB-2024-089",
+            Quantity: "200ml",
+            Expected: "In specification",
+            Actual: "Entry matches specification",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    {
+      type: "chromatographySystem",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "HPLC-001 only — active, within range",
+      actualEntries: [
+        {
+          id: "B-RS-SYS-1",
+          label: "HPLC-001",
+          value: "Waters Alliance e2695 · 15:05 to 18:40",
+          status: "ok",
+          details: {
+            "System ID": "HPLC-001",
+            Instrument: "Waters Alliance e2695",
+            "Usage start": "30-Jul-2026 15:05",
+            "Usage end": "30-Jul-2026 18:40",
+            Status: "Active, within range",
+            Expected: "One system per test, active and within range",
+            Actual: "Single system used — HPLC-001",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    {
+      type: "standards",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "RS-AMOX-2024-12 active and unexpired",
+      expectedEntries: [
+        {
+          id: "B-RS-EXP-STD-1",
+          label: "Reference standard",
+          requirement: "Active, expiry on or after 30-Jul-2026",
+          matchedEntryId: "B-RS-STD-1",
+        },
+      ],
+      actualEntries: [
+        {
+          id: "B-RS-STD-1",
+          label: "Reference Standard RS-AMOX-2024-12",
+          value: "Active · Expiry 15-Dec-2026",
+          status: "ok",
+          details: {
+            "Reference Standard": "RS-AMOX-2024-12",
+            Status: "Active",
+            Expiry: "15-Dec-2026",
+            "Analysis date": "30-Jul-2026",
+            Expected: "Active, not expired",
+            Actual: "Active, 138 days before expiry",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    {
+      type: "instruments",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "All instruments active and calibrated",
+      actualEntries: [
+        {
+          id: "B-RS-INS-1",
+          label: "BAL-2024-003",
+          value: "Weighing Balance · Active, calibrated",
+          status: "ok",
+          details: {
+            "Instrument ID": "BAL-2024-003",
+            Type: "Weighing Balance",
+            Status: "Active, calibrated",
+            Expected: "Active and within calibration",
+            Actual: "Active, calibration current",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    {
+      type: "column",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "Same column — limit exceeded",
+      expectedEntries: [
+        {
+          id: "B-RS-EXP-COL-1",
+          label: "Column injection count",
+          requirement: "Count <= 400",
+          matchedEntryId: "B-RS-COL-1",
+        },
+      ],
+      actualEntries: [
+        {
+          id: "B-RS-COL-1",
+          label: "COL-2024-09",
+          value: "412 of 400 injections — exceeded by 12",
+          status: "flagged",
+          severity: "Major",
+          details: {
+            Column: "COL-2024-09",
+            "Used for": "Assay and RS on 30-Jul-2026",
+            "Total injections": "412",
+            Limit: "400",
+            Status: "Exceeded",
+            Note: "This column was also flagged in Assay. Same finding surfaces here.",
+          },
+          inactivation: { initiated: false, approved: false },
+          finding:
+            "Column exceeded qualified injection limit. This is the same column flagged in Assay — one column, one finding, surfaced in both tests.",
+          action: "Action required in Caliber LIMS.",
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+  ],
+};
+
+const batchBDisso: TestParameter = {
+  id: "DISSO",
+  name: "Disso",
+  methodType: "UV",
+  status: "NotStarted",
+  sections: [
+    {
+      type: "chemicals",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "2 chemicals — all match specification",
+      expectedEntries: [
+        { id: "B-DISSO-EXP-CHEM-1", label: "Buffer pH 6.8", matchedEntryId: "B-DISSO-CHEM-1" },
+        { id: "B-DISSO-EXP-CHEM-2", label: "Water HPLC grade", matchedEntryId: "B-DISSO-CHEM-2" },
+      ],
+      actualEntries: [
+        {
+          id: "B-DISSO-CHEM-1",
+          label: "Buffer pH 6.8",
+          value: "BUF-2024-067 · 2000ml",
+          status: "ok",
+          details: {
+            Chemical: "Buffer pH 6.8",
+            Lot: "BUF-2024-067",
+            Quantity: "2000ml",
+            Expected: "In specification",
+            Actual: "Entry matches specification",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-DISSO-CHEM-2",
+          label: "Water HPLC grade",
+          value: "WTR-2024-112 · 1000ml",
+          status: "ok",
+          details: {
+            Chemical: "Water HPLC grade",
+            Lot: "WTR-2024-112",
+            Quantity: "1000ml",
+            Expected: "In specification",
+            Actual: "Entry matches specification",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    naSection(
+      "chromatographySystem",
+      "Dissolution uses UV detection. No chromatography system involved.",
+    ),
+    {
+      type: "standards",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "RS-2024-18 active and unexpired",
+      expectedEntries: [
+        {
+          id: "B-DISSO-EXP-STD-1",
+          label: "Reference standard",
+          requirement: "Active, expiry on or after 30-Jul-2026",
+          matchedEntryId: "B-DISSO-STD-1",
+        },
+      ],
+      actualEntries: [
+        {
+          id: "B-DISSO-STD-1",
+          label: "Reference Standard RS-2024-18",
+          value: "Active · Expiry 30-Nov-2026",
+          status: "ok",
+          details: {
+            "Reference Standard": "RS-2024-18",
+            Status: "Active",
+            Expiry: "30-Nov-2026",
+            "Analysis date": "30-Jul-2026",
+            Expected: "Active, not expired",
+            Actual: "Active, 123 days before expiry",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    {
+      type: "instruments",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "All instruments active and calibrated",
+      actualEntries: [
+        {
+          id: "B-DISSO-INS-1",
+          label: "DA-2024-001",
+          value: "Dissolution Apparatus · Active, calibrated",
+          status: "ok",
+          details: {
+            "Instrument ID": "DA-2024-001",
+            Type: "Dissolution Apparatus",
+            Status: "Active, calibrated",
+            Expected: "Active and within calibration",
+            Actual: "Active, calibration current",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-DISSO-INS-2",
+          label: "THM-2024-001",
+          value: "Thermometer · Active, calibrated",
+          status: "ok",
+          details: {
+            "Instrument ID": "THM-2024-001",
+            Type: "Thermometer",
+            Status: "Active, calibrated",
+            Expected: "Active and within calibration",
+            Actual: "Active, calibration current",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    naSection(
+      "column",
+      "Dissolution uses UV detection. No chromatography column involved.",
+    ),
+  ],
+};
+
+const batchBKf: TestParameter = {
+  id: "KF",
+  name: "KF",
+  methodType: "Titration",
+  status: "NotStarted",
+  sections: [
+    {
+      type: "chemicals",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "KF reagent expiry in 31 days",
+      expectedEntries: [
+        { id: "B-KF-EXP-CHEM-1", label: "Karl Fischer Reagent", matchedEntryId: "B-KF-CHEM-1" },
+        { id: "B-KF-EXP-CHEM-2", label: "Methanol HPLC grade", matchedEntryId: "B-KF-CHEM-2" },
+      ],
+      actualEntries: [
+        {
+          id: "B-KF-CHEM-1",
+          label: "Karl Fischer Reagent",
+          value: "KFR-2024-023 · Expiry 31-Aug-2026",
+          status: "advisory",
+          severity: "Advisory",
+          details: {
+            Chemical: "Karl Fischer Reagent",
+            Lot: "KFR-2024-023",
+            Expiry: "31-Aug-2026",
+            "Days remaining": "31",
+            Status: "Active — within expiry",
+            Expected: "In specification, within expiry",
+            Actual: "In specification, 31 days before expiry",
+          },
+          advisory: "Expiry within 30 days. Plan re-order.",
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-KF-CHEM-2",
+          label: "Methanol HPLC grade",
+          value: "MET-2024-221 · Expiry 30-Sep-2026",
+          status: "ok",
+          details: {
+            Chemical: "Methanol HPLC grade",
+            Lot: "MET-2024-221",
+            Expiry: "30-Sep-2026",
+            Status: "Active — within expiry",
+            Expected: "In specification, within expiry",
+            Actual: "Entry matches specification",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    naSection(
+      "chromatographySystem",
+      "Karl Fischer is a titration method. No chromatography system involved.",
+    ),
+    {
+      type: "standards",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "WST-2024-044 active",
+      expectedEntries: [
+        {
+          id: "B-KF-EXP-STD-1",
+          label: "Water standard",
+          requirement: "Active, expiry on or after 30-Jul-2026",
+          matchedEntryId: "B-KF-STD-1",
+        },
+      ],
+      actualEntries: [
+        {
+          id: "B-KF-STD-1",
+          label: "Water Standard WST-2024-044",
+          value: "Active · Expiry 31-Dec-2026",
+          status: "ok",
+          details: {
+            "Water Standard": "WST-2024-044",
+            Status: "Active",
+            Expiry: "31-Dec-2026",
+            "Analysis date": "30-Jul-2026",
+            Expected: "Active, not expired",
+            Actual: "Active, 154 days before expiry",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    {
+      type: "instruments",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "All instruments active and calibrated",
+      actualEntries: [
+        {
+          id: "B-KF-INS-1",
+          label: "KFT-2024-001",
+          value: "Karl Fischer Titrator · Active, calibrated",
+          status: "ok",
+          details: {
+            "Instrument ID": "KFT-2024-001",
+            Type: "Karl Fischer Titrator",
+            Status: "Active, calibrated",
+            Expected: "Active and within calibration",
+            Actual: "Active, calibration current",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-KF-INS-2",
+          label: "BAL-2024-003",
+          value: "Weighing Balance · Active, calibrated",
+          status: "ok",
+          details: {
+            "Instrument ID": "BAL-2024-003",
+            Type: "Weighing Balance",
+            Status: "Active, calibrated",
+            Expected: "Active and within calibration",
+            Actual: "Active, calibration current",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    naSection(
+      "column",
+      "Karl Fischer is a titration method. No chromatography column involved.",
+    ),
+  ],
+};
+
+const batchBGc: TestParameter = {
+  id: "GC",
+  name: "GC",
+  methodType: "GC",
+  status: "NotStarted",
+  sections: [
+    {
+      type: "chemicals",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "2 chemicals — all match specification",
+      expectedEntries: [
+        { id: "B-GC-EXP-CHEM-1", label: "DMSO", matchedEntryId: "B-GC-CHEM-1" },
+        { id: "B-GC-EXP-CHEM-2", label: "Water HPLC grade", matchedEntryId: "B-GC-CHEM-2" },
+      ],
+      actualEntries: [
+        {
+          id: "B-GC-CHEM-1",
+          label: "DMSO",
+          value: "DMS-2024-011 · 500ml",
+          status: "ok",
+          details: {
+            Chemical: "DMSO",
+            Lot: "DMS-2024-011",
+            Quantity: "500ml",
+            Expected: "In specification",
+            Actual: "Entry matches specification",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-GC-CHEM-2",
+          label: "Water HPLC grade",
+          value: "WTR-2024-112 · 250ml",
+          status: "ok",
+          details: {
+            Chemical: "Water HPLC grade",
+            Lot: "WTR-2024-112",
+            Quantity: "250ml",
+            Expected: "In specification",
+            Actual: "Entry matches specification",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    {
+      type: "chromatographySystem",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "GC-2024-001 only — active, within range",
+      actualEntries: [
+        {
+          id: "B-GC-SYS-1",
+          label: "GC-2024-001",
+          value: "Agilent 7890B GC system · 09:10 to 12:25",
+          status: "ok",
+          details: {
+            "System ID": "GC-2024-001",
+            Instrument: "Agilent 7890B",
+            "System type": "Gas chromatography system",
+            "Usage start": "30-Jul-2026 09:10",
+            "Usage end": "30-Jul-2026 12:25",
+            Status: "Active, within range",
+            Expected: "One system per test, active and within range",
+            Actual: "Single system used — GC-2024-001",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    {
+      type: "standards",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "RS-GC-2024-008 active and unexpired",
+      expectedEntries: [
+        {
+          id: "B-GC-EXP-STD-1",
+          label: "Reference standard",
+          requirement: "Active, expiry on or after 30-Jul-2026",
+          matchedEntryId: "B-GC-STD-1",
+        },
+      ],
+      actualEntries: [
+        {
+          id: "B-GC-STD-1",
+          label: "Reference Standard RS-GC-2024-008",
+          value: "Active · Expiry 28-Feb-2027",
+          status: "ok",
+          details: {
+            "Reference Standard": "RS-GC-2024-008",
+            Status: "Active",
+            Expiry: "28-Feb-2027",
+            "Analysis date": "30-Jul-2026",
+            Expected: "Active, not expired",
+            Actual: "Active, 213 days before expiry",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    {
+      type: "instruments",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "All instruments active and calibrated",
+      actualEntries: [
+        {
+          id: "B-GC-INS-1",
+          label: "BAL-2024-003",
+          value: "Weighing Balance · Active, calibrated",
+          status: "ok",
+          details: {
+            "Instrument ID": "BAL-2024-003",
+            Type: "Weighing Balance",
+            Status: "Active, calibrated",
+            Expected: "Active and within calibration",
+            Actual: "Active, calibration current",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-GC-INS-2",
+          label: "HS-2024-001",
+          value: "Headspace Sampler · Active, calibrated",
+          status: "ok",
+          details: {
+            "Instrument ID": "HS-2024-001",
+            Type: "Headspace Sampler",
+            Status: "Active, calibrated",
+            Expected: "Active and within calibration",
+            Actual: "Active, calibration current",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+    {
+      type: "column",
+      applicable: true,
+      status: "NotStarted",
+      recordNote: "GCC-2024-003 — 220 of 500 injections",
+      expectedEntries: [
+        {
+          id: "B-GC-EXP-COL-1",
+          label: "Column injection count",
+          requirement: "Count <= 500",
+          matchedEntryId: "B-GC-COL-1",
+        },
+      ],
+      actualEntries: [
+        {
+          id: "B-GC-COL-1",
+          label: "GCC-2024-003",
+          value: "220 of 500 injections",
+          status: "ok",
+          details: {
+            Column: "GCC-2024-003",
+            Type: "DB-624",
+            Expected: "Count <= 500",
+            Actual: "220 injections",
+            Remaining: "280 injections",
+            Status: "Within qualified limit",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+      ],
+    },
+  ],
+};
 
 const batchB: Batch = {
   arNumber: "AR-2026-000122",
+  batchNumber: "ABF-2026-122",
   product: "Amoxicillin 250mg",
-  testType: "InstrumentBased (HPLC Assay)",
   analyst: "Priya Sharma",
-  analystUserId: "psharma",
-  submitted: "30-Jul-2026 16:00",
+  submittedAt: "30-Jul-2026 16:00",
   analysisDate: "30-Jul-2026",
-  sampleSet: "HPLC-2026-SS-439",
-  method: "USP-HPLC-AMOX-v1.4",
-  workingStandard: "WS-2024-44 (Inactive, expired)",
-  referenceStandard: "RS-2024-18 (Active)",
-  column: "COL-2024-09 (412 injections)",
-  auditEvents: "11 events, all with reasons",
   sessionStatus: "New",
   activityLabel: "Not yet reviewed",
-  assembly: [
-    { label: "AR Found", value: "AR-2026-000122", state: "ok" },
-    { label: "Sample Set", value: "HPLC-2026-SS-439", state: "ok" },
-    { label: "Method", value: "USP-HPLC-AMOX-v1.4", state: "ok" },
-    { label: "Working Standard", value: "WS-2024-44", state: "ok" },
-    { label: "Reference Standard", value: "RS-2024-18", state: "ok" },
-    { label: "Column", value: "COL-2024-09", state: "ok" },
-    { label: "Audit Trail", value: "11 events loaded", state: "ok" },
-  ],
-  results: [
-    {
-      ruleId: "RULE-001",
-      outcome: "Compliant",
-      summary: "Commenced 03-Aug-2026, due date 03-Aug-2026 16:00",
-      expected: "QA review commenced on or before the Caliber review due date of 03-Aug-2026 16:00",
-      actual: "QA review commenced 03-Aug-2026 — due date is today",
-      source: "Caliber LIMS — AR Header, Review Due Date",
-      explanation:
-        "The review is being commenced on its due date, so it is inside the window Caliber recorded. There is no margin left on this AR — if the review is paused past 16:00 today it will breach the turnaround commitment.",
+  slaByProfile: {
+    "shrikrishna-site": {
+      deadline: "03-Aug-2026 16:00",
+      status: "WithinSla",
+      detail: "Due today",
     },
-    {
-      ruleId: "RULE-002",
-      outcome: "Compliant",
-      summary: "11 events retrieved for HPLC-2026-SS-439",
-      expected: "An Empower audit trail retrievable for the sample set",
-      actual: "11 events retrieved for HPLC-2026-SS-439, covering 30-Jul-2026 11:05 to 30-Jul-2026 15:31",
-      source: "Empower — Project Audit Trail",
-      explanation:
-        "The audit trail is present and continuous from acquisition through final processing. Nothing in the sequence is missing a corresponding entry.",
+    "lupin-cipla": {
+      deadline: "31-Jul-2026 16:00",
+      status: "Overdue",
+      detail: "1 working day past due",
+      daysOverdue: 1,
     },
-    {
-      ruleId: "RULE-003",
-      outcome: "Finding",
-      severity: "Critical",
-      summary: "WS-2024-44 — Status = Inactive, inactivated 20-Jul-2026",
-      expected: "Working standard status = Active on the analysis date",
-      actual: "WS-2024-44 — Status = Inactive (inactivated 20-Jul-2026)",
-      source: "Empower — WorkingStandard custom field",
-      explanation:
-        "Working standard WS-2024-44 was set to Inactive in Empower on 20-Jul-2026 and was still inactive when sample set HPLC-2026-SS-439 was acquired on 30-Jul-2026. An inactive standard is withdrawn from use in regulated analysis, so it should not have appeared in the standard bracket at all. The assay result on this AR was calculated against that standard, which means the reported potency rests on a standard the laboratory had already withdrawn. Establish why an inactive standard was still selectable in the method, and confirm whether a re-analysis against a current standard exists, before recording your disposition.",
-      laboratoryPractice:
-        "A working standard must be active and qualified before use. Its potency assignment is only valid while it holds active status in the system.",
-      typicalMistake:
-        "Analyst selects a standard that was recently inactivated but remains visible in the Empower method — the system does not block selection of an inactive standard.",
-      regulatoryExpectation:
-        "21 CFR 211.194 and EU GMP Annex 11 require that reference and working standards are qualified, stored and used within their authorised conditions. Use of an inactive standard is a data integrity risk.",
-      companySOP: SOP_NOT_SET,
-    },
-    {
-      ruleId: "RULE-004",
-      outcome: "Finding",
-      severity: "Critical",
-      summary: "WS-2024-44 — Expiry 18-Jul-2026, expired 12 days before analysis",
-      expected: "Working standard expiry date on or after the analysis date of 30-Jul-2026",
-      actual: "WS-2024-44 — Expiry 18-Jul-2026 (expired 12 days before analysis)",
-      source: "Empower — WorkingStandard custom field",
-      explanation:
-        "Working standard WS-2024-44 carried an expiry date of 18-Jul-2026. The sample set was acquired on 30-Jul-2026, twelve days past that date. Beyond expiry the assigned potency of a standard is no longer supported by its qualification data, so the standard response used in the assay calculation cannot be relied on and the reported result is not defensible as it stands. This compounds RULE-003 — the same standard was both withdrawn and out of date on the analysis date, so the two findings share one root cause and should be investigated together rather than closed separately.",
-      laboratoryPractice:
-        "Every standard carries an expiry date after which its assigned potency is no longer supported by its qualification data. Analysis must not be performed with an expired standard.",
-      typicalMistake:
-        "Standard was not re-qualified before expiry, or the expiry date in Empower was not updated after a re-qualification was completed elsewhere.",
-      regulatoryExpectation:
-        "ICH Q7 and USP <1> require reference standards to be within their certified validity period at the time of use.",
-      companySOP: SOP_NOT_SET,
-    },
-    {
-      ruleId: "RULE-006",
-      outcome: "Compliant",
-      summary: "RS-2024-18 — Status = Active, Expiry 31-Dec-2026",
-      expected: "Reference standard status = Active on the analysis date",
-      actual: "RS-2024-18 — Status = Active, Expiry 31-Dec-2026",
-      source: "Empower — ReferenceStandard custom field",
-      explanation:
-        "The reference standard was active and unexpired on the analysis date. Note that this covers the reference standard only — it does not carry over to the working standard qualified against it, which is the subject of RULE-003 and RULE-004.",
-    },
-    {
-      ruleId: "RULE-009",
-      outcome: "Compliant",
-      summary: "COL-2024-09 — Status = Active",
-      expected: "Column status = Active on the analysis date",
-      actual: "COL-2024-09 — Status = Active, qualified 03-Mar-2026",
-      source: "Empower — Column custom field",
-      explanation:
-        "The column carried Active status in Empower for the whole sample set. Status is held separately from the injection counter, so this rule is met even though the counter has run past its limit — see RULE-010.",
-    },
-    {
-      ruleId: "RULE-010",
-      outcome: "Finding",
-      severity: "Major",
-      summary: "COL-2024-09 — 412 injections against a limit of 400",
-      expected: "Cumulative injection count at or below the qualified limit of 400",
-      actual: "COL-2024-09 — 412 injections at close of sample set (limit exceeded by 12)",
-      source: "Empower — Column custom field, Injection Counter",
-      explanation:
-        "Column COL-2024-09 is qualified for 400 injections. The counter stood at 412 when sample set HPLC-2026-SS-439 closed, so the last 12 injections in the sequence were acquired past the column's qualified life. System suitability criteria were met across the sample set, so the chromatography itself gives no sign of degradation and the result is not invalid on its face. The column is nonetheless outside its qualified range and must be withdrawn or re-qualified before further use. Identify which injections in the sequence fall past 400, and confirm the sample injections concerned were bracketed by system suitability injections that met their acceptance criteria.",
-      laboratoryPractice:
-        "Chromatography columns degrade with use. A maximum injection count is qualified and validated — results obtained past this limit may show peak shape degradation, retention time shift, or reduced resolution.",
-      typicalMistake:
-        "Column counter not checked before starting a sample set, or a long sequence runs the counter past the limit during acquisition.",
-      regulatoryExpectation:
-        "FDA expects column usage to be within a validated and documented range. Exceeding the limit without justification is a GMP deviation.",
-      companySOP: SOP_NOT_SET,
-    },
-    {
-      ruleId: "RULE-013",
-      outcome: "Compliant",
-      summary: "11 of 11 events carry a reason for change",
-      expected: "A reason for change recorded against every audit trail event that requires one",
-      actual: "11 of 11 events carry a reason for change",
-      source: "Empower — Project Audit Trail, Reason field",
-      explanation:
-        "Every modification to processed data in this sample set carries a recorded reason. Each change is justified on its own entry.",
-    },
-    {
-      ruleId: "RULE-014",
-      outcome: "Compliant",
-      summary: "Analyst psharma, reviewer skrishna — different users",
-      expected: "The analyst and the QA reviewer are different Empower users",
-      actual: "Analyst: Priya Sharma (psharma) · Reviewer: Shrikrishna (skrishna)",
-      source: "Empower — User Group assignment / Caliber LIMS — Reviewer field",
-      explanation:
-        "The user who acquired and processed the data is not the user performing this review. Segregation of duties is intact for the AR.",
-    },
-    {
-      ruleId: "RULE-015",
-      outcome: "Compliant",
-      summary: "Priya Sharma recorded on all injections",
-      expected: "A named analyst recorded against every injection in the sample set",
-      actual: "Priya Sharma (psharma) recorded on all injections in HPLC-2026-SS-439",
-      source: "Empower — Sample Set, Acquired By",
-      explanation:
-        "Every injection in the sample set is attributable to a named analyst. No injection is recorded against a shared or system account.",
-    },
-  ],
+  },
+  tests: [batchBAssay, batchBRs, batchBDisso, batchBKf, batchBGc],
 };
 
-/* -------------------------------------------------------------------------- */
-/* Batch C — AR-2026-000123 — Metformin 500mg                                 */
-/* Purpose: validate the pause and resume path.                               */
-/* 2 Major (RULE-001 acknowledged, RULE-013 pending) + 8 Compliant = 10.      */
-/* Seeded as a paused session; checklistPosition sits on RULE-013.            */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+/* BATCH C — AR-2026-000123 — Metformin 500mg                                */
+/* Pause and resume. Assay only, paused at the Column section.               */
+/* ========================================================================== */
 
 const batchC: Batch = {
   arNumber: "AR-2026-000123",
+  batchNumber: "ABF-2026-123",
   product: "Metformin 500mg",
-  testType: "InstrumentBased (HPLC Assay)",
   analyst: "Amit Patel",
-  analystUserId: "apatel",
-  submitted: "29-Jul-2026 14:00",
+  submittedAt: "29-Jul-2026 14:00",
   analysisDate: "29-Jul-2026",
-  sampleSet: "HPLC-2026-SS-438",
-  method: "USP-HPLC-MET-v2.1",
-  workingStandard: "WS-2024-39 (Active)",
-  referenceStandard: "RS-2024-18 (Active)",
-  column: "COL-2024-07 (380 injections)",
-  auditEvents: "16 events, 2 missing reasons",
   sessionStatus: "Paused",
   activityLabel: "Paused 31-Jul-2026 17:35",
-  checklistPosition: "RULE-013",
-  assembly: [
-    { label: "AR Found", value: "AR-2026-000123", state: "ok" },
-    { label: "Sample Set", value: "HPLC-2026-SS-438", state: "ok" },
-    { label: "Method", value: "USP-HPLC-MET-v2.1", state: "ok" },
-    { label: "Working Standard", value: "WS-2024-39", state: "ok" },
-    { label: "Reference Standard", value: "RS-2024-18", state: "ok" },
-    { label: "Column", value: "COL-2024-07", state: "ok" },
-    { label: "Audit Trail", value: "16 events loaded, 2 events flagged", state: "warning" },
-  ],
-  results: [
-    {
-      ruleId: "RULE-001",
-      outcome: "Finding",
-      severity: "Major",
-      initialStatus: "Acknowledged",
-      summary: "Review commenced 1 day past Caliber due date",
-      expected: "QA review commenced on or before the Caliber review due date of 30-Jul-2026 14:00",
-      actual: "QA review commenced 31-Jul-2026 15:10 — 1 day beyond due date",
-      source: "Caliber LIMS — AR Header, Review Due Date",
-      explanation:
-        "Sample set HPLC-2026-SS-438 was submitted for QA review on 29-Jul-2026 14:00 against a Caliber review due date of 30-Jul-2026 14:00. The review was not commenced until 31-Jul-2026 15:10, one day past that date. A late review does not affect the validity of the analytical result — the data itself is unchanged — but the delay is a recorded breach of the review turnaround commitment for this AR and will be visible in Caliber's SLA reporting. Record the reason for the delay when you record your disposition.",
-      laboratoryPractice:
-        "Timely review ensures that any anomaly, OOS result, or data integrity issue is identified and investigated within the regulatory window.",
-      typicalMistake:
-        "Review queue builds up at month-end, or a reviewer is absent with no cover assigned.",
-      regulatoryExpectation:
-        "FDA OOS guidance requires investigation initiation within a defined timeframe. Many sites adopt a 2-working-day internal SLA to stay comfortably inside the 72-hour reporting window.",
-      companySOP: SOP_NOT_SET,
+  slaByProfile: {
+    "shrikrishna-site": {
+      deadline: "31-Jul-2026 14:00",
+      status: "Overdue",
+      detail: "1 working day past due",
+      daysOverdue: 1,
     },
-    {
-      ruleId: "RULE-002",
-      outcome: "Compliant",
-      summary: "16 events retrieved for HPLC-2026-SS-438",
-      expected: "An Empower audit trail retrievable for the sample set",
-      actual: "16 events retrieved for HPLC-2026-SS-438, covering 29-Jul-2026 09:48 to 29-Jul-2026 17:02",
-      source: "Empower — Project Audit Trail",
-      explanation:
-        "The audit trail is present and continuous from acquisition through final processing — every action in the sequence has a corresponding entry. This rule tests only that the trail exists and is complete in coverage. Two of the sixteen entries are missing a reason for change, which is assessed separately under RULE-013.",
+    "lupin-cipla": {
+      deadline: "30-Jul-2026 14:00",
+      status: "Overdue",
+      detail: "2 working days past due",
+      daysOverdue: 2,
     },
-    {
-      ruleId: "RULE-003",
-      outcome: "Compliant",
-      summary: "WS-2024-39 — Status = Active",
-      expected: "Working standard status = Active on the analysis date",
-      actual: "WS-2024-39 — Status = Active",
-      source: "Empower — WorkingStandard custom field",
-      explanation:
-        "WS-2024-39 was active in Empower on 29-Jul-2026. There is no restriction on its use in this analysis.",
+  },
+  sessionState: {
+    currentTestId: "ASSAY",
+    currentSectionType: "column",
+    sectionStatuses: {
+      chemicals: "Reviewed",
+      chromatographySystem: "Reviewed",
+      standards: "Reviewed",
+      instruments: "Reviewed",
+      column: "NotStarted",
     },
+  },
+  tests: [
     {
-      ruleId: "RULE-004",
-      outcome: "Compliant",
-      summary: "WS-2024-39 — Expiry 31-Oct-2026, 94 days remaining",
-      expected: "Working standard expiry date on or after the analysis date of 29-Jul-2026",
-      actual: "WS-2024-39 — Expiry 31-Oct-2026 (94 days remaining at analysis)",
-      source: "Empower — WorkingStandard custom field",
-      explanation:
-        "The working standard was inside its assigned validity period when the sample set was acquired. Its assigned potency holds for this calculation.",
-    },
-    {
-      ruleId: "RULE-006",
-      outcome: "Compliant",
-      summary: "RS-2024-18 — Status = Active, Expiry 31-Dec-2026",
-      expected: "Reference standard status = Active on the analysis date",
-      actual: "RS-2024-18 — Status = Active, Expiry 31-Dec-2026",
-      source: "Empower — ReferenceStandard custom field",
-      explanation:
-        "The reference standard used to qualify WS-2024-39 was active and unexpired on the analysis date. The traceability chain back to the pharmacopoeial standard holds.",
-    },
-    {
-      ruleId: "RULE-009",
-      outcome: "Compliant",
-      summary: "COL-2024-07 — Status = Active",
-      expected: "Column status = Active on the analysis date",
-      actual: "COL-2024-07 — Status = Active, qualified 12-Jan-2026",
-      source: "Empower — Column custom field",
-      explanation:
-        "The column was in its qualified state for the whole sample set. No hold or withdrawal is recorded against it in Empower.",
-    },
-    {
-      ruleId: "RULE-010",
-      outcome: "Compliant",
-      summary: "COL-2024-07 — 380 of 400 injections used",
-      expected: "Cumulative injection count at or below the qualified limit of 400",
-      actual: "COL-2024-07 — 380 injections at close of sample set (20 remaining)",
-      source: "Empower — Column custom field, Injection Counter",
-      explanation:
-        "The column stayed inside its qualified injection life across the sample set. 20 injections remain before re-qualification falls due — worth noting for scheduling, but it is not a finding against this AR.",
-    },
-    {
-      ruleId: "RULE-013",
-      outcome: "Finding",
-      severity: "Major",
-      initialStatus: "Pending",
-      summary: "14 of 16 events carry a reason — 2 events recorded without one",
-      expected: "A reason for change recorded against every audit trail event that requires one (16 of 16)",
-      actual: "14 of 16 events carry a reason for change — 2 events recorded without one",
-      source: "Empower — Project Audit Trail, Reason field",
-      explanation:
-        "Two entries in the audit trail for sample set HPLC-2026-SS-438 were saved without a reason for change: at 29-Jul-2026 16:42, integration parameters were modified by A. Patel (peak width 0.20 to 0.35); at 29-Jul-2026 16:58, the result set was reprocessed by the same user. Both actions changed processed data and both therefore require a recorded reason. Without one, the change cannot be justified to an inspector and the reprocessed result cannot be shown to be a considered decision rather than an attempt to obtain a different outcome. This is the kind of gap that attracts a data integrity observation even when the underlying result is sound. Obtain the reason from the analyst, confirm it is contemporaneous with the change, and have it recorded against both entries before disposition.",
-      laboratoryPractice:
-        "Every change to electronic data in a GMP system must be attributable — who changed it, when, and why. Without a reason, the change cannot be justified to an inspector.",
-      typicalMistake:
-        "Analyst reprocesses data without entering a reason, or the system does not enforce reason entry for all action types.",
-      regulatoryExpectation:
-        "21 CFR Part 11 and EU GMP Annex 11 both require that audit trail entries include the reason for change. Missing reasons attract data integrity observations at inspection.",
-      companySOP: SOP_NOT_SET,
-    },
-    {
-      ruleId: "RULE-014",
-      outcome: "Compliant",
-      summary: "Analyst apatel, reviewer skrishna — different users",
-      expected: "The analyst and the QA reviewer are different Empower users",
-      actual: "Analyst: Amit Patel (apatel) · Reviewer: Shrikrishna (skrishna)",
-      source: "Empower — User Group assignment / Caliber LIMS — Reviewer field",
-      explanation:
-        "The user who acquired and processed the data is not the user performing this review. Segregation of duties is intact for the AR. Note that the reprocessing under RULE-013 was carried out by the analyst, not by a second user — that is permitted, but it is why the missing reason matters.",
-    },
-    {
-      ruleId: "RULE-015",
-      outcome: "Compliant",
-      summary: "Amit Patel recorded on all injections",
-      expected: "A named analyst recorded against every injection in the sample set",
-      actual: "Amit Patel (apatel) recorded on all injections in HPLC-2026-SS-438",
-      source: "Empower — Sample Set, Acquired By",
-      explanation:
-        "Every injection in the sample set is attributable to a named analyst. No injection is recorded against a shared or system account.",
+      id: "ASSAY",
+      name: "Assay",
+      methodType: "HPLC",
+      status: "Paused",
+      sections: [
+        {
+          type: "chemicals",
+          applicable: true,
+          status: "NotStarted",
+          recordNote: "3 chemicals — all match specification",
+          expectedEntries: [
+            { id: "C-ASSAY-EXP-CHEM-1", label: "Water HPLC grade", matchedEntryId: "C-ASSAY-CHEM-1" },
+            { id: "C-ASSAY-EXP-CHEM-2", label: "Methanol HPLC grade", matchedEntryId: "C-ASSAY-CHEM-2" },
+            { id: "C-ASSAY-EXP-CHEM-3", label: "Phosphate buffer", matchedEntryId: "C-ASSAY-CHEM-3" },
+          ],
+          actualEntries: [
+            {
+              id: "C-ASSAY-CHEM-1",
+              label: "Water HPLC grade",
+              value: "WTR-2024-112 · 1000ml",
+              status: "ok",
+              details: {
+                Chemical: "Water HPLC grade",
+                Lot: "WTR-2024-112",
+                Quantity: "1000ml",
+                Expected: "In specification",
+                Actual: "Entry matches specification",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+            {
+              id: "C-ASSAY-CHEM-2",
+              label: "Methanol HPLC grade",
+              value: "MET-2024-221 · 500ml",
+              status: "ok",
+              details: {
+                Chemical: "Methanol HPLC grade",
+                Lot: "MET-2024-221",
+                Quantity: "500ml",
+                Expected: "In specification",
+                Actual: "Entry matches specification",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+            {
+              id: "C-ASSAY-CHEM-3",
+              label: "Phosphate buffer",
+              value: "PB-2024-089 · 200ml",
+              status: "ok",
+              details: {
+                Chemical: "Phosphate buffer",
+                Lot: "PB-2024-089",
+                Quantity: "200ml",
+                Expected: "In specification",
+                Actual: "Entry matches specification",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+          ],
+        },
+        {
+          type: "chromatographySystem",
+          applicable: true,
+          status: "NotStarted",
+          recordNote: "HPLC-001 only — active, within range",
+          actualEntries: [
+            {
+              id: "C-ASSAY-SYS-1",
+              label: "HPLC-001",
+              value: "Waters Alliance e2695 · 09:48 to 17:02",
+              status: "ok",
+              details: {
+                "System ID": "HPLC-001",
+                Instrument: "Waters Alliance e2695",
+                "Usage start": "29-Jul-2026 09:48",
+                "Usage end": "29-Jul-2026 17:02",
+                Status: "Active, within range",
+                Expected: "One system per test, active and within range",
+                Actual: "Single system used — HPLC-001",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+          ],
+        },
+        {
+          type: "standards",
+          applicable: true,
+          status: "NotStarted",
+          recordNote: "WS-2024-39 and RS-2024-18 active and unexpired",
+          expectedEntries: [
+            {
+              id: "C-ASSAY-EXP-STD-1",
+              label: "Working standard",
+              requirement: "Active, expiry on or after 29-Jul-2026",
+              matchedEntryId: "C-ASSAY-STD-1",
+            },
+            {
+              id: "C-ASSAY-EXP-STD-2",
+              label: "Reference standard",
+              requirement: "Active, expiry on or after 29-Jul-2026",
+              matchedEntryId: "C-ASSAY-STD-2",
+            },
+          ],
+          actualEntries: [
+            {
+              id: "C-ASSAY-STD-1",
+              label: "Working Standard WS-2024-39",
+              value: "Active · Expiry 31-Oct-2026",
+              status: "ok",
+              details: {
+                "Working Standard": "WS-2024-39",
+                Status: "Active",
+                Expiry: "31-Oct-2026",
+                "Analysis date": "29-Jul-2026",
+                Potency: "99.4%",
+                Consumption: "50.2mg",
+                Expected: "Active, not expired",
+                Actual: "Active, 94 days before expiry",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+            {
+              id: "C-ASSAY-STD-2",
+              label: "Reference Standard RS-2024-18",
+              value: "Active · Expiry 30-Nov-2026",
+              status: "ok",
+              details: {
+                "Reference Standard": "RS-2024-18",
+                Status: "Active",
+                Expiry: "30-Nov-2026",
+                "Analysis date": "29-Jul-2026",
+                Potency: "99.8%",
+                Consumption: "10.0mg",
+                Expected: "Active, not expired",
+                Actual: "Active, 124 days before expiry",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+          ],
+        },
+        {
+          type: "instruments",
+          applicable: true,
+          status: "NotStarted",
+          recordNote: "All instruments active and calibrated",
+          actualEntries: [
+            {
+              id: "C-ASSAY-INS-1",
+              label: "BAL-2024-003",
+              value: "Weighing Balance · Active, calibrated",
+              status: "ok",
+              details: {
+                "Instrument ID": "BAL-2024-003",
+                Type: "Weighing Balance",
+                Status: "Active, calibrated",
+                Expected: "Active and within calibration",
+                Actual: "Active, calibration current",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+            {
+              id: "C-ASSAY-INS-2",
+              label: "SON-2024-001",
+              value: "Sonicator · Active",
+              status: "ok",
+              details: {
+                "Instrument ID": "SON-2024-001",
+                Type: "Sonicator",
+                Status: "Active, calibrated",
+                Expected: "Active and within calibration",
+                Actual: "Active, calibration current",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+          ],
+        },
+        {
+          type: "column",
+          applicable: true,
+          status: "NotStarted",
+          recordNote: "COL-2024-07 — 380 of 400 injections",
+          expectedEntries: [
+            {
+              id: "C-ASSAY-EXP-COL-1",
+              label: "Column injection count",
+              requirement: "Count <= 400",
+              matchedEntryId: "C-ASSAY-COL-1",
+            },
+          ],
+          actualEntries: [
+            {
+              id: "C-ASSAY-COL-1",
+              label: "COL-2024-07",
+              value: "380 of 400 injections",
+              status: "ok",
+              details: {
+                Column: "COL-2024-07",
+                Type: "Waters Symmetry C18",
+                Expected: "Count <= 400",
+                Actual: "380 injections",
+                Remaining: "20 injections",
+                Status: "Within qualified limit",
+              },
+              sourceLabel: SOURCE_LABEL,
+            },
+          ],
+        },
+      ],
     },
   ],
 };
 
-/** All three batches, in AR-number order — the order of the validation session. */
+/* -------------------------------------------------------------------------- */
+/* Exports and lookups                                                        */
+/* -------------------------------------------------------------------------- */
+
+/** All batches, in AR-number order — the order of the validation session. */
 export const BATCHES: Batch[] = [batchA, batchB, batchC];
 
 export function getBatch(arNumber: string): Batch | undefined {
   const needle = arNumber.trim().toUpperCase();
   return BATCHES.find((batch) => batch.arNumber.toUpperCase() === needle);
+}
+
+export function getTest(
+  arNumber: string,
+  testId: string,
+): TestParameter | undefined {
+  return getBatch(arNumber)?.tests.find((test) => test.id === testId);
+}
+
+export function getSection(
+  arNumber: string,
+  testId: string,
+  type: SectionType,
+): Section | undefined {
+  return getTest(arNumber, testId)?.sections.find(
+    (section) => section.type === type,
+  );
+}
+
+export function getSlaProfile(id: SlaProfileId): SlaProfile {
+  return SLA_PROFILES.find((profile) => profile.id === id) ?? SLA_PROFILES[0];
+}
+
+/** Sections a reviewer must actually work through — N/A sections excluded. */
+export function applicableSections(test: TestParameter): Section[] {
+  return test.sections.filter((section) => section.applicable);
+}
+
+/** The most serious severity present in a section, or undefined if compliant. */
+export function sectionSeverity(section: Section): EntrySeverity | undefined {
+  return SEVERITY_RANK.find((severity) =>
+    section.actualEntries.some((entry) => entry.severity === severity),
+  );
+}
+
+/** Label printed against a section in the Digital Review Record. */
+export function sectionRecordLabel(section: Section): string {
+  if (!section.applicable) return "N/A";
+  const severity = sectionSeverity(section);
+  return severity ? RECORD_LABELS[severity] : "COMPLIANT";
 }
