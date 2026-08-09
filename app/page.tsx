@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 /** The seed status on the batch, before any session exists. */
@@ -39,11 +38,6 @@ const STATUS_TONES: Record<CardStatus, string> = {
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
 };
 
-const SLA_TONES = {
-  within: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
-  overdue: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
-} as const;
-
 function actionFor(status: CardStatus): CardAction {
   if (status === "Completed") return "summary";
   if (status === "Paused") return "resume";
@@ -59,23 +53,10 @@ function listArNumbers(): string {
 
 export default function EntryPage() {
   const router = useRouter();
-  const {
-    getSession,
-    getSlaStatus,
-    startReview,
-    resumeReview,
-    activeSlaProfileId,
-    slaProfiles,
-    setSlaProfile,
-  } = useReview();
+  const { getSession, startReview, resumeReview } = useReview();
 
   const [arInput, setArInput] = useState("");
   const [error, setError] = useState<string | null>(null);
-
-  const activeProfile =
-    slaProfiles.find((profile) => profile.id === activeSlaProfileId) ?? slaProfiles[0];
-  const otherProfile =
-    slaProfiles.find((profile) => profile.id !== activeSlaProfileId) ?? slaProfiles[0];
 
   function openReview(arNumber: string, action: CardAction) {
     if (action === "summary") {
@@ -113,59 +94,7 @@ export default function EntryPage() {
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-12">
-        {/* Section 1 — SLA banner and profile toggle */}
-        <Card className="[--card-spacing:--spacing(5)]">
-          <CardHeader>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <CardTitle className="text-base">Review SLA Status</CardTitle>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  Active profile: {activeProfile.name} — {activeProfile.workingDays}{" "}
-                  working {activeProfile.workingDays === 1 ? "day" : "days"}
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSlaProfile(otherProfile.id)}
-              >
-                Switch to {otherProfile.name}
-              </Button>
-            </div>
-          </CardHeader>
-
-          <CardContent className="flex flex-col gap-3">
-            {BATCHES.map((batch) => {
-              const sla = getSlaStatus(batch.arNumber);
-              if (!sla) return null;
-
-              return (
-                <div key={batch.arNumber} className="flex flex-col gap-1">
-                  <p className="text-sm">
-                    <span className="font-mono">{batch.arNumber}</span>
-                    <span className="text-muted-foreground"> · {batch.product}</span>
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                    <span>Due: {sla.dueDate}</span>
-                    <span>·</span>
-                    <Badge variant="secondary" className={SLA_TONES[sla.status]}>
-                      {sla.status === "overdue" ? "OVERDUE" : "Within SLA"}
-                    </Badge>
-                    <span>{sla.detail}</span>
-                  </div>
-                </div>
-              );
-            })}
-
-            <Separator className="mt-1" />
-
-            <p className="text-xs text-muted-foreground">
-              Review timelines are configurable per customer SOP.
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Section 2 — AR number entry */}
+        {/* Section 1 — AR number entry */}
         <Card className="[--card-spacing:--spacing(6)]">
           <CardHeader>
             <CardTitle className="text-2xl">QA Compliance Review</CardTitle>
@@ -208,7 +137,7 @@ export default function EntryPage() {
           </CardContent>
         </Card>
 
-        {/* Section 3 — Recent Reviews */}
+        {/* Section 2 — Recent Reviews */}
         <section className="flex flex-col gap-4">
           <h2 className="font-heading text-sm font-medium tracking-wide text-muted-foreground uppercase">
             Recent Reviews
@@ -269,7 +198,7 @@ export default function EntryPage() {
         </section>
       </main>
 
-      {/* Section 4 — Footer */}
+      {/* Section 3 — Footer */}
       <footer className="px-6 pb-8 text-center text-xs text-muted-foreground">
         QRA · Compliance Intelligence · Read-only · QA retains final disposition
         authority

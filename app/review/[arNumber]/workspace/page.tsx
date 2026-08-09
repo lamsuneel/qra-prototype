@@ -89,7 +89,13 @@ export default function WorkspacePage() {
     pauseReview,
     resumeReview,
     completeReview,
+    activeSlaProfileId,
+    slaProfiles,
+    setSlaProfile,
   } = useReview();
+
+  const otherProfile =
+    slaProfiles.find((profile) => profile.id !== activeSlaProfileId) ?? slaProfiles[0];
 
   const batch = getBatch(params.arNumber);
   const arNumber = batch?.arNumber ?? "";
@@ -276,6 +282,21 @@ export default function WorkspacePage() {
               {sla.status === "overdue" ? "OVERDUE" : "Within SLA"}
             </Badge>
             <p className="text-xs text-muted-foreground">{sla.detail}</p>
+            <p className="text-xs text-muted-foreground">
+              Due {sla.dueDate}
+            </p>
+
+            {/* SLA is configuration, not code — switching recalculates in place. */}
+            <p className="mt-1 text-xs text-muted-foreground">
+              Profile: {sla.profileName}
+            </p>
+            <button
+              type="button"
+              onClick={() => setSlaProfile(otherProfile.id)}
+              className="w-fit text-xs text-primary transition-colors hover:underline"
+            >
+              Switch profile
+            </button>
           </div>
         ) : null}
 
