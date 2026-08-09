@@ -117,11 +117,24 @@ export interface Section {
   recordNote?: string;
 }
 
+/**
+ * Quality Management System / Planned Non-Conformance state for a test.
+ * Uniformly NotApplicable in the prototype; populated per test by the QMS
+ * connector in production, so each test can differ.
+ */
+export interface QmsPnc {
+  status: "OpenPNC" | "OpenOOS" | "NoInvestigation" | "NotApplicable";
+  label: string;
+}
+
+const QMS_NOT_APPLICABLE: QmsPnc = { status: "NotApplicable", label: "N/A" };
+
 export interface TestParameter {
   id: string;
   name: string;
   methodType: MethodType;
   status: TestStatus;
+  qmsPncStatus: QmsPnc;
   sections: Section[];
 }
 
@@ -189,8 +202,6 @@ export const CHECKLIST_REFERENCES: Record<SectionType, string> = {
   column: "Analytical Checklist Item 8 — Column usage / SST verified",
 };
 
-/** Uniform in the prototype; populated from the QMS connector in production. */
-export const QMS_PNC_STATUS = "N/A";
 export const QMS_PNC_NOTE =
   "QMS/PNC status will be populated from the Quality Management System connector in production.";
 
@@ -277,6 +288,35 @@ const sstEntries = (
   });
 };
 
+/** Cumulative injection count against the column's qualified limit. */
+const overLimitExpected = (prefix: string): ExpectedEntry => ({
+  id: `${prefix}-EXP-COL-LIMIT`,
+  label: "Cumulative Injection Count",
+  requirement: "<= 400 injections (qualified limit)",
+  matchedEntryId: `${prefix}-COL-LIMIT`,
+});
+
+const overLimitEntry = (prefix: string): Entry => ({
+  id: `${prefix}-COL-LIMIT`,
+  label: "Cumulative Injection Count",
+  value: "412 injections — expected <= 400 injections (qualified limit)",
+  status: "flagged",
+  severity: "Major",
+  details: {
+    Column: "COL-2024-09",
+    Expected: "<= 400 injections (qualified limit)",
+    Actual: "412 injections",
+    "Exceeded by": "12 injections",
+    Inactivation: "Not initiated",
+  },
+  inactivation: { initiated: false, approved: false },
+  finding:
+    "Column COL-2024-09 has 412 cumulative injections against a qualified limit of 400. The column has been used beyond its qualified range. Results obtained after the limit was exceeded may not be reliable.",
+  action:
+    "Column must be retired or re-qualified before further use. Verify in Caliber LIMS whether the column was within limit for the specific injections used in this sample set.",
+  sourceLabel: SOURCE_LABEL,
+});
+
 /** Every N/A section carries the same source attribution. */
 const naSection = (type: SectionType, naReason: string): Section => ({
   type,
@@ -319,6 +359,7 @@ const batchA: Batch = {
       name: "Assay",
       methodType: "HPLC",
       status: "NotStarted",
+      qmsPncStatus: QMS_NOT_APPLICABLE,
       sections: [
         {
           type: "chemicals",
@@ -532,6 +573,7 @@ const batchBAssay: TestParameter = {
   name: "Assay",
   methodType: "HPLC",
   status: "NotStarted",
+  qmsPncStatus: QMS_NOT_APPLICABLE,
   sections: [
     {
       type: "chemicals",
@@ -823,16 +865,19 @@ const batchBAssay: TestParameter = {
       type: "column",
       applicable: true,
       status: "NotStarted",
-      recordNote: "SST resolution below method limit",
+      recordNote: "SST resolution below limit; usage exceeded qualified limit",
       contextSummary:
         "COL-2024-09 · 47 test injections · 412 cumulative · limit 400 · Used 30-Jul 08:15 to 14:32",
-      expectedEntries: sstExpected("B-ASSAY"),
-      actualEntries: sstEntries("B-ASSAY", {
-        plateCount: "4850",
-        tailing: "1.42",
-        resolution: "1.18",
-        resolutionFails: true,
-      }),
+      expectedEntries: [...sstExpected("B-ASSAY"), overLimitExpected("B-ASSAY")],
+      actualEntries: [
+        ...sstEntries("B-ASSAY", {
+          plateCount: "4850",
+          tailing: "1.42",
+          resolution: "1.18",
+          resolutionFails: true,
+        }),
+        overLimitEntry("B-ASSAY"),
+      ],
     },
   ],
 };
@@ -842,6 +887,7 @@ const batchBRs: TestParameter = {
   name: "RS",
   methodType: "HPLC",
   status: "NotStarted",
+  qmsPncStatus: QMS_NOT_APPLICABLE,
   sections: [
     {
       type: "chemicals",
@@ -980,18 +1026,21 @@ const batchBRs: TestParameter = {
       type: "column",
       applicable: true,
       status: "NotStarted",
-      recordNote: "Same SST failure as Assay",
+      recordNote: "Same SST failure and over-limit column as Assay",
       contextSummary:
         "COL-2024-09 · 31 test injections · 412 cumulative · limit 400 · Used 30-Jul 15:05 to 18:40",
       contextNote:
         "Same SST failure as Assay. Column used for both tests on 30-Jul-2026.",
-      expectedEntries: sstExpected("B-RS"),
-      actualEntries: sstEntries("B-RS", {
-        plateCount: "4790",
-        tailing: "1.45",
-        resolution: "1.18",
-        resolutionFails: true,
-      }),
+      expectedEntries: [...sstExpected("B-RS"), overLimitExpected("B-RS")],
+      actualEntries: [
+        ...sstEntries("B-RS", {
+          plateCount: "4790",
+          tailing: "1.45",
+          resolution: "1.18",
+          resolutionFails: true,
+        }),
+        overLimitEntry("B-RS"),
+      ],
     },
   ],
 };
@@ -1001,6 +1050,7 @@ const batchBDisso: TestParameter = {
   name: "Disso",
   methodType: "UV",
   status: "NotStarted",
+  qmsPncStatus: QMS_NOT_APPLICABLE,
   sections: [
     {
       type: "chemicals",
@@ -1125,6 +1175,7 @@ const batchBKf: TestParameter = {
   name: "KF",
   methodType: "Titration",
   status: "NotStarted",
+  qmsPncStatus: QMS_NOT_APPLICABLE,
   sections: [
     {
       type: "chemicals",
@@ -1269,6 +1320,7 @@ const batchBGc: TestParameter = {
   name: "GC",
   methodType: "GC",
   status: "NotStarted",
+  qmsPncStatus: QMS_NOT_APPLICABLE,
   sections: [
     {
       type: "chemicals",
@@ -1514,6 +1566,7 @@ const batchC: Batch = {
       name: "Assay",
       methodType: "HPLC",
       status: "Paused",
+      qmsPncStatus: QMS_NOT_APPLICABLE,
       sections: [
         {
           type: "chemicals",
