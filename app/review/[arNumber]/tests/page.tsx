@@ -7,6 +7,8 @@ import { AlertTriangle, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   applicableSections,
   getBatch,
+  QMS_PNC_NOTE,
+  QMS_PNC_STATUS,
   type TestParameter,
 } from "@/data/batches";
 import { useReview } from "@/context/ReviewContext";
@@ -168,6 +170,14 @@ export default function TestParametersPage() {
                       ) : null}
                     </div>
 
+                    <Badge
+                      variant="secondary"
+                      title={QMS_PNC_NOTE}
+                      className="w-fit bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                    >
+                      QMS/PNC: {QMS_PNC_STATUS}
+                    </Badge>
+
                     <div className="flex items-center justify-between gap-2">
                       <Badge variant="secondary" className={cn(PROGRESS_TONES[label])}>
                         {label}
@@ -186,6 +196,7 @@ export default function TestParametersPage() {
             In production, tests are extracted from LIMS at AR entry. Representative
             data used in V2.
           </p>
+          <p className="text-xs text-muted-foreground">{QMS_PNC_NOTE}</p>
         </section>
       </main>
 

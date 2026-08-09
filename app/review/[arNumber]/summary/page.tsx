@@ -92,15 +92,15 @@ function compliantSummary(section: Section): string {
       return `${entries.length} ${entries.length === 1 ? "instrument" : "instruments"} — all active and calibrated`;
 
     case "column":
-      return entries
-        .map((entry) => {
-          const actual = /\d+/.exec(entry.details.Actual ?? "")?.[0];
-          const limit = /\d+/.exec(entry.details.Expected ?? "")?.[0];
-          return actual && limit
-            ? `${entry.label} — ${actual}/${limit} injections`
-            : entry.label;
-        })
-        .join(" · ");
+      // SST parameters now; the column context line carries the usage counts.
+      return [
+        section.contextSummary,
+        entries
+          .map((entry) => `${entry.label} ${entry.details.Actual ?? ""}`.trim())
+          .join(" · "),
+      ]
+        .filter(Boolean)
+        .join(" — ");
   }
 }
 
@@ -258,8 +258,9 @@ export default function DigitalReviewRecordPage() {
         </header>
 
         {/* Details strip */}
-        <section className="grid grid-cols-2 gap-4 rounded-xl border px-5 py-4 sm:grid-cols-4">
+        <section className="grid grid-cols-2 gap-4 rounded-xl border px-5 py-4 sm:grid-cols-5">
           <DetailItem label="Reviewer">{REVIEWER}</DetailItem>
+          <DetailItem label="Analyst">{batch.analyst}</DetailItem>
           <DetailItem label="Completed">{session?.lastActiveTime ?? ""}</DetailItem>
           <DetailItem label="SLA Status">
             {sla ? (

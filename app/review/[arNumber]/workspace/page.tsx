@@ -15,6 +15,7 @@ import {
 
 import {
   applicableSections,
+  CHECKLIST_REFERENCES,
   getBatch,
   SECTION_LABELS,
   type Entry,
@@ -270,6 +271,7 @@ export default function WorkspacePage() {
           <p className="text-xs text-muted-foreground">
             {batch.product} · <span className="font-mono">{batch.batchNumber}</span>
           </p>
+          <p className="text-xs text-muted-foreground">Analyst: {batch.analyst}</p>
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
             <span className="text-sm font-medium">{test.name}</span>
             <Badge variant="outline">{test.methodType}</Badge>
@@ -489,7 +491,23 @@ export default function WorkspacePage() {
                     ? "Simulated LIMS data (Caliber LIMS in production)"
                     : "Test method configuration"}
                 </p>
+                <p className="text-xs text-muted-foreground italic">
+                  {CHECKLIST_REFERENCES[activeSection.type]}
+                </p>
               </header>
+
+              {activeSection.contextSummary ? (
+                <div className="rounded-lg border bg-muted/40 px-4 py-3">
+                  <p className="font-mono text-xs leading-relaxed">
+                    {activeSection.contextSummary}
+                  </p>
+                  {activeSection.contextNote ? (
+                    <p className="mt-1.5 text-xs text-muted-foreground">
+                      {activeSection.contextNote}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
 
               {!activeSection.applicable ? (
                 /* ------------------------- N/A panel ---------------------- */
@@ -645,6 +663,19 @@ export default function WorkspacePage() {
               </Badge>
             </div>
 
+            {selected.dataAvailable === false ? (
+              <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 dark:border-amber-900 dark:bg-amber-950/40">
+                <p className="text-xs font-medium text-amber-900 dark:text-amber-300">
+                  Observation Gap
+                </p>
+                <p className="mt-1 text-sm leading-relaxed text-amber-900 dark:text-amber-200">
+                  {selected.observationGapMessage}
+                </p>
+                <p className="mt-2 text-sm text-amber-900 dark:text-amber-200">
+                  Action: Verify in physical logbook.
+                </p>
+              </div>
+            ) : (
             <dl className="mt-4 flex flex-col gap-2.5">
               {Object.entries(selected.details).map(([key, value]) => (
                 <div key={key} className="grid grid-cols-[8.5rem_1fr] gap-2">
@@ -657,6 +688,7 @@ export default function WorkspacePage() {
                 <dd className="text-sm leading-relaxed">{selected.sourceLabel}</dd>
               </div>
             </dl>
+            )}
 
             {selected.status === "flagged" ? (
               <>

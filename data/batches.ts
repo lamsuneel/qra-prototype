@@ -94,6 +94,10 @@ export interface Entry {
   advisory?: string;
   /** What the reviewer does next — always in Caliber LIMS, never here. */
   action?: string;
+  /** false when the source system holds no record for this item. */
+  dataAvailable?: boolean;
+  /** Shown in place of the detail panel when dataAvailable is false. */
+  observationGapMessage?: string;
   sourceLabel: string;
 }
 
@@ -102,6 +106,10 @@ export interface Section {
   applicable: boolean;
   /** Why this section does not apply. Shown on the N/A panel. */
   naReason?: string;
+  /** Non-clickable context shown above the entries, e.g. column usage. */
+  contextSummary?: string;
+  /** Extra note under the context card, e.g. a cross-test reference. */
+  contextNote?: string;
   expectedEntries?: ExpectedEntry[];
   actualEntries: Entry[];
   status: SectionStatus;
@@ -171,6 +179,21 @@ export const SECTION_LABELS: Record<SectionType, string> = {
   column: "Column",
 };
 
+/** Customer checklist line each section maps to. Configuration in production. */
+export const CHECKLIST_REFERENCES: Record<SectionType, string> = {
+  chemicals: "Analytical Checklist Item 5a — Chemical usage verified",
+  chromatographySystem: "Analytical Checklist Item 8 — Instrument logbook verified",
+  standards:
+    "Analytical Checklist Item 5b — Working / Reference standard details verified",
+  instruments: "Analytical Checklist Item 8 — Equipment usage verified",
+  column: "Analytical Checklist Item 8 — Column usage / SST verified",
+};
+
+/** Uniform in the prototype; populated from the QMS connector in production. */
+export const QMS_PNC_STATUS = "N/A";
+export const QMS_PNC_NOTE =
+  "QMS/PNC status will be populated from the Quality Management System connector in production.";
+
 /** Canonical section order, matching the icons on the flow diagram. */
 export const SECTION_ORDER: SectionType[] = [
   "chemicals",
@@ -195,6 +218,64 @@ export const SEVERITY_RANK: EntrySeverity[] = [
   "NeedsVerification",
   "Advisory",
 ];
+
+/* -------------------------------------------------------------------------- */
+/* System suitability                                                         */
+/* -------------------------------------------------------------------------- */
+
+/** The three SST parameters and their method limits, identical across tests. */
+const SST_LIMITS = [
+  { key: "PLATE", label: "Plate Count (N)", requirement: ">= 2000 (method limit)" },
+  { key: "TAIL", label: "Tailing Factor (T)", requirement: "<= 2.0 (method limit)" },
+  { key: "RES", label: "Resolution (Rs)", requirement: ">= 2.0 (method limit)" },
+];
+
+const sstExpected = (prefix: string): ExpectedEntry[] =>
+  SST_LIMITS.map((limit) => ({
+    id: `${prefix}-EXP-SST-${limit.key}`,
+    label: limit.label,
+    requirement: limit.requirement,
+    matchedEntryId: `${prefix}-SST-${limit.key}`,
+  }));
+
+const sstEntries = (
+  prefix: string,
+  values: {
+    plateCount: string;
+    tailing: string;
+    resolution: string;
+    resolutionFails?: boolean;
+  },
+): Entry[] => {
+  const actuals = [values.plateCount, values.tailing, values.resolution];
+
+  return SST_LIMITS.map((limit, index) => {
+    const failing = limit.key === "RES" && values.resolutionFails === true;
+
+    return {
+      id: `${prefix}-SST-${limit.key}`,
+      label: limit.label,
+      value: `${actuals[index]} — expected ${limit.requirement}`,
+      status: failing ? "flagged" : "ok",
+      ...(failing ? { severity: "Major" as EntrySeverity } : {}),
+      details: {
+        Parameter: limit.label,
+        Expected: limit.requirement,
+        Actual: actuals[index],
+        Status: failing ? "Below method limit" : "Within method limit",
+      },
+      ...(failing
+        ? {
+            finding:
+              "Resolution of 1.18 is below the method specification limit of >= 2.0. Poor resolution indicates the chromatographic system may not adequately separate the analyte from impurities. Results obtained with this system suitability failure may not be valid.",
+            action:
+              "Verify whether SST was repeated after corrective action before sample analysis began. Do not release batch until SST failure is resolved.",
+          }
+        : {}),
+      sourceLabel: SOURCE_LABEL,
+    };
+  });
+};
 
 /** Every N/A section carries the same source attribution. */
 const naSection = (type: SectionType, naReason: string): Section => ({
@@ -426,32 +507,15 @@ const batchA: Batch = {
           type: "column",
           applicable: true,
           status: "NotStarted",
-          recordNote: "COL-2024-07 — 380 of 400 injections",
-          expectedEntries: [
-            {
-              id: "A-ASSAY-EXP-COL-1",
-              label: "Column injection count",
-              requirement: "Count <= 400",
-              matchedEntryId: "A-ASSAY-COL-1",
-            },
-          ],
-          actualEntries: [
-            {
-              id: "A-ASSAY-COL-1",
-              label: "COL-2024-07",
-              value: "380 of 400 injections",
-              status: "ok",
-              details: {
-                Column: "COL-2024-07",
-                Type: "Waters Symmetry C18",
-                Expected: "Count <= 400",
-                Actual: "380 injections",
-                Remaining: "20 injections",
-                Status: "Within qualified limit",
-              },
-              sourceLabel: SOURCE_LABEL,
-            },
-          ],
+          recordNote: "COL-2024-07 — SST within method limits",
+          contextSummary:
+            "COL-2024-07 · 12 test injections · 380 cumulative · limit 400 · Used 01-Aug 08:20 to 13:10",
+          expectedEntries: sstExpected("A-ASSAY"),
+          actualEntries: sstEntries("A-ASSAY", {
+            plateCount: "5200",
+            tailing: "1.28",
+            resolution: "2.35",
+          }),
         },
       ],
     },
@@ -595,10 +659,11 @@ const batchBAssay: TestParameter = {
           details: {
             "System ID": "HPLC-001",
             Instrument: "Waters Alliance e2695",
-            "Usage start": "30-Jul-2026 08:15",
-            "Usage end": "30-Jul-2026 14:32",
-            Status: "Active, within range",
-            Expected: "One system per test, active and within range",
+            "Calibration Status": "Calibrated",
+            "Calibration Due": "31-Dec-2026",
+            "Usage Start": "30-Jul-2026 08:15",
+            "Usage End": "30-Jul-2026 14:32",
+            Expected: "One system per test, calibrated and in date",
             Actual: "Primary system for this test",
           },
           sourceLabel: SOURCE_LABEL,
@@ -612,8 +677,10 @@ const batchBAssay: TestParameter = {
           details: {
             "System ID": "HPLC-003",
             Instrument: "Waters Alliance e2695",
-            "Usage start": "30-Jul-2026 11:00",
-            "Usage end": "30-Jul-2026 11:45",
+            "Calibration Status": "Calibrated",
+            "Calibration Due": "31-Dec-2026",
+            "Usage Start": "30-Jul-2026 11:00",
+            "Usage End": "30-Jul-2026 11:45",
             Expected: "One system per test",
             Actual: "Second system recorded during HPLC-001 usage window",
             Inactivation: "Not initiated",
@@ -635,8 +702,8 @@ const batchBAssay: TestParameter = {
       expectedEntries: [
         {
           id: "B-ASSAY-EXP-STD-1",
-          label: "Working standard",
-          requirement: "Active, expiry on or after 30-Jul-2026",
+          label: "Valid lot, not expired on analysis date",
+          requirement: "Expected: Active lot with expiry >= 30-Jul-2026 (analysis date)",
           matchedEntryId: "B-ASSAY-STD-1",
         },
         {
@@ -660,13 +727,14 @@ const batchBAssay: TestParameter = {
             "Analysis date": "30-Jul-2026",
             Potency: "99.2%",
             Consumption: "55.5mg",
-            Expected: "Active, not expired",
-            Actual: "Inactive, expired 12 days before analysis",
+            Expected: "Valid lot, not expired on analysis date",
+            Actual:
+              "WS-2024-44 — Inactive, expired 12 days before analysis (18-Jul-2026)",
             Inactivation: "Not initiated",
           },
           inactivation: { initiated: false, approved: false },
           finding:
-            "1. Standard inactive at time of analysis. 2. Standard expired 12 days before analysis.",
+            "Working standard WS-2024-44 was expired 12 days before the analysis date of 30-Jul-2026. An expired standard is not a valid lot for regulated analysis. The reported result was calculated against an invalid standard.",
           action:
             "Verify whether re-analysis was performed with a valid standard. Do not release batch until resolved.",
           sourceLabel: SOURCE_LABEL,
@@ -699,12 +767,16 @@ const batchBAssay: TestParameter = {
         {
           id: "B-ASSAY-INS-1",
           label: "BAL-2024-003",
-          value: "Weighing Balance · Active, calibrated",
+          value: "Weighing Balance · 08:00 to 08:45",
           status: "ok",
+          dataAvailable: true,
           details: {
             "Instrument ID": "BAL-2024-003",
             Type: "Weighing Balance",
             Status: "Active, calibrated",
+            "Usage Start": "30-Jul-2026 08:00",
+            "Usage End": "30-Jul-2026 08:45",
+            "Weight recorded": "50.12mg of WS-2024-44",
             Expected: "Active and within calibration",
             Actual: "Active, calibration current",
           },
@@ -713,12 +785,16 @@ const batchBAssay: TestParameter = {
         {
           id: "B-ASSAY-INS-2",
           label: "SON-2024-001",
-          value: "Sonicator · Active",
+          value: "Sonicator · 08:30 to 08:45",
           status: "ok",
+          dataAvailable: true,
           details: {
             "Instrument ID": "SON-2024-001",
             Type: "Sonicator",
-            Status: "Active",
+            Status: "Active, calibrated",
+            "Usage Start": "30-Jul-2026 08:30",
+            "Usage End": "30-Jul-2026 08:45",
+            Duration: "15 minutes",
             Expected: "Active and within calibration",
             Actual: "Active, calibration current",
           },
@@ -727,12 +803,15 @@ const batchBAssay: TestParameter = {
         {
           id: "B-ASSAY-INS-3",
           label: "STR-2024-002",
-          value: "Magnetic Stirrer · Active",
+          value: "Magnetic Stirrer · 08:35 to 08:50",
           status: "ok",
+          dataAvailable: true,
           details: {
             "Instrument ID": "STR-2024-002",
             Type: "Magnetic Stirrer",
-            Status: "Active",
+            Status: "Active, calibrated",
+            "Usage Start": "30-Jul-2026 08:35",
+            "Usage End": "30-Jul-2026 08:50",
             Expected: "Active and within calibration",
             Actual: "Active, calibration current",
           },
@@ -744,37 +823,16 @@ const batchBAssay: TestParameter = {
       type: "column",
       applicable: true,
       status: "NotStarted",
-      recordNote: "Usage exceeded qualified limit",
-      expectedEntries: [
-        {
-          id: "B-ASSAY-EXP-COL-1",
-          label: "Column injection count",
-          requirement: "Count <= 400",
-          matchedEntryId: "B-ASSAY-COL-1",
-        },
-      ],
-      actualEntries: [
-        {
-          id: "B-ASSAY-COL-1",
-          label: "COL-2024-09",
-          value: "412 of 400 injections — exceeded by 12",
-          status: "flagged",
-          severity: "Major",
-          details: {
-            Column: "COL-2024-09",
-            Type: "Waters Symmetry C18",
-            Expected: "Count <= 400",
-            Actual: "412 injections",
-            "Exceeded by": "12 injections",
-            Inactivation: "Not initiated",
-          },
-          inactivation: { initiated: false, approved: false },
-          finding:
-            "Column exceeded qualified injection limit. Column must be retired or re-qualified. Inactivation not initiated.",
-          action: "Action required in Caliber LIMS.",
-          sourceLabel: SOURCE_LABEL,
-        },
-      ],
+      recordNote: "SST resolution below method limit",
+      contextSummary:
+        "COL-2024-09 · 47 test injections · 412 cumulative · limit 400 · Used 30-Jul 08:15 to 14:32",
+      expectedEntries: sstExpected("B-ASSAY"),
+      actualEntries: sstEntries("B-ASSAY", {
+        plateCount: "4850",
+        tailing: "1.42",
+        resolution: "1.18",
+        resolutionFails: true,
+      }),
     },
   ],
 };
@@ -854,10 +912,11 @@ const batchBRs: TestParameter = {
           details: {
             "System ID": "HPLC-001",
             Instrument: "Waters Alliance e2695",
-            "Usage start": "30-Jul-2026 15:05",
-            "Usage end": "30-Jul-2026 18:40",
-            Status: "Active, within range",
-            Expected: "One system per test, active and within range",
+            "Calibration Status": "Calibrated",
+            "Calibration Due": "31-Dec-2026",
+            "Usage Start": "30-Jul-2026 15:05",
+            "Usage End": "30-Jul-2026 18:40",
+            Expected: "One system per test, calibrated and in date",
             Actual: "Single system used — HPLC-001",
           },
           sourceLabel: SOURCE_LABEL,
@@ -921,37 +980,18 @@ const batchBRs: TestParameter = {
       type: "column",
       applicable: true,
       status: "NotStarted",
-      recordNote: "Same column — limit exceeded",
-      expectedEntries: [
-        {
-          id: "B-RS-EXP-COL-1",
-          label: "Column injection count",
-          requirement: "Count <= 400",
-          matchedEntryId: "B-RS-COL-1",
-        },
-      ],
-      actualEntries: [
-        {
-          id: "B-RS-COL-1",
-          label: "COL-2024-09",
-          value: "412 of 400 injections — exceeded by 12",
-          status: "flagged",
-          severity: "Major",
-          details: {
-            Column: "COL-2024-09",
-            "Used for": "Assay and RS on 30-Jul-2026",
-            "Total injections": "412",
-            Limit: "400",
-            Status: "Exceeded",
-            Note: "This column was also flagged in Assay. Same finding surfaces here.",
-          },
-          inactivation: { initiated: false, approved: false },
-          finding:
-            "Column exceeded qualified injection limit. This is the same column flagged in Assay — one column, one finding, surfaced in both tests.",
-          action: "Action required in Caliber LIMS.",
-          sourceLabel: SOURCE_LABEL,
-        },
-      ],
+      recordNote: "Same SST failure as Assay",
+      contextSummary:
+        "COL-2024-09 · 31 test injections · 412 cumulative · limit 400 · Used 30-Jul 15:05 to 18:40",
+      contextNote:
+        "Same SST failure as Assay. Column used for both tests on 30-Jul-2026.",
+      expectedEntries: sstExpected("B-RS"),
+      actualEntries: sstEntries("B-RS", {
+        plateCount: "4790",
+        tailing: "1.45",
+        resolution: "1.18",
+        resolutionFails: true,
+      }),
     },
   ],
 };
@@ -1191,12 +1231,27 @@ const batchBKf: TestParameter = {
           label: "BAL-2024-003",
           value: "Weighing Balance · Active, calibrated",
           status: "ok",
+          dataAvailable: true,
           details: {
             "Instrument ID": "BAL-2024-003",
             Type: "Weighing Balance",
             Status: "Active, calibrated",
             Expected: "Active and within calibration",
             Actual: "Active, calibration current",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-KF-INS-3",
+          label: "pH-Meter-001",
+          value: "pH Meter · No LIMS record",
+          status: "ok",
+          dataAvailable: false,
+          observationGapMessage:
+            "pH meter not configured in LIMS. Verify usage in physical logbook as per current practice.",
+          details: {
+            "Instrument ID": "pH-Meter-001",
+            Type: "pH Meter",
           },
           sourceLabel: SOURCE_LABEL,
         },
@@ -1270,10 +1325,11 @@ const batchBGc: TestParameter = {
             "System ID": "GC-2024-001",
             Instrument: "Agilent 7890B",
             "System type": "Gas chromatography system",
-            "Usage start": "30-Jul-2026 09:10",
-            "Usage end": "30-Jul-2026 12:25",
-            Status: "Active, within range",
-            Expected: "One system per test, active and within range",
+            "Calibration Status": "Calibrated",
+            "Calibration Due": "31-Dec-2026",
+            "Usage Start": "30-Jul-2026 09:10",
+            "Usage End": "30-Jul-2026 12:25",
+            Expected: "One system per test, calibrated and in date",
             Actual: "Single system used — GC-2024-001",
           },
           sourceLabel: SOURCE_LABEL,
@@ -1320,12 +1376,14 @@ const batchBGc: TestParameter = {
         {
           id: "B-GC-INS-1",
           label: "BAL-2024-003",
-          value: "Weighing Balance · Active, calibrated",
+          value: "Weighing Balance · from 12:45",
           status: "ok",
+          dataAvailable: true,
           details: {
             "Instrument ID": "BAL-2024-003",
             Type: "Weighing Balance",
             Status: "Active, calibrated",
+            "Usage Start": "30-Jul-2026 12:45",
             Expected: "Active and within calibration",
             Actual: "Active, calibration current",
           },
@@ -1334,12 +1392,15 @@ const batchBGc: TestParameter = {
         {
           id: "B-GC-INS-2",
           label: "HS-2024-001",
-          value: "Headspace Sampler · Active, calibrated",
+          value: "Headspace Sampler · 13:00 to 15:30",
           status: "ok",
+          dataAvailable: true,
           details: {
             "Instrument ID": "HS-2024-001",
             Type: "Headspace Sampler",
             Status: "Active, calibrated",
+            "Usage Start": "30-Jul-2026 13:00",
+            "Usage End": "30-Jul-2026 15:30",
             Expected: "Active and within calibration",
             Actual: "Active, calibration current",
           },
@@ -1629,32 +1690,15 @@ const batchC: Batch = {
           type: "column",
           applicable: true,
           status: "NotStarted",
-          recordNote: "COL-2024-07 — 380 of 400 injections",
-          expectedEntries: [
-            {
-              id: "C-ASSAY-EXP-COL-1",
-              label: "Column injection count",
-              requirement: "Count <= 400",
-              matchedEntryId: "C-ASSAY-COL-1",
-            },
-          ],
-          actualEntries: [
-            {
-              id: "C-ASSAY-COL-1",
-              label: "COL-2024-07",
-              value: "380 of 400 injections",
-              status: "ok",
-              details: {
-                Column: "COL-2024-07",
-                Type: "Waters Symmetry C18",
-                Expected: "Count <= 400",
-                Actual: "380 injections",
-                Remaining: "20 injections",
-                Status: "Within qualified limit",
-              },
-              sourceLabel: SOURCE_LABEL,
-            },
-          ],
+          recordNote: "COL-2024-07 — SST within method limits",
+          contextSummary:
+            "COL-2024-07 · 12 test injections · 380 cumulative · limit 400 · Used 29-Jul 09:48 to 17:02",
+          expectedEntries: sstExpected("C-ASSAY"),
+          actualEntries: sstEntries("C-ASSAY", {
+            plateCount: "5200",
+            tailing: "1.28",
+            resolution: "2.35",
+          }),
         },
       ],
     },
