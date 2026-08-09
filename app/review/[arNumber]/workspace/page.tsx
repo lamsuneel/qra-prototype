@@ -91,12 +91,21 @@ export default function WorkspacePage() {
     completeReview,
   } = useReview();
 
-  const notesRef = useRef<HTMLTextAreaElement>(null);
-
   const batch = getBatch(params.arNumber);
   const arNumber = batch?.arNumber ?? "";
   const session = batch ? getSession(batch.arNumber) : null;
   const test = batch?.tests.find((candidate) => candidate.id === session?.currentTestId);
+
+  const notesRef = useRef<HTMLTextAreaElement>(null);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [savedFlash, setSavedFlash] = useState(false);
+
+  useEffect(
+    () => () => {
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+    },
+    [],
+  );
 
   const [selectedBySection, setSelectedBySection] = useState<Record<string, string>>({});
   const [viewedSections, setViewedSections] = useState<Record<string, boolean>>({});
@@ -208,18 +217,15 @@ export default function WorkspacePage() {
     router.push(`/review/${arNumber}/summary`);
   }
 
-  /**
-   * Starts a note about the selected entry in the shared reviewer notes.
-   * Appends rather than replaces — one notes field serves the whole review.
-   */
-  function startFindingNote(label: string) {
+  /** Explicit save. Blur already commits — this is the visible confirmation. */
+  function handleSaveNote() {
     const field = notesRef.current;
     if (!field) return;
 
-    const existing = field.value.replace(/\s+$/, "");
-    field.value = `${existing ? `${existing}\n\n` : ""}Re: ${label} — `;
-    field.focus();
-    field.setSelectionRange(field.value.length, field.value.length);
+    addNote(arNumber, field.value);
+    setSavedFlash(true);
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setSavedFlash(false), 1600);
   }
 
   function handlePause() {
@@ -319,33 +325,6 @@ export default function WorkspacePage() {
             <p className="text-xs text-muted-foreground tabular-nums">
               {progress.reviewed} reviewed · {progress.remaining} remaining
             </p>
-          </div>
-
-          <Separator />
-
-          {/* Scratchpad — one shared notes field for the whole review.
-              Uncontrolled so typing never round-trips through context; the
-              key remounts it whenever the committed value changes. */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex flex-col">
-              <label htmlFor="reviewer-notes" className="text-sm font-medium">
-                Reviewer Notes
-              </label>
-              <span className="text-xs text-muted-foreground">
-                Shared across this review — not per finding
-              </span>
-            </div>
-            <Textarea
-              id="reviewer-notes"
-              key={session.reviewerNotes}
-              ref={notesRef}
-              defaultValue={session.reviewerNotes}
-              rows={4}
-              placeholder="Add notes about this review..."
-              onBlur={(event) => addNote(arNumber, event.target.value)}
-              // Capped so a long note never pushes Pause Review off the fold.
-              className="max-h-40 min-h-24 overflow-y-auto text-sm"
-            />
           </div>
 
           <Button variant="outline" className="w-full" onClick={handlePause}>
@@ -629,7 +608,7 @@ export default function WorkspacePage() {
       {/* ---------------------------------------------------------------- */}
       {/* RIGHT COLUMN — evidence, always inline, never a modal            */}
       {/* ---------------------------------------------------------------- */}
-      <aside className="w-95 shrink-0 overflow-y-auto border-l bg-card px-5 py-5">
+      <aside className="flex w-95 shrink-0 flex-col overflow-y-auto border-l bg-card px-5 py-5">
         {!selected ? (
           <p className="text-sm text-muted-foreground">
             {activeSection.applicable
@@ -692,16 +671,49 @@ export default function WorkspacePage() {
             ) : null}
 
             {selected.status === "flagged" || selected.status === "advisory" ? (
-              <button
-                type="button"
-                onClick={() => startFindingNote(selected.label)}
-                className="mt-3 text-xs text-primary transition-colors hover:underline"
-              >
-                Add note about this finding
-              </button>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Use Reviewer Notes below to record observations about this finding.
+              </p>
             ) : null}
           </>
         )}
+
+        {/* Reviewer notes — always present, whatever is selected. One shared
+            field for the whole review. Uncontrolled so typing never
+            round-trips through context; the key remounts it when the
+            committed value changes. */}
+        <Separator className="mt-5" />
+
+        <div className="mt-4 flex flex-col gap-2">
+          <div className="flex flex-col">
+            <label htmlFor="reviewer-notes" className="text-xs font-medium">
+              Reviewer Notes
+            </label>
+            <span className="text-xs text-muted-foreground">
+              Shared across this review
+            </span>
+          </div>
+
+          <Textarea
+            id="reviewer-notes"
+            key={session.reviewerNotes}
+            ref={notesRef}
+            defaultValue={session.reviewerNotes}
+            rows={4}
+            placeholder="Add notes about this review..."
+            onBlur={(event) => addNote(arNumber, event.target.value)}
+            className="max-h-48 min-h-24 overflow-y-auto text-sm"
+          />
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-fit"
+            onClick={handleSaveNote}
+          >
+            {savedFlash ? "Saved" : "Save Note"}
+          </Button>
+        </div>
       </aside>
     </div>
   );
