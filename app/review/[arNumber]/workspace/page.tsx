@@ -115,7 +115,8 @@ export default function WorkspacePage() {
   );
 
   const [selectedBySection, setSelectedBySection] = useState<Record<string, string>>({});
-  const [viewedSections, setViewedSections] = useState<Record<string, boolean>>({});
+  /** Entry ids the reviewer has actually clicked. Ids are globally unique. */
+  const [openedEntryIds, setOpenedEntryIds] = useState<Record<string, boolean>>({});
   const [paused, setPaused] = useState(false);
   /** Set when the reviewer navigates back into a section after completing all. */
   const [browsingSection, setBrowsingSection] = useState(false);
@@ -182,9 +183,17 @@ export default function WorkspacePage() {
   const flaggedCount = testEntries.filter((entry) => entry.status === "flagged").length;
   const advisoryCount = testEntries.filter((entry) => entry.status === "advisory").length;
   const allCompliant = flaggedCount === 0 && advisoryCount === 0;
-  // N/A sections have no entries to open, so they are ready immediately.
+  /**
+   * A section can be marked reviewed once every flagged entry in it has been
+   * opened. Auto-selection does not count — the reviewer has to click.
+   * Sections with nothing flagged (and N/A sections) enable immediately.
+   */
+  const flaggedInSection = activeSection.actualEntries.filter(
+    (entry) => entry.status === "flagged",
+  );
   const canMarkReviewed =
-    !activeSection.applicable || viewedSections[activeSection.type] === true;
+    !activeSection.applicable ||
+    flaggedInSection.every((entry) => openedEntryIds[entry.id] === true);
 
   /* -------------------------------------------------------------------- */
   /* Handlers                                                             */
@@ -198,7 +207,7 @@ export default function WorkspacePage() {
 
   function selectEntry(entryId: string) {
     setSelectedBySection((current) => ({ ...current, [activeSection.type]: entryId }));
-    setViewedSections((current) => ({ ...current, [activeSection.type]: true }));
+    setOpenedEntryIds((current) => ({ ...current, [entryId]: true }));
   }
 
   function handleMarkReviewed() {
@@ -687,7 +696,7 @@ export default function WorkspacePage() {
                 </Button>
                 {!canMarkReviewed && !isReviewed ? (
                   <p className="text-xs text-muted-foreground">
-                    Open an entry to review its detail before marking this section.
+                    Open all flagged entries to enable review
                   </p>
                 ) : null}
 
