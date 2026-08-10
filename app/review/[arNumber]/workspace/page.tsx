@@ -34,6 +34,12 @@ import { cn } from "@/lib/utils";
 /* Tones                                                                      */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Hides the SLA profile switch without removing it. Flip to true to restore
+ * the configurability demo in the workspace sidebar.
+ */
+const SHOW_SLA_PROFILE_SWITCH = false;
+
 const SLA_TONES = {
   within: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
   overdue: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
@@ -304,13 +310,15 @@ export default function WorkspacePage() {
             <p className="mt-1 text-xs text-muted-foreground">
               Profile: {sla.profileName}
             </p>
-            <button
-              type="button"
-              onClick={() => setSlaProfile(otherProfile.id)}
-              className="w-fit text-xs text-primary transition-colors hover:underline"
-            >
-              Switch profile
-            </button>
+            {SHOW_SLA_PROFILE_SWITCH ? (
+              <button
+                type="button"
+                onClick={() => setSlaProfile(otherProfile.id)}
+                className="w-fit text-xs text-primary transition-colors hover:underline"
+              >
+                Switch profile
+              </button>
+            ) : null}
           </div>
         ) : null}
 
