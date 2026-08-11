@@ -1154,7 +1154,7 @@ const batchBDisso: TestParameter = {
             "Calibration Due": "01-Jul-2026",
             "Usage Start": "30-Jul-2026 09:15",
             "Usage End": "30-Jul-2026 11:45",
-            Expected: "Active, within calibration period",
+            Expected: "Inactive — calibration due date crossed (01-Jul-2026)",
             Actual:
               "UV Spectrophotometer UV-2024-02 — Calibration overdue since 01-Jul-2026 — Used during analysis",
           },
