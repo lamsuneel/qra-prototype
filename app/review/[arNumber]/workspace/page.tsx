@@ -155,20 +155,9 @@ export default function WorkspacePage() {
   /* Derived                                                              */
   /* -------------------------------------------------------------------- */
 
-  /**
-   * A chromatography section with no entries means the test never used one —
-   * hide it entirely rather than showing an empty N/A tab. Data-driven, so it
-   * applies to any test that happens to have no chromatography data.
-   */
-  const visibleSections = test.sections.filter(
-    (section) =>
-      section.type !== "chromatographySystem" || section.actualEntries.length > 0,
-  );
-
-  const firstApplicable =
-    visibleSections.find((section) => section.applicable) ?? visibleSections[0];
+  const firstApplicable = applicableSections(test)[0] ?? test.sections[0];
   const activeSection =
-    visibleSections.find((candidate) => candidate.type === session.currentSectionType) ??
+    test.sections.find((candidate) => candidate.type === session.currentSectionType) ??
     firstApplicable;
 
   /** Principal analytical instrument first, then source order. */
@@ -341,7 +330,7 @@ export default function WorkspacePage() {
         <Separator />
 
         <nav className="flex flex-col gap-0.5">
-          {visibleSections.map((section) => {
+          {test.sections.map((section) => {
             const reviewed = sectionStatuses[section.type] === "Reviewed";
             const active = section.type === activeSection.type;
 
