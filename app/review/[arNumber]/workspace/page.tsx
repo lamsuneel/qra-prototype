@@ -155,10 +155,26 @@ export default function WorkspacePage() {
   /* Derived                                                              */
   /* -------------------------------------------------------------------- */
 
-  const firstApplicable = applicableSections(test)[0] ?? test.sections[0];
+  /**
+   * A chromatography section with no entries means the test never used one —
+   * hide it entirely rather than showing an empty N/A tab. Data-driven, so it
+   * applies to any test that happens to have no chromatography data.
+   */
+  const visibleSections = test.sections.filter(
+    (section) =>
+      section.type !== "chromatographySystem" || section.actualEntries.length > 0,
+  );
+
+  const firstApplicable =
+    visibleSections.find((section) => section.applicable) ?? visibleSections[0];
   const activeSection =
-    test.sections.find((candidate) => candidate.type === session.currentSectionType) ??
+    visibleSections.find((candidate) => candidate.type === session.currentSectionType) ??
     firstApplicable;
+
+  /** Principal analytical instrument first, then source order. */
+  const orderedEntries = [...activeSection.actualEntries].sort(
+    (a, b) => Number(b.principal === true) - Number(a.principal === true),
+  );
 
   const sectionStatuses = session.sectionStatuses[test.id] ?? {};
   const progress = getProgress(arNumber, test.id);
@@ -325,7 +341,7 @@ export default function WorkspacePage() {
         <Separator />
 
         <nav className="flex flex-col gap-0.5">
-          {test.sections.map((section) => {
+          {visibleSections.map((section) => {
             const reviewed = sectionStatuses[section.type] === "Reviewed";
             const active = section.type === activeSection.type;
 
@@ -558,7 +574,7 @@ export default function WorkspacePage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {activeSection.actualEntries.map((entry) => (
+                      {orderedEntries.map((entry) => (
                         <tr
                           key={entry.id}
                           tabIndex={0}
@@ -634,7 +650,7 @@ export default function WorkspacePage() {
                       Actual (Simulated LIMS data)
                     </h2>
                     <ol className="flex flex-col gap-1.5">
-                      {activeSection.actualEntries.map((entry, index) => (
+                      {orderedEntries.map((entry, index) => (
                         <li key={entry.id}>
                           <button
                             type="button"
@@ -667,7 +683,7 @@ export default function WorkspacePage() {
               ) : (
                 /* ---------------------- Simple entry list ------------------ */
                 <section className="flex flex-col gap-1.5">
-                  {activeSection.actualEntries.map((entry) => (
+                  {orderedEntries.map((entry) => (
                     <button
                       key={entry.id}
                       type="button"
@@ -679,10 +695,16 @@ export default function WorkspacePage() {
                         entry.status === "advisory" &&
                           "border-amber-300 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40",
                         entry.id === selectedId && "ring-2 ring-blue-500/50",
+                        entry.principal && "border-l-4 border-l-primary",
                       )}
                     >
                       <span className="flex-1">
                         <span className="block font-medium">{entry.label}</span>
+                        {entry.principal ? (
+                          <span className="block text-xs font-medium text-primary">
+                            Principal analytical instrument
+                          </span>
+                        ) : null}
                         <span className="block text-xs text-muted-foreground">
                           {entry.value}
                         </span>

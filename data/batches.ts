@@ -96,6 +96,8 @@ export interface Entry {
   action?: string;
   /** false when the source system holds no record for this item. */
   dataAvailable?: boolean;
+  /** The defining analytical instrument for the test — listed first. */
+  principal?: boolean;
   /** Shown in place of the detail panel when dataAvailable is false. */
   observationGapMessage?: string;
   sourceLabel: string;
@@ -1134,8 +1136,54 @@ const batchBDisso: TestParameter = {
       type: "instruments",
       applicable: true,
       status: "NotStarted",
-      recordNote: "All instruments active and calibrated",
+      recordNote: "UV spectrophotometer calibration overdue at analysis",
       actualEntries: [
+        {
+          id: "B-DISSO-INS-UV",
+          label: "UV-2024-02",
+          value: "UV Spectrophotometer · Calibration overdue · 09:15 to 11:45",
+          status: "flagged",
+          severity: "Major",
+          principal: true,
+          dataAvailable: true,
+          details: {
+            "Instrument ID": "UV-2024-02",
+            Type: "UV Spectrophotometer",
+            Status: "Active",
+            "Calibration Status": "Calibration Overdue",
+            "Calibration Due": "01-Jul-2026",
+            "Usage Start": "30-Jul-2026 09:15",
+            "Usage End": "30-Jul-2026 11:45",
+            Expected: "Active, within calibration period",
+            Actual:
+              "UV Spectrophotometer UV-2024-02 — Calibration overdue since 01-Jul-2026 — Used during analysis",
+          },
+          finding:
+            "UV Spectrophotometer calibration was overdue at time of analysis. Calibration due 01-Jul-2026, analysis performed 30-Jul-2026.",
+          action:
+            "Verify in Caliber LIMS whether the instrument was re-calibrated before the sample set, and whether results require re-measurement.",
+          sourceLabel: SOURCE_LABEL,
+        },
+        {
+          id: "B-DISSO-INS-BAL",
+          label: "BAL-2024-003",
+          value: "Weighing Balance · 08:15 to 08:45",
+          status: "ok",
+          dataAvailable: true,
+          details: {
+            "Instrument ID": "BAL-2024-003",
+            Type: "Weighing Balance",
+            Status: "Active",
+            "Calibration Status": "Calibrated",
+            "Calibration Due": "10-Oct-2026",
+            "Usage Start": "30-Jul-2026 08:15",
+            "Usage End": "30-Jul-2026 08:45",
+            Expected: "Active, within calibration period",
+            Actual:
+              "Weighing Balance BAL-2024-003 — Calibrated — Used for tablet weighing before dissolution — 08:15 to 08:45",
+          },
+          sourceLabel: SOURCE_LABEL,
+        },
         {
           id: "B-DISSO-INS-1",
           label: "DA-2024-001",
