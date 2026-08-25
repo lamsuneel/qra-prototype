@@ -1,16 +1,12 @@
 "use client";
 
 /**
- * The single global state container for the V2 prototype.
+ * The single global state container for QRA.
  *
- * No backend, no API, no database, no localStorage. All state lives here in
- * React memory and is lost on refresh — that is intentional.
- *
- * This file imports nothing from next/navigation or any other Next.js API.
- * Pure React only: createContext, useContext, useState, useMemo, useCallback.
- *
- * Review state is tracked per section, not per finding. V2 has no
- * finding-state machine — a reviewer marks a whole section as reviewed.
+ * Everything lives in React memory: profile selection, reviewer notes, section
+ * review status, batch status. No database, no backend, no API routes, no
+ * session persistence — a refresh returns to the profile selector, which is
+ * the intended demo behaviour.
  */
 
 import {
@@ -22,418 +18,238 @@ import {
   type ReactNode,
 } from "react";
 
-import {
-  applicableSections,
-  BATCHES,
-  getBatch,
-  getSlaProfile,
-  getTest,
-  SLA_PROFILES,
-  type Batch,
-  type SectionStatus,
-  type SectionType,
-  type SlaProfile,
-  type SlaProfileId,
-} from "@/data/batches";
-
-/* -------------------------------------------------------------------------- */
-/* Types                                                                      */
-/* -------------------------------------------------------------------------- */
-
-export type SessionStatus =
-  | "NotStarted"
-  | "ContextBuilding"
-  | "InProgress"
-  | "Paused"
-  | "Completed";
-
-/** testId -> sectionType -> status. */
-export type SectionStatusMap = Record<string, Record<string, SectionStatus>>;
-
-export interface ReviewSession {
-  arNumber: string;
-  status: SessionStatus;
-  currentTestId: string | null;
-  currentSectionType: string | null;
-  sectionStatuses: SectionStatusMap;
-  reviewerNotes: string;
-  sessionStartTime: string;
-  lastActiveTime: string;
-}
-
-export interface SlaStatus {
-  status: "within" | "overdue";
-  daysOverdue?: number;
-  dueDate: string;
-  profileName: string;
-  /** Qualifier shown beside the status, e.g. "1 working day past due". */
-  detail: string;
-}
-
-export interface TestProgress {
-  /** Applicable sections only — N/A sections are never counted. */
-  total: number;
-  reviewed: number;
-  remaining: number;
-}
-
-export interface BatchProgress {
-  totalSections: number;
-  reviewedSections: number;
-}
+import { ALL_BATCHES, getBatch, orderedSections } from "@/data";
+import { getProfile } from "@/data/profiles";
+import type { BatchStatus, Profile, Section, SectionStatus } from "@/types";
 
 interface ReviewContextValue {
-  sessions: Record<string, ReviewSession>;
-  activeSlaProfileId: SlaProfileId;
-  slaProfiles: SlaProfile[];
+  /* Profile */
+  profile: Profile | null;
+  selectProfile: (profileId: string) => void;
+  clearProfile: () => void;
 
-  startReview: (arNumber: string) => void;
-  resumeReview: (arNumber: string) => void;
-  setCurrentTest: (arNumber: string, testId: string) => void;
-  setCurrentSection: (arNumber: string, sectionType: SectionType) => void;
-  markSectionReviewed: (
-    arNumber: string,
-    testId: string,
-    sectionType: SectionType,
-  ) => void;
-  addNote: (arNumber: string, note: string) => void;
-  pauseReview: (arNumber: string) => void;
-  completeReview: (arNumber: string) => void;
-  setSlaProfile: (profileId: SlaProfileId) => void;
+  /* Reviewer notes — keyed by CheckItem id */
+  notes: Record<string, string>;
+  noteFor: (itemId: string) => string;
+  setNote: (itemId: string, note: string) => void;
+  isNoted: (itemId: string) => boolean;
 
-  getSession: (arNumber: string) => ReviewSession | null;
-  getSlaStatus: (arNumber: string) => SlaStatus | null;
-  getProgress: (arNumber: string, testId: string) => TestProgress;
-  getAllTestsProgress: (arNumber: string) => BatchProgress;
+  /* Section review status — keyed by Section id */
+  sectionStatus: (sectionId: string) => SectionStatus;
+  markSectionReviewed: (sectionId: string) => void;
+  canMarkReviewed: (section: Section) => boolean;
+
+  /* Batch workflow */
+  batchStatus: (arNumber: string) => BatchStatus;
+  submitForAuthorisation: (arNumber: string) => void;
+  authoriseReview: (arNumber: string) => void;
+  returnToReviewer: (arNumber: string, reason: string) => void;
+  returnReason: (arNumber: string) => string;
+
+  /* Progress */
+  reviewedCount: (arNumber: string) => number;
+  totalSections: (arNumber: string) => number;
+  allSectionsReviewed: (arNumber: string) => boolean;
 }
-
-/* -------------------------------------------------------------------------- */
-/* Timestamps                                                                 */
-/* -------------------------------------------------------------------------- */
-
-const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
-
-const pad = (value: number) => String(value).padStart(2, "0");
-
-/** Formats a Date as "03-Aug-2026 14:32" — the format used across the data. */
-export function formatTimestamp(date: Date): string {
-  return (
-    `${pad(date.getDate())}-${MONTHS[date.getMonth()]}-${date.getFullYear()}` +
-    ` ${pad(date.getHours())}:${pad(date.getMinutes())}`
-  );
-}
-
-const now = () => formatTimestamp(new Date());
-
-/* -------------------------------------------------------------------------- */
-/* Session construction                                                       */
-/* -------------------------------------------------------------------------- */
-
-/** When Batch C's paused session was opened and last touched. */
-const SEEDED_START_TIME = "31-Jul-2026 10:15";
-const SEEDED_LAST_ACTIVE = "31-Jul-2026 17:35";
-
-/**
- * Every applicable section of every test, set to NotStarted.
- * N/A sections are omitted — they can never be reviewed.
- */
-function freshSectionStatuses(batch: Batch): SectionStatusMap {
-  const map: SectionStatusMap = {};
-  for (const test of batch.tests) {
-    const perTest: Record<string, SectionStatus> = {};
-    for (const section of applicableSections(test)) {
-      perTest[section.type] = "NotStarted";
-    }
-    map[test.id] = perTest;
-  }
-  return map;
-}
-
-function newSession(batch: Batch, timestamp: string): ReviewSession {
-  return {
-    arNumber: batch.arNumber,
-    // V2 has no assembly screen — a fresh review is immediately in progress.
-    status: "InProgress",
-    currentTestId: null,
-    currentSectionType: null,
-    sectionStatuses: freshSectionStatuses(batch),
-    reviewerNotes: "",
-    sessionStartTime: timestamp,
-    lastActiveTime: timestamp,
-  };
-}
-
-/**
- * Batch C ships as a paused session so the cold resume demo works on first
- * load. The seed is read from the batch data rather than duplicated here.
- *
- * Batches without a sessionState have no session until startReview() runs.
- */
-function seededSessions(): Record<string, ReviewSession> {
-  const sessions: Record<string, ReviewSession> = {};
-
-  for (const batch of BATCHES) {
-    const seed = batch.sessionState;
-    if (!seed) continue;
-
-    sessions[batch.arNumber] = {
-      arNumber: batch.arNumber,
-      status: "Paused",
-      currentTestId: seed.currentTestId,
-      currentSectionType: seed.currentSectionType,
-      sectionStatuses: {
-        ...freshSectionStatuses(batch),
-        [seed.currentTestId]: { ...seed.sectionStatuses },
-      },
-      reviewerNotes: seed.reviewerNotes ?? "",
-      sessionStartTime: SEEDED_START_TIME,
-      lastActiveTime: SEEDED_LAST_ACTIVE,
-    };
-  }
-
-  return sessions;
-}
-
-const EMPTY_TEST_PROGRESS: TestProgress = { total: 0, reviewed: 0, remaining: 0 };
-
-/* -------------------------------------------------------------------------- */
-/* Context                                                                    */
-/* -------------------------------------------------------------------------- */
 
 const ReviewContext = createContext<ReviewContextValue | null>(null);
 
+const seedBatchStatuses = (): Record<string, BatchStatus> =>
+  Object.fromEntries(ALL_BATCHES.map((batch) => [batch.arNumber, batch.status]));
+
+/**
+ * A batch that arrives already submitted carries the notes its reviewer wrote
+ * before submitting. Seeding them keeps those notes visible to the approver.
+ */
+const seedNotes = (): Record<string, string> =>
+  Object.fromEntries(
+    ALL_BATCHES.flatMap((batch) =>
+      batch.sections.flatMap((section) =>
+        section.items
+          .filter((item) => item.reviewerNote)
+          .map((item) => [item.id, item.reviewerNote as string]),
+      ),
+    ),
+  );
+
+const seedSectionStatuses = (): Record<string, SectionStatus> =>
+  Object.fromEntries(
+    ALL_BATCHES.flatMap((batch) =>
+      batch.sections.map((section) => [section.id, section.status]),
+    ),
+  );
+
 export function ReviewProvider({ children }: { children: ReactNode }) {
-  const [sessions, setSessions] = useState<Record<string, ReviewSession>>(
-    () => seededSessions(),
-  );
-  const [activeSlaProfileId, setActiveSlaProfileId] = useState<SlaProfileId>(
-    "shrikrishna-site",
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [notes, setNotes] = useState<Record<string, string>>(seedNotes);
+  const [reviewed, setReviewed] = useState<Record<string, SectionStatus>>(seedSectionStatuses);
+  const [statuses, setStatuses] = useState<Record<string, BatchStatus>>(seedBatchStatuses);
+  const [returnReasons, setReturnReasons] = useState<Record<string, string>>({});
+
+  /* ---------------------------------------------------------------- */
+  /* Profile                                                          */
+  /* ---------------------------------------------------------------- */
+
+  const selectProfile = useCallback((profileId: string) => {
+    setProfile(getProfile(profileId) ?? null);
+  }, []);
+
+  /**
+   * Switching profile clears who you are, not what has been done. A review
+   * submitted for authorisation has to still be waiting when the approver
+   * signs in, and the notes the reviewer wrote have to still be readable on
+   * the exception cards — that handoff is the whole point of two roles.
+   *
+   * Nothing is persisted: a page reload still returns an empty session.
+   */
+  const clearProfile = useCallback(() => {
+    setProfile(null);
+  }, []);
+
+  /* ---------------------------------------------------------------- */
+  /* Notes                                                            */
+  /* ---------------------------------------------------------------- */
+
+  const noteFor = useCallback((itemId: string) => notes[itemId] ?? "", [notes]);
+
+  const setNote = useCallback((itemId: string, note: string) => {
+    setNotes((current) => ({ ...current, [itemId]: note }));
+  }, []);
+
+  const isNoted = useCallback(
+    (itemId: string) => (notes[itemId] ?? "").trim().length > 0,
+    [notes],
   );
 
-  /** Applies a patch to one session. No-ops if the session does not exist. */
-  const patchSession = useCallback(
-    (arNumber: string, patch: (session: ReviewSession) => ReviewSession) => {
-      setSessions((current) => {
-        const session = current[arNumber];
-        if (!session) return current;
-        return { ...current, [arNumber]: patch(session) };
-      });
+  /* ---------------------------------------------------------------- */
+  /* Sections                                                         */
+  /* ---------------------------------------------------------------- */
+
+  const sectionStatus = useCallback(
+    (sectionId: string): SectionStatus => reviewed[sectionId] ?? "NOT_STARTED",
+    [reviewed],
+  );
+
+  /**
+   * A section unlocks once every flagged item in it carries a note. Sections
+   * with nothing flagged unlock immediately — there is nothing to confirm.
+   */
+  const canMarkReviewed = useCallback(
+    (section: Section) =>
+      section.items
+        .filter((item) => item.result === "FLAGGED")
+        .every((item) => (notes[item.id] ?? "").trim().length > 0),
+    [notes],
+  );
+
+  const markSectionReviewed = useCallback((sectionId: string) => {
+    setReviewed((current) => ({ ...current, [sectionId]: "REVIEWED" }));
+  }, []);
+
+  /* ---------------------------------------------------------------- */
+  /* Batch workflow                                                   */
+  /* ---------------------------------------------------------------- */
+
+  const batchStatus = useCallback(
+    (arNumber: string): BatchStatus => statuses[arNumber] ?? "NEEDS_REVIEW",
+    [statuses],
+  );
+
+  const setBatchStatus = useCallback((arNumber: string, status: BatchStatus) => {
+    setStatuses((current) => ({ ...current, [arNumber]: status }));
+  }, []);
+
+  const submitForAuthorisation = useCallback(
+    (arNumber: string) => setBatchStatus(arNumber, "AWAITING_AUTHORISATION"),
+    [setBatchStatus],
+  );
+
+  const authoriseReview = useCallback(
+    (arNumber: string) => setBatchStatus(arNumber, "REVIEW_AUTHORISED"),
+    [setBatchStatus],
+  );
+
+  const returnToReviewer = useCallback(
+    (arNumber: string, reason: string) => {
+      setBatchStatus(arNumber, "RETURNED_TO_REVIEWER");
+      setReturnReasons((current) => ({ ...current, [arNumber]: reason }));
     },
-    [],
+    [setBatchStatus],
   );
 
-  /* ---------------------------------------------------------------------- */
-  /* Actions                                                                */
-  /* ---------------------------------------------------------------------- */
+  const returnReason = useCallback(
+    (arNumber: string) => returnReasons[arNumber] ?? "",
+    [returnReasons],
+  );
 
-  const startReview = useCallback((arNumber: string) => {
+  /* ---------------------------------------------------------------- */
+  /* Progress                                                         */
+  /* ---------------------------------------------------------------- */
+
+  const totalSections = useCallback((arNumber: string) => {
     const batch = getBatch(arNumber);
-    if (!batch) return;
-
-    // Replaces any existing session outright. This is what makes typing a
-    // paused AR number restart the review rather than resume it.
-    setSessions((current) => ({
-      ...current,
-      [batch.arNumber]: newSession(batch, now()),
-    }));
+    return batch ? orderedSections(batch).length : 0;
   }, []);
 
-  const resumeReview = useCallback(
+  const reviewedCount = useCallback(
     (arNumber: string) => {
-      // Deliberately leaves sectionStatuses and position untouched.
-      patchSession(arNumber, (session) => ({
-        ...session,
-        status: "InProgress",
-        lastActiveTime: now(),
-      }));
-    },
-    [patchSession],
-  );
-
-  const setCurrentTest = useCallback(
-    (arNumber: string, testId: string) => {
-      patchSession(arNumber, (session) => ({
-        ...session,
-        status: session.status === "Completed" ? session.status : "InProgress",
-        currentTestId: testId,
-        currentSectionType: null,
-        lastActiveTime: now(),
-      }));
-    },
-    [patchSession],
-  );
-
-  const setCurrentSection = useCallback(
-    (arNumber: string, sectionType: SectionType) => {
-      patchSession(arNumber, (session) => ({
-        ...session,
-        currentSectionType: sectionType,
-        lastActiveTime: now(),
-      }));
-    },
-    [patchSession],
-  );
-
-  const markSectionReviewed = useCallback(
-    (arNumber: string, testId: string, sectionType: SectionType) => {
-      patchSession(arNumber, (session) => ({
-        ...session,
-        sectionStatuses: {
-          ...session.sectionStatuses,
-          [testId]: {
-            ...session.sectionStatuses[testId],
-            [sectionType]: "Reviewed",
-          },
-        },
-        lastActiveTime: now(),
-      }));
-    },
-    [patchSession],
-  );
-
-  const addNote = useCallback(
-    (arNumber: string, note: string) => {
-      patchSession(arNumber, (session) => ({
-        ...session,
-        reviewerNotes: note,
-        lastActiveTime: now(),
-      }));
-    },
-    [patchSession],
-  );
-
-  const pauseReview = useCallback(
-    (arNumber: string) => {
-      patchSession(arNumber, (session) => ({
-        ...session,
-        status: "Paused",
-        lastActiveTime: now(),
-      }));
-    },
-    [patchSession],
-  );
-
-  const completeReview = useCallback(
-    (arNumber: string) => {
-      patchSession(arNumber, (session) => ({
-        ...session,
-        status: "Completed",
-        lastActiveTime: now(),
-      }));
-    },
-    [patchSession],
-  );
-
-  const setSlaProfile = useCallback((profileId: SlaProfileId) => {
-    setActiveSlaProfileId(profileId);
-  }, []);
-
-  /* ---------------------------------------------------------------------- */
-  /* Derived values                                                         */
-  /* ---------------------------------------------------------------------- */
-
-  const getSession = useCallback(
-    (arNumber: string): ReviewSession | null => sessions[arNumber] ?? null,
-    [sessions],
-  );
-
-  const getSlaStatus = useCallback(
-    (arNumber: string): SlaStatus | null => {
       const batch = getBatch(arNumber);
-      if (!batch) return null;
-
-      const assessment = batch.slaByProfile[activeSlaProfileId];
-      const overdue = assessment.status === "Overdue";
-
-      return {
-        status: overdue ? "overdue" : "within",
-        daysOverdue: assessment.daysOverdue,
-        dueDate: assessment.deadline,
-        profileName: getSlaProfile(activeSlaProfileId).name,
-        detail: assessment.detail,
-      };
-    },
-    [activeSlaProfileId],
-  );
-
-  const getProgress = useCallback(
-    (arNumber: string, testId: string): TestProgress => {
-      const test = getTest(arNumber, testId);
-      if (!test) return EMPTY_TEST_PROGRESS;
-
-      const applicable = applicableSections(test);
-      const statuses = sessions[arNumber]?.sectionStatuses[testId] ?? {};
-
-      const reviewed = applicable.filter(
-        (section) => statuses[section.type] === "Reviewed",
+      if (!batch) return 0;
+      return orderedSections(batch).filter(
+        (section) => reviewed[section.id] === "REVIEWED",
       ).length;
-
-      return {
-        total: applicable.length,
-        reviewed,
-        remaining: applicable.length - reviewed,
-      };
     },
-    [sessions],
+    [reviewed],
   );
 
-  const getAllTestsProgress = useCallback(
-    (arNumber: string): BatchProgress => {
-      const batch = getBatch(arNumber);
-      if (!batch) return { totalSections: 0, reviewedSections: 0 };
-
-      let totalSections = 0;
-      let reviewedSections = 0;
-
-      for (const test of batch.tests) {
-        const progress = getProgress(arNumber, test.id);
-        totalSections += progress.total;
-        reviewedSections += progress.reviewed;
-      }
-
-      return { totalSections, reviewedSections };
+  const allSectionsReviewed = useCallback(
+    (arNumber: string) => {
+      const total = totalSections(arNumber);
+      return total > 0 && reviewedCount(arNumber) === total;
     },
-    [getProgress],
+    [reviewedCount, totalSections],
   );
 
   const value = useMemo<ReviewContextValue>(
     () => ({
-      sessions,
-      activeSlaProfileId,
-      slaProfiles: SLA_PROFILES,
-      startReview,
-      resumeReview,
-      setCurrentTest,
-      setCurrentSection,
+      profile,
+      selectProfile,
+      clearProfile,
+      notes,
+      noteFor,
+      setNote,
+      isNoted,
+      sectionStatus,
       markSectionReviewed,
-      addNote,
-      pauseReview,
-      completeReview,
-      setSlaProfile,
-      getSession,
-      getSlaStatus,
-      getProgress,
-      getAllTestsProgress,
+      canMarkReviewed,
+      batchStatus,
+      submitForAuthorisation,
+      authoriseReview,
+      returnToReviewer,
+      returnReason,
+      reviewedCount,
+      totalSections,
+      allSectionsReviewed,
     }),
     [
-      sessions,
-      activeSlaProfileId,
-      startReview,
-      resumeReview,
-      setCurrentTest,
-      setCurrentSection,
+      profile,
+      selectProfile,
+      clearProfile,
+      notes,
+      noteFor,
+      setNote,
+      isNoted,
+      sectionStatus,
       markSectionReviewed,
-      addNote,
-      pauseReview,
-      completeReview,
-      setSlaProfile,
-      getSession,
-      getSlaStatus,
-      getProgress,
-      getAllTestsProgress,
+      canMarkReviewed,
+      batchStatus,
+      submitForAuthorisation,
+      authoriseReview,
+      returnToReviewer,
+      returnReason,
+      reviewedCount,
+      totalSections,
+      allSectionsReviewed,
     ],
   );
 
@@ -442,8 +258,6 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
 
 export function useReview(): ReviewContextValue {
   const context = useContext(ReviewContext);
-  if (!context) {
-    throw new Error("useReview must be used inside a ReviewProvider");
-  }
+  if (!context) throw new Error("useReview must be used inside a ReviewProvider");
   return context;
 }

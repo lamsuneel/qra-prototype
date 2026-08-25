@@ -1,0 +1,119 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+
+import { sectionSlug, sectionsForParameter } from "@/data";
+import { useReview } from "@/context/ReviewContext";
+import type { Batch } from "@/types";
+import { cn } from "@/lib/utils";
+import { ExceptionCountPill } from "@/components/review/Badges";
+
+/**
+ * Two lists: the test parameters in this batch, then the sections inside the
+ * active parameter. Clicking either navigates.
+ */
+export function ReviewSidebar({
+  batch,
+  parameterId,
+  sectionId,
+}: {
+  batch: Batch;
+  parameterId: string;
+  sectionId: string;
+}) {
+  const router = useRouter();
+  const { sectionStatus } = useReview();
+
+  const go = (param: string, section: string) =>
+    router.push(`/batches/${batch.arNumber}/review/${param}/${section}`);
+
+  return (
+    <nav className="w-[200px] shrink-0 overflow-y-auto border-r border-slate-200 bg-white">
+      <div className="py-3">
+        <div className="px-3.5 py-1.5 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+          Test Parameters
+        </div>
+        {batch.parameters.map((parameter) => {
+          const sections = sectionsForParameter(batch, parameter.id);
+          const flags = sections.reduce(
+            (total, section) =>
+              total + section.items.filter((item) => item.result === "FLAGGED").length,
+            0,
+          );
+          const active = parameter.id === parameterId;
+
+          return (
+            <button
+              key={parameter.id}
+              type="button"
+              onClick={() =>
+                go(parameter.id, sections[0] ? sectionSlug(sections[0]) : sectionId)
+              }
+              className={cn(
+                "flex w-full items-center gap-2 border-l-[3px] px-3.5 py-[7px] text-left transition-colors",
+                active
+                  ? "border-l-navy bg-blue-50 font-semibold text-navy"
+                  : "border-l-transparent text-source-text hover:bg-slate-50",
+              )}
+            >
+              <span
+                className={cn(
+                  "size-[7px] shrink-0 rounded-full",
+                  flags > 0 ? "bg-flagged-text" : "bg-compliant-text",
+                )}
+              />
+              <span className="flex-1 truncate text-xs">{parameter.shortName}</span>
+              {flags > 0 ? (
+                <span className="rounded bg-flagged-bg px-[5px] text-[10px] text-flagged-text">
+                  {flags}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="border-t border-slate-200 py-2.5">
+        <div className="px-3.5 py-1.5 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+          Sections
+        </div>
+        {sectionsForParameter(batch, parameterId).map((section) => {
+          const flags = section.items.filter((item) => item.result === "FLAGGED").length;
+          const reviewed = sectionStatus(section.id) === "REVIEWED";
+          const active = section.id === sectionId;
+
+          return (
+            <button
+              key={section.id}
+              type="button"
+              onClick={() => go(parameterId, sectionSlug(section))}
+              className={cn(
+                "flex w-full items-center gap-2 border-l-[3px] px-3.5 py-[7px] text-left transition-colors",
+                active
+                  ? flags > 0
+                    ? "border-l-flagged-text bg-red-50/60 font-semibold text-navy"
+                    : "border-l-navy bg-blue-50 font-semibold text-navy"
+                  : "border-l-transparent text-source-text hover:bg-slate-50",
+              )}
+            >
+              <span
+                className={cn(
+                  "shrink-0 text-[11px]",
+                  reviewed
+                    ? "text-compliant-text"
+                    : flags > 0
+                      ? "text-flagged-text"
+                      : "text-slate-300",
+                )}
+              >
+                {reviewed ? "✓" : flags > 0 ? "!" : "·"}
+              </span>
+              <span className="flex-1 truncate text-xs">{section.name}</span>
+              {flags > 0 ? <ExceptionCountPill count={flags} /> : null}
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
