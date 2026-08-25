@@ -94,13 +94,16 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
     setProfile(getProfile(profileId) ?? null);
   }, []);
 
-  /** Switching profile clears all in-progress review state. */
+  /**
+   * Switching profile clears who you are, not what has been done. A review
+   * submitted for authorisation has to still be waiting when the approver
+   * signs in, and the notes the reviewer wrote have to still be readable on
+   * the exception cards — that handoff is the whole point of two roles.
+   *
+   * Nothing is persisted: a page reload still returns an empty session.
+   */
   const clearProfile = useCallback(() => {
     setProfile(null);
-    setNotes(seedNotes());
-    setReviewed(seedSectionStatuses());
-    setStatuses(seedBatchStatuses());
-    setReturnReasons({});
   }, []);
 
   /* ---------------------------------------------------------------- */

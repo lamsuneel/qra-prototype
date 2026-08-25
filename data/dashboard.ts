@@ -19,19 +19,19 @@ import type {
 
 export const RECENT_ACTIVITY: ActivityEntry[] = [
   {
-    at: "09:47 AM",
+    at: "11:20 AM",
     description:
-      "Arjun Mehta submitted AR-2026-000122 (Amoxicillin 250mg) for authorisation",
+      "Anil Kulkarni completed the 6-month pull for ST-AR-2026-000089-6M (Amoxicillin 250mg accelerated)",
   },
   {
-    at: "08:30 AM",
+    at: "10:05 AM",
     description:
-      "Priya Sharma opened review of RM-AR-2026-004417 (Amoxicillin Trihydrate API)",
+      "Caliber LIMS results received for PM-AR-2026-008823 (HDPE Bottle 60ml) — 1 exception raised",
   },
   {
-    at: "Yesterday",
+    at: "Yesterday 14:35",
     description:
-      "Rajesh Kumar authorised AR-2026-000115 (Metformin 500mg) — 26 sections compliant, 0 exceptions",
+      "Priya Sharma submitted AR-2026-000121 (Ciprofloxacin 500mg) for authorisation — 1 documented exception",
   },
 ];
 
