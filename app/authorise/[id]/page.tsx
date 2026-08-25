@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { getBatch, orderedSections } from "@/data";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { BatchStatusBadge } from "@/components/review/Badges";
 
 /**
@@ -63,14 +64,20 @@ export default function AuthoriseDetailPage() {
   return (
     <div className="flex min-h-dvh flex-col bg-app-bg">
       <TopNav batch={batch} />
+      <Breadcrumbs
+        crumbs={[
+          { label: "Authorisation Queue", href: "/authorise" },
+          { label: `${batch.arNumber} ${batch.product}` },
+        ]}
+      />
 
       <main className="flex-1 px-6 py-7 lg:px-10">
         <button
           type="button"
           onClick={() => router.push("/authorise")}
-          className="mb-3 text-xs text-source-text transition-colors hover:text-navy"
+          className="mb-3 inline-flex cursor-pointer items-center gap-1.5 text-xs text-source-text transition-colors duration-150 hover:text-navy hover:underline"
         >
-          Back to list
+          <span aria-hidden="true">&larr;</span> Back to list
         </button>
 
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
@@ -89,10 +96,10 @@ export default function AuthoriseDetailPage() {
                 type="button"
                 disabled={decided}
                 onClick={() => setReturnMode((value) => !value)}
-                className={`rounded-md border px-4 py-2 text-[13px] ${
+                className={`rounded-md border px-4 py-2 text-[13px] transition-colors duration-150 ${
                   decided
-                    ? "cursor-not-allowed border-slate-200 text-slate-400"
-                    : "border-slate-200 text-source-text hover:bg-slate-100"
+                    ? "cursor-not-allowed border-slate-200 text-slate-400 opacity-40"
+                    : "cursor-pointer border-slate-200 text-source-text hover:bg-navy hover:text-white"
                 }`}
               >
                 Send Back
@@ -101,10 +108,10 @@ export default function AuthoriseDetailPage() {
                 type="button"
                 disabled={decided}
                 onClick={() => setConfirming(true)}
-                className={`rounded-md px-5 py-2 text-[13px] font-semibold ${
+                className={`rounded-md px-5 py-2 text-[13px] font-semibold transition-colors duration-150 ${
                   decided
-                    ? "cursor-not-allowed bg-slate-200 text-slate-400"
-                    : "bg-navy text-white"
+                    ? "cursor-not-allowed bg-slate-200 text-slate-400 opacity-40"
+                    : "cursor-pointer bg-navy text-white hover:bg-navy-mid"
                 }`}
               >
                 Authorise Review
@@ -161,7 +168,7 @@ export default function AuthoriseDetailPage() {
                   <button
                     type="button"
                     onClick={() => setReturnMode(false)}
-                    className="rounded-[5px] border border-slate-200 px-3.5 py-1.5 text-[13px] text-source-text"
+                    className="cursor-pointer rounded-[5px] border border-slate-200 px-3.5 py-1.5 text-[13px] text-source-text transition-colors duration-150 hover:bg-slate-100"
                   >
                     Cancel
                   </button>
@@ -169,10 +176,10 @@ export default function AuthoriseDetailPage() {
                     type="button"
                     disabled={!reason.trim()}
                     onClick={confirmReturn}
-                    className={`rounded-[5px] px-4 py-1.5 text-[13px] ${
+                    className={`rounded-[5px] px-4 py-1.5 text-[13px] transition-opacity duration-150 ${
                       reason.trim()
-                        ? "bg-flagged-text text-white"
-                        : "cursor-not-allowed bg-slate-200 text-slate-400"
+                        ? "cursor-pointer bg-flagged-text text-white hover:opacity-90"
+                        : "cursor-not-allowed bg-slate-200 text-slate-400 opacity-40"
                     }`}
                   >
                     Send Back to Reviewer
@@ -202,14 +209,14 @@ export default function AuthoriseDetailPage() {
               <button
                 type="button"
                 onClick={() => setConfirming(false)}
-                className="rounded-md border border-slate-200 px-4 py-2 text-[13px] text-source-text"
+                className="cursor-pointer rounded-md border border-slate-200 px-4 py-2 text-[13px] text-source-text transition-colors duration-150 hover:bg-slate-100"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={confirmAuthorise}
-                className="rounded-md bg-navy px-5 py-2 text-[13px] font-semibold text-white"
+                className="cursor-pointer rounded-md bg-navy px-5 py-2 text-[13px] font-semibold text-white transition-colors duration-150 hover:bg-navy-mid"
               >
                 Confirm Authorisation
               </button>

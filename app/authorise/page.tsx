@@ -58,7 +58,11 @@ export default function AuthoriseListPage() {
               </thead>
               <tbody>
                 {submitted.map((batch) => (
-                  <tr key={batch.arNumber} className="border-b border-slate-100">
+                  <tr
+                    key={batch.arNumber}
+                    onClick={() => router.push(`/authorise/${batch.arNumber}`)}
+                    className="cursor-pointer border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50"
+                  >
                     <td className="px-4 py-3 text-[13px] font-semibold text-navy-mid">
                       {batch.arNumber}
                     </td>
@@ -73,8 +77,12 @@ export default function AuthoriseListPage() {
                     <td className="px-4 py-3 text-right">
                       <button
                         type="button"
-                        onClick={() => router.push(`/authorise/${batch.arNumber}`)}
-                        className="rounded-[5px] bg-navy px-3.5 py-1.5 text-xs text-white"
+                        onClick={(event) => {
+                          /* The row already opens the submission. */
+                          event.stopPropagation();
+                          router.push(`/authorise/${batch.arNumber}`);
+                        }}
+                        className="cursor-pointer rounded-[5px] bg-navy px-3.5 py-1.5 text-xs text-white transition-colors duration-150 hover:bg-navy-mid"
                       >
                         Open
                       </button>

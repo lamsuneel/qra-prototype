@@ -12,6 +12,7 @@ import {
 import { useReview } from "@/context/ReviewContext";
 import { DOMAIN_BY_SLUG, type Batch } from "@/types";
 import { TopNav } from "@/components/layout/TopNav";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import {
   BatchStatusBadge,
   ExceptionCountPill,
@@ -77,14 +78,17 @@ export default function BatchListPage() {
   return (
     <div className="flex min-h-dvh flex-col bg-app-bg">
       <TopNav />
+      <Breadcrumbs
+        crumbs={[{ label: "QA Dashboard", href: "/dashboard" }, { label: meta.name }]}
+      />
 
       <main className="flex-1 px-6 py-7 lg:px-10">
         <button
           type="button"
           onClick={() => router.push("/dashboard")}
-          className="mb-1.5 text-xs text-source-text transition-colors hover:text-navy"
+          className="mb-3 inline-flex cursor-pointer items-center gap-1.5 text-xs text-source-text transition-colors duration-150 hover:text-navy hover:underline"
         >
-          Dashboard
+          <span aria-hidden="true">&larr;</span> Back to Dashboard
         </button>
 
         <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
@@ -103,10 +107,10 @@ export default function BatchListPage() {
               type="button"
               onClick={() => setTab(entry.id)}
               className={cn(
-                "-mb-0.5 px-4 py-[7px] text-[13px]",
+                "-mb-0.5 cursor-pointer px-4 py-[7px] text-[13px] transition-colors duration-150",
                 tab === entry.id
-                  ? "border-b-2 border-navy font-semibold text-navy"
-                  : "text-source-text hover:text-navy",
+                  ? "border-b-2 border-navy font-semibold text-navy hover:bg-blue-50"
+                  : "text-source-text hover:bg-blue-50 hover:text-navy",
               )}
             >
               {entry.label}
@@ -136,8 +140,9 @@ export default function BatchListPage() {
                 return (
                   <tr
                     key={batch.arNumber}
+                    onClick={() => openBatch(batch)}
                     className={cn(
-                      "border-b border-slate-100",
+                      "cursor-pointer border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50",
                       /* A breached SLA has to be legible from the row, not
                          only from the badge. */
                       batch.slaStatus === "red" &&
@@ -164,12 +169,16 @@ export default function BatchListPage() {
                     <td className="px-4 py-3 text-right">
                       <button
                         type="button"
-                        onClick={() => openBatch(batch)}
+                        onClick={(event) => {
+                          /* The row already opens the batch. */
+                          event.stopPropagation();
+                          openBatch(batch);
+                        }}
                         className={cn(
-                          "rounded-[5px] px-3.5 py-1.5 text-xs whitespace-nowrap",
+                          "cursor-pointer rounded-[5px] px-3.5 py-1.5 text-xs whitespace-nowrap transition-colors duration-150",
                           mine
-                            ? "bg-navy font-medium text-white"
-                            : "border border-navy-accent text-navy-accent hover:bg-blue-50",
+                            ? "bg-navy font-medium text-white hover:bg-navy-mid"
+                            : "border border-navy-accent text-navy-accent hover:bg-navy-accent hover:text-white",
                         )}
                       >
                         {mine ? "Begin Review" : "View"}

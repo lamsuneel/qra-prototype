@@ -14,6 +14,7 @@ import {
 } from "@/data/config";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
+import { Breadcrumbs, roleRoot } from "@/components/layout/Breadcrumbs";
 
 /** Read only. No buttons that change anything, no forms, no edit affordances. */
 export default function ConfigPage() {
@@ -30,6 +31,9 @@ export default function ConfigPage() {
   return (
     <div className="flex min-h-dvh flex-col bg-app-bg">
       <TopNav />
+      <Breadcrumbs
+        crumbs={[roleRoot(profile.role), { label: "Site Configuration" }]}
+      />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-7">
         <div className="mb-5 flex flex-wrap items-center gap-3.5">
@@ -93,7 +97,7 @@ export default function ConfigPage() {
           <button
             type="button"
             onClick={() => setRulesOpen((value) => !value)}
-            className="flex w-full items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3 text-left text-xs font-semibold text-slate-700"
+            className="flex w-full cursor-pointer items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3 text-left transition-colors duration-150 hover:bg-blue-50 text-xs font-semibold text-slate-700"
           >
             {CONFIGURED_RULES_TITLE}
             <span className="text-[11px] font-normal text-source-text">

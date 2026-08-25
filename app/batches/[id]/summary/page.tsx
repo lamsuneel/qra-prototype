@@ -3,9 +3,11 @@
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import { getBatch, orderedSections } from "@/data";
+import { getBatch, orderedSections, sectionSlug } from "@/data";
+import { DOMAIN_META } from "@/types";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { SourceBadge, SpecVersionBadge } from "@/components/review/Badges";
 
 export default function SummaryPage() {
@@ -55,14 +57,33 @@ export default function SummaryPage() {
   return (
     <div className="flex min-h-dvh flex-col bg-app-bg">
       <TopNav batch={batch} />
+      <Breadcrumbs
+        crumbs={[
+          { label: "QA Dashboard", href: "/dashboard" },
+          {
+            label: DOMAIN_META[batch.domain].name,
+            href: `/batches/${DOMAIN_META[batch.domain].slug}`,
+          },
+          { label: `${batch.arNumber} ${batch.product}` },
+          { label: "Review Summary" },
+        ]}
+      />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
         <button
           type="button"
-          onClick={() => router.back()}
-          className="text-xs text-source-text transition-colors hover:text-navy"
+          onClick={() => {
+            /* Back to where the reviewer left off — the last section. */
+            const last = sections[sections.length - 1];
+            if (last) {
+              router.push(
+                `/batches/${batch.arNumber}/review/${last.parameter}/${sectionSlug(last)}`,
+              );
+            }
+          }}
+          className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-source-text transition-colors duration-150 hover:text-navy hover:underline"
         >
-          Back to Review
+          <span aria-hidden="true">&larr;</span> Back to Review
         </button>
         <h1 className="mt-2 mb-7 text-xl font-bold tracking-tight text-slate-900">
           Review Summary
@@ -170,10 +191,10 @@ export default function SummaryPage() {
               type="button"
               disabled={!ready || status !== "NEEDS_REVIEW"}
               onClick={submit}
-              className={`rounded-md px-6 py-2.5 text-sm font-semibold ${
+              className={`rounded-md px-6 py-2.5 text-sm font-semibold transition-colors duration-150 ${
                 ready && status === "NEEDS_REVIEW"
-                  ? "bg-navy text-white"
-                  : "cursor-not-allowed bg-slate-200 text-slate-400"
+                  ? "cursor-pointer bg-navy text-white hover:bg-navy-mid"
+                  : "cursor-not-allowed bg-slate-200 text-slate-400 opacity-40"
               }`}
             >
               Submit for Authorisation
@@ -182,10 +203,10 @@ export default function SummaryPage() {
               type="button"
               disabled={!authorised}
               title={authorised ? undefined : "Available once the review is authorised"}
-              className={`rounded-md border px-4 py-2.5 text-[13px] ${
+              className={`rounded-md border px-4 py-2.5 text-[13px] transition-colors duration-150 ${
                 authorised
-                  ? "border-navy-accent text-navy-accent hover:bg-blue-50"
-                  : "cursor-not-allowed border-slate-200 text-slate-400"
+                  ? "cursor-pointer border-navy-accent text-navy-accent hover:bg-navy-accent hover:text-white"
+                  : "cursor-not-allowed border-slate-200 text-slate-400 opacity-40"
               }`}
             >
               Export Review Record

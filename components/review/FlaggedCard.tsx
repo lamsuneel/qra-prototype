@@ -111,7 +111,7 @@ export function FlaggedCard({ item }: { item: CheckItem }) {
               <button
                 type="button"
                 onClick={confirm}
-                className="shrink-0 rounded-[5px] bg-compliant-text px-3.5 py-2 text-xs font-medium text-white"
+                className="shrink-0 cursor-pointer rounded-[5px] bg-compliant-text px-3.5 py-2 text-xs font-medium text-white transition-opacity duration-150 hover:opacity-90"
               >
                 Confirm
               </button>
@@ -123,7 +123,7 @@ export function FlaggedCard({ item }: { item: CheckItem }) {
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            className="rounded border border-flagged-text px-2.5 py-1 text-[11px] text-flagged-text transition-colors hover:bg-flagged-bg/40"
+            className="cursor-pointer rounded border border-flagged-text px-2.5 py-1 text-[11px] text-flagged-text transition-colors duration-150 hover:bg-flagged-text hover:text-white"
           >
             View full details
           </button>
@@ -139,7 +139,7 @@ export function FlaggedCard({ item }: { item: CheckItem }) {
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          className="mt-3 text-[11px] text-source-text transition-colors hover:text-navy"
+          className="mt-3 cursor-pointer text-[11px] text-source-text transition-colors duration-150 hover:text-navy hover:underline"
         >
           Collapse details
         </button>

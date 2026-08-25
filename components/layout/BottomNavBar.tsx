@@ -41,10 +41,10 @@ export function BottomNavBar({
         disabled={!previous}
         onClick={() => previous && goTo(previous)}
         className={cn(
-          "rounded-[5px] border px-3.5 py-[7px] text-[13px]",
+          "rounded-[5px] border px-3.5 py-[7px] text-[13px] transition-colors duration-150",
           previous
-            ? "border-slate-200 text-source-text hover:bg-slate-50"
-            : "cursor-not-allowed border-slate-200 text-slate-300",
+            ? "cursor-pointer border-slate-200 text-source-text hover:bg-navy hover:text-white"
+            : "cursor-not-allowed border-slate-200 text-slate-300 opacity-40",
         )}
       >
         Previous Section
@@ -61,12 +61,12 @@ export function BottomNavBar({
             disabled={!unlocked || reviewed}
             onClick={() => markSectionReviewed(section.id)}
             className={cn(
-              "rounded-[5px] px-3.5 py-[7px] text-[13px] font-medium",
+              "rounded-[5px] px-3.5 py-[7px] text-[13px] font-medium transition-colors duration-150",
               reviewed
                 ? "cursor-default bg-compliant-bg text-compliant-text"
                 : unlocked
-                  ? "bg-navy text-white"
-                  : "cursor-not-allowed bg-slate-200 text-slate-400",
+                  ? "cursor-pointer bg-navy text-white hover:bg-navy-mid"
+                  : "cursor-not-allowed bg-slate-200 text-slate-400 opacity-40",
             )}
           >
             {reviewed ? "Section Reviewed" : "Mark Section Reviewed"}
@@ -83,7 +83,7 @@ export function BottomNavBar({
           onClick={() =>
             next ? goTo(next) : router.push(`/batches/${batch.arNumber}/summary`)
           }
-          className="rounded-[5px] bg-navy px-4 py-[7px] text-[13px] text-white"
+          className="cursor-pointer rounded-[5px] bg-navy px-4 py-[7px] text-[13px] text-white transition-colors duration-150 hover:bg-navy-mid"
         >
           {next ? "Next Section" : "View Summary"}
         </button>

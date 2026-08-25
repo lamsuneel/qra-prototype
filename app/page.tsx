@@ -42,7 +42,7 @@ export default function LoginPage() {
             key={profile.id}
             type="button"
             onClick={() => choose(profile.id, profile.role)}
-            className="w-[220px] rounded-[10px] border-[1.5px] border-slate-200 bg-white px-5 py-7 text-center transition-all hover:-translate-y-0.5 hover:border-navy-accent hover:shadow-[0_4px_20px_rgba(31,56,100,0.13)]"
+            className="w-[220px] cursor-pointer rounded-[10px] border-[1.5px] border-slate-200 bg-white px-5 py-7 text-center transition-all duration-150 hover:-translate-y-0.5 hover:border-navy-accent hover:shadow-[0_4px_20px_rgba(31,56,100,0.13)]"
           >
             <span
               className="mx-auto mb-3.5 flex size-13 items-center justify-center rounded-full text-[15px] font-semibold text-white"

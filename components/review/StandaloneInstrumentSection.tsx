@@ -43,7 +43,7 @@ export function StandaloneInstrumentHeader({
         <button
           type="button"
           onClick={onOpenPdf}
-          className="rounded-[5px] bg-navy px-3.5 py-1.5 text-xs text-white"
+          className="cursor-pointer rounded-[5px] bg-navy px-3.5 py-1.5 text-xs text-white transition-colors duration-150 hover:bg-navy-mid"
         >
           View
         </button>
@@ -106,7 +106,7 @@ export function PDFMockViewer({
             type="button"
             onClick={onClose}
             aria-label="Close audit trail"
-            className="text-xl leading-none text-slate-400 transition-colors hover:text-slate-700"
+            className="cursor-pointer text-xl leading-none text-slate-400 transition-colors duration-150 hover:text-slate-900"
           >
             ×
           </button>
