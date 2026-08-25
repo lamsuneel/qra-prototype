@@ -14,8 +14,8 @@ export function SourceBadge({ source }: { source: SourceSystem }) {
 
 export function CompliantBadge() {
   return (
-    <span className="inline-flex shrink-0 items-center rounded bg-compliant-bg px-2 py-[2px] text-[11px] font-medium text-compliant-text">
-      Compliant
+    <span className="inline-flex shrink-0 items-center gap-1 rounded bg-compliant-bg px-2 py-[2px] text-[11px] font-medium text-compliant-text">
+      <span aria-hidden="true">&#10003;</span> Compliant
     </span>
   );
 }

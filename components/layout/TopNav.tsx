@@ -24,7 +24,7 @@ export function TopNav({ batch }: { batch?: Batch }) {
       <button
         type="button"
         onClick={() => router.push("/dashboard")}
-        className="flex shrink-0 items-center gap-2"
+        className="flex shrink-0 cursor-pointer items-center gap-2 transition-opacity duration-150 hover:opacity-80"
       >
         <span className="flex size-7 items-center justify-center rounded-[5px] bg-navy-accent text-xs font-bold text-white">
           Q
@@ -56,14 +56,14 @@ export function TopNav({ batch }: { batch?: Batch }) {
         <button
           type="button"
           onClick={() => router.push("/config")}
-          className="text-xs text-slate-400 transition-colors hover:text-slate-200"
+          className="cursor-pointer text-xs text-slate-400 transition-colors duration-150 hover:text-white hover:underline"
         >
           Site Config
         </button>
         <button
           type="button"
           onClick={switchProfile}
-          className="rounded border border-navy-accent/50 px-2.5 py-0.5 text-[11px] text-blue-300 transition-colors hover:bg-navy-accent/20"
+          className="cursor-pointer rounded border border-navy-accent/50 px-2.5 py-0.5 text-[11px] text-blue-300 transition-colors duration-150 hover:bg-navy-accent hover:text-white"
         >
           Switch Profile
         </button>

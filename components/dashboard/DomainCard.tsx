@@ -20,7 +20,7 @@ export function DomainCard({ summary }: { summary: DomainSummary }) {
       type="button"
       onClick={() => router.push(`/batches/${meta.slug}`)}
       className={cn(
-        "rounded-lg border border-slate-200 bg-white p-5 text-left transition-all hover:border-navy-accent hover:shadow-[0_2px_14px_rgba(31,56,100,0.1)]",
+        "cursor-pointer rounded-lg border border-slate-200 bg-white p-5 text-left transition-all duration-150 hover:border-navy-accent hover:shadow-md",
         /* A breached SLA reads from the card itself, not only the dot. */
         summary.slaStatus === "red" && "border-l-[3px] border-l-flagged-text",
       )}

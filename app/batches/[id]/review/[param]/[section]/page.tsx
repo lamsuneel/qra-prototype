@@ -4,9 +4,11 @@ import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { getBatch, sectionSlug, sectionsForParameter } from "@/data";
+import { DOMAIN_META } from "@/types";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
 import { ReviewSidebar } from "@/components/layout/ReviewSidebar";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { RightPanel } from "@/components/layout/RightPanel";
 import { BottomNavBar } from "@/components/layout/BottomNavBar";
 import { CompliantRow } from "@/components/review/CompliantRow";
@@ -53,6 +55,20 @@ export default function ReviewWorkspacePage() {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-app-bg">
       <TopNav batch={batch} />
+      <Breadcrumbs
+        crumbs={[
+          { label: "QA Dashboard", href: "/dashboard" },
+          {
+            label: DOMAIN_META[batch.domain].name,
+            href: `/batches/${DOMAIN_META[batch.domain].slug}`,
+          },
+          {
+            label: `${batch.arNumber} ${batch.product}`,
+            href: `/batches/${batch.arNumber}/summary`,
+          },
+          { label: `${parameter.name} — ${section.name}` },
+        ]}
+      />
 
       <div className="flex flex-1 overflow-hidden">
         <ReviewSidebar batch={batch} parameterId={parameter.id} sectionId={section.id} />
