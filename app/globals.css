@@ -4,6 +4,24 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* QRA palette — fixed brand tokens, identical in light and dark. */
+@theme {
+  --color-navy: #1F3864;
+  --color-navy-mid: #2E5FA3;
+  --color-navy-accent: #4472C4;
+  --color-compliant-text: #375623;
+  --color-compliant-bg: #E2EFDA;
+  --color-flagged-text: #C00000;
+  --color-flagged-bg: #FCE4D6;
+  --color-warn-text: #C55A11;
+  --color-warn-bg: #FFF2CC;
+  --color-source-text: #595959;
+  --color-source-bg: #F2F2F2;
+  --color-app-bg: #F8F9FA;
+  --color-app-card: #FFFFFF;
+}
+
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
