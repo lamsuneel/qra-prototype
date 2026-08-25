@@ -1,5 +1,5 @@
 import type { CheckItem } from "@/types";
-import { CompliantBadge, SourceBadge } from "./Badges";
+import { CalibrationBadge, CompliantBadge, SourceBadge } from "./Badges";
 import { EvidenceTable } from "./EvidenceTable";
 
 /**
@@ -7,12 +7,18 @@ import { EvidenceTable } from "./EvidenceTable";
  * Deliberately not a button: no onClick, no hover state, nothing that
  * suggests there is something to open.
  */
+const CAL_DUE = /^Cal\. due (.+)$/;
+
 export function CompliantRow({ item }: { item: CheckItem }) {
+  const calibration = item.reference?.match(CAL_DUE)?.[1];
+
   return (
     <div className="border-b border-slate-100 py-2.5">
       <div className="flex items-center gap-3.5 text-[13px]">
         <span className="flex-1 text-slate-700">{item.label}</span>
-        {item.reference ? (
+        {calibration ? (
+          <CalibrationBadge due={calibration} />
+        ) : item.reference ? (
           <span className="hidden text-[11px] text-slate-400 sm:inline">
             {item.reference}
           </span>

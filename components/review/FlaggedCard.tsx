@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import type { CheckItem } from "@/types";
 import { useReview } from "@/context/ReviewContext";
-import { SourceBadge } from "./Badges";
+import { CalibrationBadge, SourceBadge } from "./Badges";
 import { EvidenceTable } from "./EvidenceTable";
 
 /**
@@ -12,7 +12,10 @@ import { EvidenceTable } from "./EvidenceTable";
  * shows all six fields plus the reviewer note, which is what unlocks Mark
  * Section Reviewed for the section it sits in.
  */
+const CAL_DUE = /^Cal\. due (.+)$/;
+
 export function FlaggedCard({ item }: { item: CheckItem }) {
+  const calibration = item.reference?.match(CAL_DUE)?.[1];
   const { noteFor, setNote, isNoted } = useReview();
   const [expanded, setExpanded] = useState(false);
   const [draft, setDraft] = useState(() => noteFor(item.id));
@@ -30,6 +33,7 @@ export function FlaggedCard({ item }: { item: CheckItem }) {
           FLAGGED — Action Required
         </span>
         <span className="text-xs text-source-text">{item.label}</span>
+        {calibration ? <CalibrationBadge due={calibration} /> : null}
       </div>
 
       {expanded ? (

@@ -1,3 +1,4 @@
+import { daysUntil } from "@/data/clock";
 import type { BatchStatus, SlaStatus, SourceSystem } from "@/types";
 import { BATCH_STATUS_LABELS } from "@/types";
 import { cn } from "@/lib/utils";
@@ -54,16 +55,44 @@ export function SLABadge({ status, label }: { status: SlaStatus; label: string }
 }
 
 /** Green, amber or red by how much calibration life remains. */
-export function CalibrationBadge({ status }: { status: string }) {
-  const tone = /overdue/i.test(status)
-    ? "bg-flagged-bg text-flagged-text"
-    : /due soon|approaching/i.test(status)
-      ? "bg-warn-bg text-warn-text"
-      : "bg-compliant-bg text-compliant-text";
+/**
+ * Calibration state read from the due date: red once the date is behind us,
+ * amber inside 30 days, green beyond that. The number of days is on the badge
+ * so the reviewer does not have to work it out from the date.
+ */
+export function CalibrationBadge({ due }: { due: string }) {
+  const days = daysUntil(due);
+
+  if (days === null) {
+    return (
+      <span className="inline-flex shrink-0 items-center rounded bg-source-bg px-2 py-[2px] text-[11px] text-source-text">
+        Cal. due {due}
+      </span>
+    );
+  }
+
+  const tone =
+    days < 0
+      ? "bg-flagged-bg text-flagged-text"
+      : days <= 30
+        ? "bg-warn-bg text-warn-text"
+        : "bg-compliant-bg text-compliant-text";
+
+  const label =
+    days < 0
+      ? `Calibration overdue ${Math.abs(days)}d`
+      : days <= 30
+        ? `Cal. due in ${days}d`
+        : `Cal. due ${due} · ${days}d`;
 
   return (
-    <span className={cn("inline-flex shrink-0 items-center rounded px-2 py-[2px] text-[11px] font-medium", tone)}>
-      {status}
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center rounded px-2 py-[2px] text-[11px] font-medium",
+        tone,
+      )}
+    >
+      {label}
     </span>
   );
 }
