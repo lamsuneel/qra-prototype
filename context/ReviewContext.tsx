@@ -57,10 +57,32 @@ const ReviewContext = createContext<ReviewContextValue | null>(null);
 const seedBatchStatuses = (): Record<string, BatchStatus> =>
   Object.fromEntries(ALL_BATCHES.map((batch) => [batch.arNumber, batch.status]));
 
+/**
+ * A batch that arrives already submitted carries the notes its reviewer wrote
+ * before submitting. Seeding them keeps those notes visible to the approver.
+ */
+const seedNotes = (): Record<string, string> =>
+  Object.fromEntries(
+    ALL_BATCHES.flatMap((batch) =>
+      batch.sections.flatMap((section) =>
+        section.items
+          .filter((item) => item.reviewerNote)
+          .map((item) => [item.id, item.reviewerNote as string]),
+      ),
+    ),
+  );
+
+const seedSectionStatuses = (): Record<string, SectionStatus> =>
+  Object.fromEntries(
+    ALL_BATCHES.flatMap((batch) =>
+      batch.sections.map((section) => [section.id, section.status]),
+    ),
+  );
+
 export function ReviewProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [notes, setNotes] = useState<Record<string, string>>({});
-  const [reviewed, setReviewed] = useState<Record<string, SectionStatus>>({});
+  const [notes, setNotes] = useState<Record<string, string>>(seedNotes);
+  const [reviewed, setReviewed] = useState<Record<string, SectionStatus>>(seedSectionStatuses);
   const [statuses, setStatuses] = useState<Record<string, BatchStatus>>(seedBatchStatuses);
   const [returnReasons, setReturnReasons] = useState<Record<string, string>>({});
 
@@ -75,8 +97,8 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
   /** Switching profile clears all in-progress review state. */
   const clearProfile = useCallback(() => {
     setProfile(null);
-    setNotes({});
-    setReviewed({});
+    setNotes(seedNotes());
+    setReviewed(seedSectionStatuses());
     setStatuses(seedBatchStatuses());
     setReturnReasons({});
   }, []);

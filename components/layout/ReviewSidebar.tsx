@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
-import { sectionsForParameter } from "@/data";
+import { sectionSlug, sectionsForParameter } from "@/data";
 import { useReview } from "@/context/ReviewContext";
 import type { Batch } from "@/types";
 import { cn } from "@/lib/utils";
@@ -46,7 +46,9 @@ export function ReviewSidebar({
             <button
               key={parameter.id}
               type="button"
-              onClick={() => go(parameter.id, sections[0]?.id ?? sectionId)}
+              onClick={() =>
+                go(parameter.id, sections[0] ? sectionSlug(sections[0]) : sectionId)
+              }
               className={cn(
                 "flex w-full items-center gap-2 border-l-[3px] px-3.5 py-[7px] text-left transition-colors",
                 active
@@ -84,7 +86,7 @@ export function ReviewSidebar({
             <button
               key={section.id}
               type="button"
-              onClick={() => go(parameterId, section.id)}
+              onClick={() => go(parameterId, sectionSlug(section))}
               className={cn(
                 "flex w-full items-center gap-2 border-l-[3px] px-3.5 py-[7px] text-left transition-colors",
                 active

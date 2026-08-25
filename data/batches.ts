@@ -685,6 +685,65 @@ const cleanAssaySections = (columnId: string, used: number): Section[] => [
   section("assay", "Column", 5, columnCompliant(columnId, used, 400)),
 ];
 
+/**
+ * LEVEL D — Batch A arrives already submitted, so the approver queue is never
+ * empty on a cold start. Priya reviewed it, documented one exception and sent
+ * it to Rajesh; every section is therefore already marked as reviewed.
+ */
+const batchASections: Section[] = [
+  section("assay", "Chemicals", 1, chemicalsCompliant(), { status: "REVIEWED" }),
+  section("assay", "Standards", 2, standardsCompliant(), { status: "REVIEWED" }),
+  section(
+    "assay",
+    "Instruments",
+    3,
+    [
+      compliant({
+        label: "Weighing Balance BAL-2024-003",
+        reference: "Cal. due 10-Oct-2026",
+        statusText: "Calibrated",
+        expected: "Calibration due date after date of use — SOP-INST-004",
+        actual: "BAL-2024-003 — calibrated, due 10-Oct-2026, used 07:40 to 08:20",
+        expectedSource: "SOP-INST-004",
+      }),
+      {
+        ...flagged({
+          label: "Sonicator SON-2024-002 — daily verification recorded late",
+          reference: "Cal. due 18-Nov-2026",
+          expected:
+            "Daily performance verification recorded before first use — SOP-INST-004 §5.2",
+          actual: "Verification recorded at 09:15; sonication started 08:05",
+          expectedSource: "SOP-INST-004 §5.2",
+          comparison:
+            "Verification entry is 70 minutes after the recorded start of sonication",
+          flagReason:
+            "The daily performance verification for SON-2024-002 was entered after the instrument had already been used for sample preparation. SOP-INST-004 §5.2 requires the verification to be complete before first use of the day.",
+          flagAction:
+            "Confirm with the analyst whether the verification was performed before use and recorded late, or performed late. Record the finding against the batch.",
+        }),
+        reviewerNote:
+          "Analyst confirmed verification was performed at 07:55 before use; the LIMS entry was made late. Documentation practice deviation DEV-2026-0217 raised. Result is unaffected.",
+        noteAt: "01-Aug-2026 · 14:22",
+      },
+      compliant({
+        label: "Analyst qualification — Priya Sharma",
+        reference: "QUAL-2026-0114",
+        statusText: "Qualified",
+        expected: "Current qualification for the instrument used — SOP-INST-004 §3.1",
+        actual: "Qualified for HPLC and balance operation, valid to 31-Mar-2027",
+        expectedSource: "SOP-INST-004 §3.1",
+      }),
+    ],
+    { status: "REVIEWED" },
+  ),
+  section("assay", "Chromatography", 4, chromatographyCompliant("HPLC-003"), {
+    status: "REVIEWED",
+  }),
+  section("assay", "Column", 5, columnCompliant("COL-2024-07", 380, 400), {
+    status: "REVIEWED",
+  }),
+];
+
 const batchA: Batch = {
   id: "AR-2026-000121",
   arNumber: "AR-2026-000121",
@@ -696,12 +755,13 @@ const batchA: Batch = {
   slaDeadline: "02-Aug-2026 12:00",
   slaStatus: "amber",
   slaLabel: "Approaching SLA",
-  status: "NEEDS_REVIEW",
+  status: "AWAITING_AUTHORISATION",
   assignedTo: "priya-sharma",
   analyst: "Rajesh Iyer",
-  lastActivity: "08:30 AM today",
+  lastActivity: "Submitted 14:35 yesterday",
+  submittedAt: "01-Aug-2026 · 14:35",
   parameters: assayOnly,
-  sections: cleanAssaySections("COL-2024-07", 380),
+  sections: batchASections,
   dataSources: [LIMS, EMPOWER],
 };
 

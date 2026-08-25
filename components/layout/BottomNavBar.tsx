@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
-import { orderedSections } from "@/data";
+import { orderedSections, sectionSlug } from "@/data";
 import { useReview } from "@/context/ReviewContext";
 import type { Batch, Section } from "@/types";
 import { cn } from "@/lib/utils";
@@ -30,7 +30,9 @@ export function BottomNavBar({
   const unlocked = canMarkReviewed(section);
 
   const goTo = (target: Section) =>
-    router.push(`/batches/${batch.arNumber}/review/${target.parameter}/${target.id}`);
+    router.push(
+      `/batches/${batch.arNumber}/review/${target.parameter}/${sectionSlug(target)}`,
+    );
 
   return (
     <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-6 py-2.5">

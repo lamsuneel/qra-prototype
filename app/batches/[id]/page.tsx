@@ -3,7 +3,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import { batchesForDomain, flaggedItemsInBatch, orderedSections } from "@/data";
+import {
+  batchesForDomain,
+  flaggedItemsInBatch,
+  orderedSections,
+  sectionSlug,
+} from "@/data";
 import { useReview } from "@/context/ReviewContext";
 import { DOMAIN_BY_SLUG, type Batch } from "@/types";
 import { TopNav } from "@/components/layout/TopNav";
@@ -24,11 +29,13 @@ const TABS: { id: Tab; label: string }[] = [
 
 export default function BatchListPage() {
   const router = useRouter();
-  const params = useParams<{ domain: string }>();
+  // One slug name per path segment: this segment is a domain slug here and an
+  // AR number under /batches/[id]/review. They never collide.
+  const params = useParams<{ id: string }>();
   const { profile, batchStatus } = useReview();
   const [tab, setTab] = useState<Tab>("attention");
 
-  const meta = DOMAIN_BY_SLUG[params.domain];
+  const meta = DOMAIN_BY_SLUG[params.id];
 
   useEffect(() => {
     if (!profile) router.replace("/");
@@ -59,7 +66,9 @@ export default function BatchListPage() {
   const openBatch = (batch: Batch) => {
     const first = orderedSections(batch)[0];
     if (first) {
-      router.push(`/batches/${batch.arNumber}/review/${first.parameter}/${first.id}`);
+      router.push(
+        `/batches/${batch.arNumber}/review/${first.parameter}/${sectionSlug(first)}`,
+      );
     }
   };
 

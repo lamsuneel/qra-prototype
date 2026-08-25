@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import { getBatch, sectionsForParameter } from "@/data";
+import { getBatch, sectionSlug, sectionsForParameter } from "@/data";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
 import { ReviewSidebar } from "@/components/layout/ReviewSidebar";
@@ -39,7 +39,8 @@ export default function ReviewWorkspacePage() {
   if (!profile || !batch) return null;
 
   const sections = sectionsForParameter(batch, params.param);
-  const section = sections.find((entry) => entry.id === params.section) ?? sections[0];
+  const section =
+    sections.find((entry) => sectionSlug(entry) === params.section) ?? sections[0];
   const parameter = batch.parameters.find((entry) => entry.id === params.param);
 
   if (!section || !parameter) return null;

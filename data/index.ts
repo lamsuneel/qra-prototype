@@ -12,6 +12,20 @@ import {
   type SlaStatus,
 } from "@/types";
 
+/**
+ * Section ids are written per test parameter, so two batches carrying the same
+ * parameter would otherwise share them — marking Assay Chemicals reviewed on
+ * one batch would mark it on every other. Scoping by AR number keeps each
+ * batch's review state its own.
+ */
+const scopeSectionIds = (batch: Batch): Batch => ({
+  ...batch,
+  sections: batch.sections.map((section) => ({
+    ...section,
+    id: `${batch.arNumber}::${section.id}`,
+  })),
+});
+
 /** Every batch across every domain. Hardcoded — no database, no API. */
 export const ALL_BATCHES: Batch[] = [
   ...FINISHED_PRODUCT_BATCHES,
@@ -19,7 +33,11 @@ export const ALL_BATCHES: Batch[] = [
   ...PACKING_MATERIAL_BATCHES,
   ...IPFP_BATCHES,
   ...STABILITY_BATCHES,
-];
+].map(scopeSectionIds);
+
+/** The URL segment for a section — the AR number already sits in the path. */
+export const sectionSlug = (section: Section): string =>
+  section.id.split("::").pop() as string;
 
 export const getBatch = (id: string): Batch | undefined =>
   ALL_BATCHES.find((batch) => batch.arNumber.toUpperCase() === id.trim().toUpperCase());
