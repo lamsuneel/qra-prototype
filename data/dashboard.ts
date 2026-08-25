@@ -26,7 +26,7 @@ export const RECENT_ACTIVITY: ActivityEntry[] = [
   {
     at: "08:30 AM",
     description:
-      "Priya Sharma opened review of AR-2026-000131 (Amoxicillin Trihydrate API)",
+      "Priya Sharma opened review of RM-AR-2026-004417 (Amoxicillin Trihydrate API)",
   },
   {
     at: "Yesterday",
@@ -74,17 +74,22 @@ export const DOMAIN_BREAKDOWN: DomainBreakdownRow[] = [
 export const MANAGEMENT_ALERTS: ManagementAlert[] = [
   {
     title: "SLA Breached — IPFP",
-    detail: "AR-2026-000141 · Amoxicillin 250mg compression · 1 day overdue",
+    detail: "IPFP-AR-2026-000122-03 · Amoxicillin 250mg compression · 0.5 days overdue",
     severity: "high",
   },
   {
     title: "Approaching SLA — Raw Material",
-    detail: "AR-2026-000131 · Amoxicillin Trihydrate API · 6 hours remaining",
+    detail: "RM-AR-2026-004417 · Amoxicillin Trihydrate API · 6 hours remaining",
     severity: "medium",
   },
   {
     title: "OOS Open — Requires Close-Out",
     detail: "OOS-2026-0089 · LCMS Genotoxic Impurity · AR-2026-000122",
+    severity: "medium",
+  },
+  {
+    title: "OOS Open — Requires Close-Out",
+    detail: "OOS-2026-0091 · Known Impurity B at 6 months · ST-AR-2026-000089-6M",
     severity: "medium",
   },
 ];

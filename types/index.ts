@@ -43,6 +43,12 @@ export type SourceSystem =
   | "Waters Empower"
   | "Tiamo 2.4"
   | "MassLynx"
+  | "Spectrum ES"
+  | "Mastersizer 3000"
+  | "Qtegra ICP"
+  | "Ascom BRC2002"
+  | "LabSolutions UV"
+  | "iCDAS 1.2"
   | "Chamber Monitoring System"
   | "Paper Logbook"
   | "Test method configuration";
@@ -101,6 +107,22 @@ export interface Profile {
 /* Review content                                                             */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Tabular evidence shown inline beneath an item — a blend uniformity sample
+ * set, a stability trend, a dimensional check. Rows carrying the exception
+ * are marked so the reader finds them without hunting.
+ */
+export interface EvidenceTable {
+  caption?: string;
+  columns: string[];
+  rows: EvidenceRow[];
+}
+
+export interface EvidenceRow {
+  cells: string[];
+  flagged?: boolean;
+}
+
 export interface CheckItem {
   id: string;
   label: string;
@@ -121,6 +143,9 @@ export interface CheckItem {
   flagReason?: string;
   flagAction?: string;
 
+  /** Sample sets and trends that belong with this item, rendered inline. */
+  table?: EvidenceTable;
+
   /** Reviewer-entered, in memory only. Gates Mark Section Reviewed. */
   reviewerNote?: string;
   noteAt?: string;
@@ -130,6 +155,8 @@ export interface CheckItem {
 export interface StandaloneInstrument {
   name: string;
   version: string;
+  /** The system the badge names — standalone instruments are not in LIMS. */
+  source: SourceSystem;
   analyst: string;
   loginAt: string;
   logoutAt: string;
@@ -141,6 +168,8 @@ export interface StandaloneInstrument {
 /** A record that still lives on paper at this site. */
 export interface PaperLogbook {
   reference: string;
+  /** Page within the logbook the entry sits on. */
+  page: string;
   description: string;
   note: string;
 }

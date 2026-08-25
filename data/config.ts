@@ -127,6 +127,18 @@ export const STPS: StpRow[] = [
     domain: "Packing Material",
     status: "Active",
   },
+  {
+    reference: "STP-IPFP-BU-002",
+    method: "Blend Uniformity by HPLC",
+    domain: "IPFP",
+    status: "Active",
+  },
+  {
+    reference: "STP-STB-RS-001",
+    method: "Stability Related Substances by HPLC",
+    domain: "Stability",
+    status: "Active",
+  },
 ];
 
 export const REGULATORY_STANDARDS: RegulatoryRow[] = [

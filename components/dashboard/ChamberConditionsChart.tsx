@@ -29,7 +29,7 @@ export function ChamberConditionsChart({
       <div className="text-[13px] font-semibold text-slate-900">Chamber Conditions</div>
       <div className="mt-1 mb-4 text-[11px] text-slate-400">
         {limits ? `${limits.temperature} · ${limits.humidity}` : "Accelerated condition"}
-        {" · Chamber Monitoring System"}
+        {" · iCDAS 1.2"}
       </div>
 
       <div className="h-56 w-full">

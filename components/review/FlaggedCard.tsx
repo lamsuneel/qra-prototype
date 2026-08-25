@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { CheckItem } from "@/types";
 import { useReview } from "@/context/ReviewContext";
 import { SourceBadge } from "./Badges";
+import { EvidenceTable } from "./EvidenceTable";
 
 /**
  * A flagged item. Collapsed it shows Expected, Actual and Action. Expanded it
@@ -70,6 +71,8 @@ export function FlaggedCard({ item }: { item: CheckItem }) {
           <dd className="py-[3px] text-slate-700">{item.flagAction}</dd>
         </dl>
       )}
+
+      {item.table ? <EvidenceTable table={item.table} /> : null}
 
       {expanded ? (
         <div className="mt-4 border-t border-flagged-text/25 pt-4">

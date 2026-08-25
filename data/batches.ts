@@ -465,7 +465,25 @@ const batchBSections: Section[] = [
         "BAL-2024-003 — calibrated, used for tablet weighing before dissolution, 08:15 to 08:45",
       expectedSource: "SOP-INST-004",
     }),
-  ]),
+    // LEVEL A — the bath check at this site is written into the line logbook.
+    compliant({
+      label: "Dissolution bath temperature and paddle speed",
+      reference: "Checked at 0, 15 and 45 minutes",
+      statusText: "Within limits",
+      expected: "37 °C ± 0.5 °C and 50 rpm ± 4 % throughout the run — SOP-DISS-001 §6.2",
+      actual:
+        "36.9 °C / 37.1 °C / 37.0 °C and 50 rpm at each check, transcribed from logbook LB-2026-FP-014",
+      expectedSource: "SOP-DISS-001 §6.2",
+      source: "Paper Logbook",
+    }),
+  ], {
+    paperLogbook: {
+      reference: "Logbook LB-2026-FP-014",
+      page: "Page 22",
+      description: "Dissolution bath check — read from the panel and recorded by hand",
+      note: "The bath on this line has no data link to LIMS and no standalone audit trail, so medium temperature and paddle speed are written into the line logbook at each check point.",
+    },
+  }),
 
   /* ---- KF Water Content ---- */
   section("kf", "Chemicals", 1, [
@@ -544,6 +562,7 @@ const batchBSections: Section[] = [
     {
       standaloneInstrument: {
         name: "Tiamo",
+        source: "Tiamo 2.4",
         version: "2.4",
         analyst: "Priya Sharma",
         loginAt: "08:42 AM · 30-Jul-2026",
@@ -640,6 +659,7 @@ const batchBSections: Section[] = [
     {
       standaloneInstrument: {
         name: "MassLynx",
+        source: "MassLynx",
         version: "4.2",
         analyst: "Priya Sharma",
         loginAt: "01:02 PM · 30-Jul-2026",

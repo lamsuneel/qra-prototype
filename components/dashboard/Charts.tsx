@@ -58,7 +58,9 @@ export function CycleTimeChart() {
               <LabelList
                 dataKey="days"
                 position="top"
+                offset={8}
                 fontSize={10}
+                fill="#374151"
                 formatter={(value) => Number(value).toFixed(1)}
               />
               {CYCLE_TIME_TREND.map((point) => (

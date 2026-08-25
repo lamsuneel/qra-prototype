@@ -134,7 +134,16 @@ export default function BatchListPage() {
               {visible.map((batch) => {
                 const mine = batch.assignedTo === profile.id;
                 return (
-                  <tr key={batch.arNumber} className="border-b border-slate-100">
+                  <tr
+                    key={batch.arNumber}
+                    className={cn(
+                      "border-b border-slate-100",
+                      /* A breached SLA has to be legible from the row, not
+                         only from the badge. */
+                      batch.slaStatus === "red" &&
+                        "border-l-[3px] border-l-flagged-text bg-flagged-bg/25",
+                    )}
+                  >
                     <td className="px-4 py-3 text-[13px] font-semibold text-navy-mid">
                       {batch.arNumber}
                     </td>

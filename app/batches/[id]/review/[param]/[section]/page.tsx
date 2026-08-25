@@ -65,7 +65,9 @@ export default function ReviewWorkspacePage() {
               </div>
               <div className="flex flex-wrap items-center gap-2.5">
                 <span className="text-sm font-bold text-slate-900">
-                  {parameter.name} — {section.name}
+                  {parameter.name === section.name
+                    ? parameter.name
+                    : `${parameter.name} — ${section.name}`}
                 </span>
                 <SpecVersionBadge
                   version={batch.specVersion}
@@ -87,6 +89,10 @@ export default function ReviewWorkspacePage() {
                 instrument={section.standaloneInstrument}
                 onOpenPdf={pdf.openPdf}
               />
+            ) : null}
+
+            {section.paperLogbook ? (
+              <PaperLogbookSection logbook={section.paperLogbook} />
             ) : null}
 
             {section.chamberReadings ? (
@@ -112,10 +118,6 @@ export default function ReviewWorkspacePage() {
                   ))}
                 </div>
               </>
-            ) : null}
-
-            {section.paperLogbook ? (
-              <PaperLogbookSection logbook={section.paperLogbook} />
             ) : null}
           </div>
         </div>

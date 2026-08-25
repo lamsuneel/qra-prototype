@@ -39,7 +39,7 @@ export function StandaloneInstrumentHeader({
             {instrument.pdfFilename}
           </div>
         </div>
-        <SourceBadge source={instrument.name === "Tiamo" ? "Tiamo 2.4" : "MassLynx"} />
+        <SourceBadge source={instrument.source} />
         <button
           type="button"
           onClick={onOpenPdf}
@@ -52,18 +52,32 @@ export function StandaloneInstrumentHeader({
   );
 }
 
-/** A record that is still on paper at this site — shown as a gap, not hidden. */
+/**
+ * A record that is still on paper at this site. Shown as a gap in the
+ * electronic trail, not hidden: there is no PDF to open and no system to read
+ * from, so the reviewer has to go to the book.
+ */
 export function PaperLogbookSection({ logbook }: { logbook: PaperLogbook }) {
   return (
-    <div className="mt-4 rounded-md border border-warn-text/40 bg-warn-bg px-4 py-3.5">
-      <div className="text-xs font-semibold text-warn-text">Paper record</div>
-      <div className="mt-1 text-[13px] font-medium text-slate-700">
-        {logbook.description}
+    <div className="mb-4 rounded-md border border-warn-text/40 bg-warn-bg px-4 py-3.5">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <span className="rounded bg-warn-text/15 px-2 py-[2px] text-[10px] font-bold tracking-wider text-warn-text uppercase">
+          Paper Record
+        </span>
+        <span className="text-[13px] font-medium text-slate-700">
+          {logbook.description}
+        </span>
       </div>
-      <div className="mt-0.5 font-mono text-[11px] text-source-text">
-        {logbook.reference}
+
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-source-text">
+        <span>{logbook.reference}</span>
+        <span>{logbook.page}</span>
       </div>
-      <p className="mt-2 text-xs leading-relaxed text-slate-600">{logbook.note}</p>
+
+      <p className="mt-2.5 border-t border-warn-text/25 pt-2.5 text-xs leading-relaxed text-slate-600">
+        Reviewer must verify this entry physically in the logbook before marking as
+        Reviewed. {logbook.note}
+      </p>
     </div>
   );
 }
