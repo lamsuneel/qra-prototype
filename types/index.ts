@@ -208,7 +208,7 @@ export interface Section {
   order: number;
   status: SectionStatus;
   items: CheckItem[];
-  /** Present on Standalone Instrument sections. */
+  /** Present where the section is served by one named instrument. */
   standaloneInstrument?: StandaloneInstrument;
   /** Present where the source is still a paper record. */
   paperLogbook?: PaperLogbook;

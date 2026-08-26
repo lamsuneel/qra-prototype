@@ -195,7 +195,7 @@ const sections: Section[] = [
   /* --- Chamber Conditions — read before any test result ------------------- */
   section(
     "chamber",
-    "Chamber Conditions",
+    "Stability Chamber — iCDAS 1.2",
     1,
     [
       // LEVEL D — demonstration scenario.
@@ -375,7 +375,7 @@ const sections: Section[] = [
   /* --- Water Content (KF) ------------------------------------------------- */
   section(
     "water",
-    "Standalone Instrument",
+    "KF Titrator — Tiamo 2.4",
     1,
     [
       compliant({
@@ -424,7 +424,7 @@ const sections: Section[] = [
   /* --- Dissolution (UV) --------------------------------------------------- */
   section(
     "disso",
-    "Standalone Instrument",
+    "UV Spectrophotometer — LabSolutions UV",
     1,
     [
       compliant({
@@ -486,7 +486,7 @@ const sections: Section[] = [
   /* --- Appearance — a visual check, recorded on paper --------------------- */
   section(
     "appearance",
-    "Appearance Result",
+    "Visual Inspection — Logbook",
     1,
     [
       compliant({

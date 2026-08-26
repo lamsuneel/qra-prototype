@@ -1,7 +1,7 @@
 "use client";
 
 import { useReview } from "@/context/ReviewContext";
-import { flaggedItemsInBatch, orderedSections } from "@/data";
+import { flaggedItemsInBatch, orderedSections, sourcesUsedIn } from "@/data";
 import type { Batch } from "@/types";
 import { SourceBadge } from "@/components/review/Badges";
 
@@ -51,7 +51,7 @@ export function RightPanel({ batch }: { batch: Batch }) {
       <div className="border-t border-slate-100 pt-3">
         <div className="mb-2 text-[11px] text-slate-400">Data Sources</div>
         <div className="flex flex-col items-start gap-1">
-          {batch.dataSources.map((source) => (
+          {sourcesUsedIn(batch).map((source) => (
             <SourceBadge key={source} source={source} />
           ))}
         </div>

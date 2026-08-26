@@ -538,25 +538,48 @@ const batchBSections: Section[] = [
         "BAL-2024-003 — calibrated, used for tablet weighing before dissolution, 08:15 to 08:45",
       expectedSource: "SOP-INST-004",
     }),
-    // LEVEL A — the bath check at this site is written into the line logbook.
-    compliant({
-      label: "Dissolution bath temperature and paddle speed",
-      reference: "Checked at 0, 15 and 45 minutes",
-      statusText: "Within limits",
-      expected: "37 °C ± 0.5 °C and 50 rpm ± 4 % throughout the run — SOP-DISS-001 §6.2",
-      actual:
-        "36.9 °C / 37.1 °C / 37.0 °C and 50 rpm at each check, transcribed from logbook LB-2026-FP-014",
-      expectedSource: "SOP-DISS-001 §6.2",
-      source: "Paper Logbook",
-    }),
-  ], {
-    paperLogbook: {
-      reference: "Logbook LB-2026-FP-014",
-      page: "Page 22",
-      description: "Dissolution bath check — read from the panel and recorded by hand",
-      note: "The bath on this line has no data link to LIMS and no standalone audit trail, so medium temperature and paddle speed are written into the line logbook at each check point.",
+  ]),
+
+  /*
+   * LEVEL A — the bath check at this site is written into the line logbook.
+   * It sits in its own section so the reviewer sees at a glance that part of
+   * the dissolution record is still on paper.
+   */
+  section(
+    "disso",
+    "Dissolution Bath — Logbook",
+    4,
+    [
+      compliant({
+        label: "Dissolution bath temperature and paddle speed",
+        reference: "Checked at 0, 15 and 45 minutes",
+        statusText: "Within limits",
+        expected: "37 °C ± 0.5 °C and 50 rpm ± 4 % throughout the run — SOP-DISS-001 §6.2",
+        actual:
+          "36.9 °C / 37.1 °C / 37.0 °C and 50 rpm at each check, transcribed from logbook LB-2026-FP-014",
+        expectedSource: "SOP-DISS-001 §6.2",
+        source: "Paper Logbook",
+      }),
+      compliant({
+        label: "Medium preparation and de-aeration",
+        reference: "0.1 N HCl, 900 mL per vessel",
+        statusText: "Verified",
+        expected: "Medium de-aerated and volume verified before the run — SOP-DISS-001 §5.4",
+        actual:
+          "900 mL per vessel, de-aerated by vacuum filtration, verified at 08:20 and recorded in logbook LB-2026-FP-014",
+        expectedSource: "SOP-DISS-001 §5.4",
+        source: "Paper Logbook",
+      }),
+    ],
+    {
+      paperLogbook: {
+        reference: "Logbook LB-2026-FP-014",
+        page: "Page 22",
+        description: "Dissolution bath check — read from the panel and recorded by hand",
+        note: "The bath on this line has no data link to LIMS and keeps no audit trail of its own, so medium temperature and paddle speed are written into the line logbook at each check point.",
+      },
     },
-  }),
+  ),
 
   /* ---- KF Water Content ---- */
   section("kf", "Chemicals", 1, [
@@ -607,7 +630,7 @@ const batchBSections: Section[] = [
   // own audit trail, exported as PDF and reviewed outside LIMS today.
   section(
     "kf",
-    "Standalone Instrument",
+    "KF Titrator — Tiamo 2.4",
     4,
     [
       flagged({
@@ -688,7 +711,7 @@ const batchBSections: Section[] = [
   // the scenario that most clearly shows why review-by-exception matters.
   section(
     "lcms",
-    "Standalone Instrument",
+    "LCMS System — MassLynx",
     4,
     [
       flagged({

@@ -155,7 +155,7 @@ const sections: Section[] = [
   /* --- Identity (FTIR) — the characteristic raw material check ------------ */
   section(
     "identity",
-    "Standalone Instrument",
+    "FTIR Spectrometer — Spectrum ES",
     1,
     [
       // LEVEL D — demonstration scenario.
@@ -358,7 +358,7 @@ const sections: Section[] = [
   /* --- Water Content (KF) ------------------------------------------------- */
   section(
     "water",
-    "Standalone Instrument",
+    "KF Titrator — Tiamo 2.4",
     1,
     [
       compliant({
@@ -407,7 +407,7 @@ const sections: Section[] = [
   /* --- Particle Size ------------------------------------------------------ */
   section(
     "psd",
-    "Standalone Instrument",
+    "Particle Analyser — Mastersizer 3000",
     1,
     [
       compliant({
@@ -457,7 +457,7 @@ const sections: Section[] = [
   /* --- Heavy Metals (ICP) — still a paper record at this site ------------- */
   section(
     "metals",
-    "Heavy Metals Result",
+    "ICP-OES Results — Logbook",
     1,
     [
       compliant({

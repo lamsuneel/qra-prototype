@@ -245,7 +245,7 @@ const sections: Section[] = [
   /* --- Water Content (KF) ------------------------------------------------- */
   section(
     "water",
-    "Standalone Instrument",
+    "KF Titrator — Tiamo 2.4",
     1,
     [
       compliant({
@@ -295,7 +295,7 @@ const sections: Section[] = [
   /* --- Tablet Hardness — measured at the press, recorded on paper --------- */
   section(
     "hardness",
-    "Hardness Result",
+    "Tablet Hardness — Logbook",
     1,
     [
       compliant({

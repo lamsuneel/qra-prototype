@@ -6,6 +6,7 @@ import { STABILITY_BATCHES } from "./stability";
 import {
   DOMAINS,
   type Batch,
+  type SourceSystem,
   type Domain,
   type DomainSummary,
   type Section,
@@ -34,6 +35,27 @@ export const ALL_BATCHES: Batch[] = [
   ...IPFP_BATCHES,
   ...STABILITY_BATCHES,
 ].map(scopeSectionIds);
+
+/**
+ * The systems this batch was actually read from, in the order the review
+ * meets them. Derived rather than declared so the panel can never name a
+ * system the review does not use, or miss one it does.
+ */
+export const sourcesUsedIn = (batch: Batch): SourceSystem[] => {
+  const seen: SourceSystem[] = [];
+
+  for (const section of orderedSections(batch)) {
+    if (section.standaloneInstrument) {
+      const source = section.standaloneInstrument.source;
+      if (!seen.includes(source)) seen.push(source);
+    }
+    for (const item of section.items) {
+      if (!seen.includes(item.source)) seen.push(item.source);
+    }
+  }
+
+  return seen;
+};
 
 /** The URL segment for a section — the AR number already sits in the path. */
 export const sectionSlug = (section: Section): string =>

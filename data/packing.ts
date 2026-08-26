@@ -133,7 +133,7 @@ const sections: Section[] = [
   /* --- Identity (FTIR) ---------------------------------------------------- */
   section(
     "identity",
-    "Standalone Instrument",
+    "FTIR Spectrometer — Spectrum ES",
     1,
     [
       compliant({
@@ -183,7 +183,7 @@ const sections: Section[] = [
   /* --- Dimensions — measured by hand, recorded on paper ------------------- */
   section(
     "dimensions",
-    "Dimensional Check",
+    "Physical Measurement — Logbook",
     1,
     [
       compliant({
@@ -230,7 +230,7 @@ const sections: Section[] = [
   /* --- Barcode Verification — the characteristic packing material check --- */
   section(
     "barcode",
-    "Standalone Instrument",
+    "Barcode Verifier — Ascom BRC2002",
     1,
     [
       // LEVEL D — demonstration scenario.
@@ -332,7 +332,7 @@ const sections: Section[] = [
   /* --- COA Verification — a supplier document, verified by hand ----------- */
   section(
     "coa",
-    "Supplier COA",
+    "Supplier COA Verification",
     1,
     [
       compliant({
