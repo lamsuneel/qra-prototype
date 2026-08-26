@@ -23,6 +23,14 @@ import {
 import { ChamberConditionsChart } from "@/components/dashboard/ChamberConditionsChart";
 import { SpecVersionBadge } from "@/components/review/Badges";
 
+const headingFor = (parameterName: string, sectionName: string): string => {
+  const section = sectionName.replace(/ — Logbook$/, "");
+
+  return section === parameterName || section.startsWith(`${parameterName} `)
+    ? section
+    : `${parameterName} — ${section}`;
+};
+
 export default function ReviewWorkspacePage() {
   const router = useRouter();
   const params = useParams<{ id: string; param: string; section: string }>();
@@ -98,9 +106,13 @@ export default function ReviewWorkspacePage() {
               </div>
               <div className="flex flex-wrap items-center gap-2.5">
                 <span className="text-sm font-bold text-slate-900">
-                  {parameter.name === section.name
-                    ? parameter.name
-                    : `${parameter.name} — ${section.name}`}
+                  {/*
+                    One dash. A section that already opens with its parameter's
+                    name does not print it twice, and the "— Logbook" suffix is
+                    dropped here because the paper record banner immediately
+                    below names the logbook and its page.
+                  */}
+                  {headingFor(parameter.name, section.name)}
                 </span>
                 <SpecVersionBadge
                   version={batch.specVersion}

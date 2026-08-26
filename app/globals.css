@@ -171,3 +171,31 @@
     animation: none;
   }
 }
+
+/*
+ * Draws the eye to the section that still needs work when a reviewer arrives
+ * from search — especially returning to a batch they started earlier. Settles
+ * after two seconds so it never becomes noise.
+ */
+@keyframes pulseAmber {
+  0%,
+  100% {
+    background-color: transparent;
+    box-shadow: inset 3px 0 0 transparent;
+  }
+  20%,
+  60% {
+    background-color: #fff2cc;
+    box-shadow: inset 3px 0 0 #c55a11;
+  }
+}
+
+.animate-pulseAmber {
+  animation: pulseAmber 2s ease-out 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulseAmber {
+    animation: none;
+  }
+}

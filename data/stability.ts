@@ -46,14 +46,14 @@ const STB_PARAMETERS: TestParameter[] = [
   },
   {
     id: "water",
-    name: "Water Content (KF)",
+    name: "Water Content",
     shortName: "Water Content",
     methodType: "Karl Fischer",
     stpReference: "STP-STB-KF-001",
   },
   {
     id: "disso",
-    name: "Dissolution (UV)",
+    name: "Dissolution",
     shortName: "Dissolution",
     methodType: "UV spectrophotometry",
     stpReference: "STP-STB-DISS-001",
@@ -195,7 +195,7 @@ const sections: Section[] = [
   /* --- Chamber Conditions — read before any test result ------------------- */
   section(
     "chamber",
-    "Stability Chamber — iCDAS 1.2",
+    "Stability Chamber",
     1,
     [
       // LEVEL D — demonstration scenario.
@@ -375,7 +375,7 @@ const sections: Section[] = [
   /* --- Water Content (KF) ------------------------------------------------- */
   section(
     "water",
-    "KF Titrator — Tiamo 2.4",
+    "KF Titrator",
     1,
     [
       compliant({
@@ -424,7 +424,7 @@ const sections: Section[] = [
   /* --- Dissolution (UV) --------------------------------------------------- */
   section(
     "disso",
-    "UV Spectrophotometer — LabSolutions UV",
+    "UV Spectrophotometer",
     1,
     [
       compliant({

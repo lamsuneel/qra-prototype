@@ -14,7 +14,7 @@ const P = "rm";
 const RM_PARAMETERS: TestParameter[] = [
   {
     id: "identity",
-    name: "Identity (FTIR)",
+    name: "Identity",
     shortName: "Identity",
     methodType: "FTIR",
     stpReference: "STP-RM-FTIR-001",
@@ -28,7 +28,7 @@ const RM_PARAMETERS: TestParameter[] = [
   },
   {
     id: "water",
-    name: "Water Content (KF)",
+    name: "Water Content",
     shortName: "Water Content",
     methodType: "Karl Fischer",
     stpReference: "STP-RM-KF-002",
@@ -42,7 +42,7 @@ const RM_PARAMETERS: TestParameter[] = [
   },
   {
     id: "metals",
-    name: "Heavy Metals (ICP)",
+    name: "Heavy Metals",
     shortName: "Heavy Metals",
     methodType: "ICP-MS",
     stpReference: "STP-RM-ICP-003",
@@ -155,7 +155,7 @@ const sections: Section[] = [
   /* --- Identity (FTIR) — the characteristic raw material check ------------ */
   section(
     "identity",
-    "FTIR Spectrometer — Spectrum ES",
+    "FTIR Spectrometer",
     1,
     [
       // LEVEL D — demonstration scenario.
@@ -358,7 +358,7 @@ const sections: Section[] = [
   /* --- Water Content (KF) ------------------------------------------------- */
   section(
     "water",
-    "KF Titrator — Tiamo 2.4",
+    "KF Titrator",
     1,
     [
       compliant({
@@ -407,7 +407,7 @@ const sections: Section[] = [
   /* --- Particle Size ------------------------------------------------------ */
   section(
     "psd",
-    "Particle Analyser — Mastersizer 3000",
+    "Particle Analyser",
     1,
     [
       compliant({

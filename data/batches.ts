@@ -324,7 +324,7 @@ const FP_PARAMETERS: TestParameter[] = [
   },
   {
     id: "lcms",
-    name: "LCMS Genotoxic Impurity",
+    name: "Genotoxic Impurity",
     shortName: "LCMS",
     methodType: "LC-MS/MS",
     stpReference: "STP-AMX-LCMS-001",
@@ -630,7 +630,7 @@ const batchBSections: Section[] = [
   // own audit trail, exported as PDF and reviewed outside LIMS today.
   section(
     "kf",
-    "KF Titrator — Tiamo 2.4",
+    "KF Titrator",
     4,
     [
       flagged({
@@ -711,7 +711,7 @@ const batchBSections: Section[] = [
   // the scenario that most clearly shows why review-by-exception matters.
   section(
     "lcms",
-    "LCMS System — MassLynx",
+    "LCMS System",
     4,
     [
       flagged({

@@ -8,6 +8,7 @@ import { RECENT_ACTIVITY } from "@/data/dashboard";
 import { SITE_NAME } from "@/data/profiles";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
+import { BatchSearch } from "@/components/layout/BatchSearch";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { DomainCard } from "@/components/dashboard/DomainCard";
 
@@ -34,6 +35,13 @@ export default function DashboardPage() {
             QA Review Dashboard
           </h1>
           <p className="mt-1 text-[13px] text-source-text">{SITE_NAME}</p>
+
+          <div className="mt-4">
+            <BatchSearch
+              variant="page"
+              placeholder="Search any batch — AR number, product or batch number..."
+            />
+          </div>
         </header>
 
         <div className="mb-8 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">

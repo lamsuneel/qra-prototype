@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-import { sectionSlug, sectionsForParameter } from "@/data";
+import { orderedSections, sectionSlug, sectionsForParameter } from "@/data";
 import { useReview } from "@/context/ReviewContext";
 import type { Batch } from "@/types";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,14 @@ export function ReviewSidebar({
   sectionId: string;
 }) {
   const router = useRouter();
+  const params = useSearchParams();
   const { sectionStatus } = useReview();
+
+  /* Arriving from search, mark where the work still is. */
+  const fromSearch = params.get("from") === "search";
+  const firstIncomplete = orderedSections(batch).find(
+    (section) => sectionStatus(section.id) !== "REVIEWED",
+  )?.id;
 
   const go = (param: string, section: string) =>
     router.push(`/batches/${batch.arNumber}/review/${param}/${section}`);
@@ -81,6 +88,7 @@ export function ReviewSidebar({
           const flags = section.items.filter((item) => item.result === "FLAGGED").length;
           const reviewed = sectionStatus(section.id) === "REVIEWED";
           const active = section.id === sectionId;
+          const pulse = fromSearch && section.id === firstIncomplete;
 
           return (
             <button
@@ -95,6 +103,7 @@ export function ReviewSidebar({
                     ? "border-l-flagged-text bg-red-50/60 font-semibold text-navy hover:bg-red-100/70"
                     : "border-l-navy bg-blue-50 font-semibold text-navy hover:bg-blue-100"
                   : "border-l-transparent text-source-text hover:bg-blue-50 hover:text-navy",
+                pulse && "animate-pulseAmber",
               )}
             >
               <span

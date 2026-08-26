@@ -12,6 +12,7 @@ import {
 import { useReview } from "@/context/ReviewContext";
 import { DOMAIN_BY_SLUG, type Batch } from "@/types";
 import { TopNav } from "@/components/layout/TopNav";
+import { BatchSearch } from "@/components/layout/BatchSearch";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import {
@@ -100,6 +101,13 @@ export default function BatchListPage() {
           <span className="text-xs text-slate-400">
             {all.length} {all.length === 1 ? "batch" : "batches"} · {totalFlagged} flagged
           </span>
+        </div>
+
+        <div className="mb-4">
+          <BatchSearch
+            variant="page"
+            placeholder="Search any batch — AR number, product or batch number..."
+          />
         </div>
 
         <div className="mb-5 flex border-b-2 border-slate-200">

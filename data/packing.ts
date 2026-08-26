@@ -16,7 +16,7 @@ const P = "pm";
 const PM_PARAMETERS: TestParameter[] = [
   {
     id: "identity",
-    name: "Identity (FTIR)",
+    name: "Identity",
     shortName: "Identity",
     methodType: "FTIR",
     stpReference: "STP-PM-FTIR-002",
@@ -133,7 +133,7 @@ const sections: Section[] = [
   /* --- Identity (FTIR) ---------------------------------------------------- */
   section(
     "identity",
-    "FTIR Spectrometer — Spectrum ES",
+    "FTIR Spectrometer",
     1,
     [
       compliant({
@@ -230,7 +230,7 @@ const sections: Section[] = [
   /* --- Barcode Verification — the characteristic packing material check --- */
   section(
     "barcode",
-    "Barcode Verifier — Ascom BRC2002",
+    "Barcode Verifier",
     1,
     [
       // LEVEL D — demonstration scenario.

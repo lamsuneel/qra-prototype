@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useReview } from "@/context/ReviewContext";
 import type { Batch } from "@/types";
 import { SLABadge } from "@/components/review/Badges";
+import { BatchSearch } from "@/components/layout/BatchSearch";
 
 /**
  * Shown on every screen except the profile selector.
@@ -46,6 +47,9 @@ export function TopNav({ batch }: { batch?: Batch }) {
       )}
 
       <div className="ml-auto flex shrink-0 items-center gap-3">
+        <div className="hidden lg:block">
+          <BatchSearch />
+        </div>
         <span className="hidden text-[13px] text-slate-400 sm:inline">
           {profile?.name}
         </span>

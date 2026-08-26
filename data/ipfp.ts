@@ -40,7 +40,7 @@ const IPFP_PARAMETERS: TestParameter[] = [
   },
   {
     id: "water",
-    name: "Water Content (KF)",
+    name: "Water Content",
     shortName: "Water Content",
     methodType: "Karl Fischer",
     stpReference: "STP-IPFP-KF-001",
@@ -245,7 +245,7 @@ const sections: Section[] = [
   /* --- Water Content (KF) ------------------------------------------------- */
   section(
     "water",
-    "KF Titrator — Tiamo 2.4",
+    "KF Titrator",
     1,
     [
       compliant({
