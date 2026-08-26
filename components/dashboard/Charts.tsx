@@ -64,11 +64,11 @@ export function CycleTimeChart() {
                 formatter={(value) => Number(value).toFixed(1)}
               />
               {CYCLE_TIME_TREND.map((point) => (
+                /* Solid fill: at 22% opacity the amber read as washed-out
+                   peach and the improvement did not carry at a glance. */
                 <Cell
                   key={point.month}
                   fill={point.days > SLA_TARGET_DAYS ? OVER_SLA : UNDER_SLA}
-                  fillOpacity={0.22}
-                  stroke={point.days > SLA_TARGET_DAYS ? OVER_SLA : UNDER_SLA}
                 />
               ))}
             </Bar>
@@ -94,7 +94,7 @@ export function ExceptionChart() {
           <BarChart
             data={EXCEPTIONS_BY_PARAMETER}
             layout="vertical"
-            margin={{ top: 4, right: 24, bottom: 4, left: 8 }}
+            margin={{ top: 4, right: 24, bottom: 4, left: 4 }}
           >
             <CartesianGrid stroke="#F3F4F6" horizontal={false} />
             <XAxis
@@ -106,8 +106,10 @@ export function ExceptionChart() {
             <YAxis
               type="category"
               dataKey="category"
-              width={140}
-              tick={{ fontSize: 11, fill: "#595959" }}
+              /* Wide enough that the labels the Recurring Issues table uses
+                 read on one line here too. */
+              width={232}
+              tick={{ fontSize: 10, fill: "#595959" }}
               tickLine={false}
               axisLine={false}
             />

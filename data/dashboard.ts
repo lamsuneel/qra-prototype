@@ -44,7 +44,7 @@ export const KPIS: Kpi[] = [
     trendGood: true,
     target: "Target: ≤ 2 days · ✓ On target",
   },
-  { title: "Right First Time", value: "94.2%", trend: "up from 91.4%", trendGood: true },
+  { title: "Right First Time", value: "94.2%", trend: "up from 91.4% last month", trendGood: true },
   { title: "SLA Compliance", value: "97.8%", trend: "1 breach this month", trendGood: true },
   { title: "Batches Reviewed", value: "47", trend: "this month", trendGood: true },
 ];
@@ -61,13 +61,18 @@ export const CYCLE_TIME_TREND: CycleTimePoint[] = [
   { month: "Aug", days: 1.8 },
 ];
 
+/**
+ * The same six types the Recurring Review Issues table names, worded
+ * identically — a reader comparing the two panels must never have to wonder
+ * whether a row and a bar mean the same thing.
+ */
 export const EXCEPTIONS_BY_PARAMETER: ExceptionPoint[] = [
   { category: "Related Substances", count: 8 },
-  { category: "Standards expired", count: 5 },
-  { category: "LCMS genotoxic", count: 3 },
-  { category: "KF determinations", count: 3 },
-  { category: "Instruments calibration", count: 2 },
-  { category: "Chemicals inactivated", count: 2 },
+  { category: "Standards — expired or inactive", count: 5 },
+  { category: "LCMS — genotoxic impurity", count: 3 },
+  { category: "KF — determination count", count: 3 },
+  { category: "Instruments — calibration gap", count: 2 },
+  { category: "Chemicals — inactivated entry", count: 2 },
 ];
 
 export const DOMAIN_BREAKDOWN: DomainBreakdownRow[] = [
