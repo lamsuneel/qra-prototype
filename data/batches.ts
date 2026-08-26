@@ -1,4 +1,11 @@
-import type { Batch, CheckItem, Section, SourceSystem, TestParameter } from "@/types";
+import type {
+  Batch,
+  CheckItem,
+  DetailField,
+  Section,
+  SourceSystem,
+  TestParameter,
+} from "@/types";
 
 /**
  * Finished Product review data.
@@ -29,6 +36,8 @@ interface CompliantSpec {
   actual: string;
   expectedSource?: string;
   source?: SourceSystem;
+  /** Everything QRA read for this entry, shown when the row is expanded. */
+  details?: DetailField[];
 }
 
 const compliant = (spec: CompliantSpec): CheckItem => ({
@@ -41,6 +50,7 @@ const compliant = (spec: CompliantSpec): CheckItem => ({
   expectedSource: spec.expectedSource,
   source: spec.source ?? LIMS,
   result: "COMPLIANT",
+  details: spec.details,
 });
 
 interface FlaggedSpec {
@@ -96,6 +106,16 @@ const chemicalsCompliant = () => [
     expected: "Active entry, within expiry — SOP-CHEM-003",
     actual: "Acetonitrile HPLC grade — Lot AC-2024-0441 — active, expiry 30-Nov-2026",
     expectedSource: "SOP-CHEM-003",
+    details: [
+      { label: "Lot number", value: "AC-2024-0441" },
+      { label: "Manufacturer", value: "Merck" },
+      { label: "Grade", value: "HPLC grade, gradient quality" },
+      { label: "Quantity used", value: "500 mL" },
+      { label: "Status in LIMS", value: "Active" },
+      { label: "Expiry date", value: "30-Nov-2026" },
+      { label: "Usage date", value: "30-Jul-2026 · 08:45 AM" },
+      { label: "Inactivated entry", value: "None detected" },
+    ],
   }),
   compliant({
     label: "Water for HPLC",
@@ -103,6 +123,16 @@ const chemicalsCompliant = () => [
     expected: "Active entry, within expiry — SOP-CHEM-003",
     actual: "Water for HPLC — Lot WH-2024-1102 — active, expiry 31-Dec-2026",
     expectedSource: "SOP-CHEM-003",
+    details: [
+      { label: "Lot number", value: "WH-2024-1102" },
+      { label: "Manufacturer", value: "Merck" },
+      { label: "Grade", value: "HPLC grade, 0.22 micron filtered" },
+      { label: "Quantity used", value: "2.0 L" },
+      { label: "Status in LIMS", value: "Active" },
+      { label: "Expiry date", value: "31-Dec-2026" },
+      { label: "Usage date", value: "30-Jul-2026 · 08:20 AM" },
+      { label: "Inactivated entry", value: "None detected" },
+    ],
   }),
   compliant({
     label: "Potassium dihydrogen phosphate",
@@ -110,6 +140,16 @@ const chemicalsCompliant = () => [
     expected: "Active entry, within expiry — SOP-CHEM-003",
     actual: "Potassium dihydrogen phosphate — Lot PH-2024-0892 — active, expiry 31-Oct-2026",
     expectedSource: "SOP-CHEM-003",
+    details: [
+      { label: "Lot number", value: "PH-2024-0892" },
+      { label: "Manufacturer", value: "SD Fine-Chem" },
+      { label: "Grade", value: "AR grade, 99.5 % assay" },
+      { label: "Quantity used", value: "13.6 g" },
+      { label: "Status in LIMS", value: "Active" },
+      { label: "Expiry date", value: "31-Oct-2026" },
+      { label: "Usage date", value: "30-Jul-2026 · 08:30 AM" },
+      { label: "Inactivated entry", value: "None detected" },
+    ],
   }),
 ];
 
@@ -120,6 +160,16 @@ const standardsCompliant = () => [
     expected: "Active lot, expiry on or after analysis date — SOP-STD-002",
     actual: "WS-2024-41 — active, expiry 31-Oct-2026, potency 99.6%",
     expectedSource: "SOP-STD-002",
+    details: [
+      { label: "Standard number", value: "WS-2024-41" },
+      { label: "Prepared from", value: "RS-2024-18, Amoxicillin USP Reference Standard" },
+      { label: "Assigned potency", value: "99.6 % on the anhydrous basis" },
+      { label: "Status in LIMS", value: "Active" },
+      { label: "Expiry date", value: "31-Oct-2026" },
+      { label: "First opened", value: "30-Jul-2026 · 08:05 AM" },
+      { label: "Storage", value: "2 to 8 degrees C, desiccated" },
+      { label: "Inactivated entry", value: "None detected" },
+    ],
   }),
   compliant({
     label: "Reference Standard — Amoxicillin",
@@ -127,6 +177,16 @@ const standardsCompliant = () => [
     expected: "Active lot, expiry on or after analysis date — SOP-STD-002",
     actual: "RS-2024-18 — active, expiry 30-Nov-2026, potency 99.8%",
     expectedSource: "SOP-STD-002",
+    details: [
+      { label: "Standard number", value: "RS-2024-18" },
+      { label: "Origin", value: "United States Pharmacopeia, catalogue 1033005" },
+      { label: "Assigned potency", value: "99.8 % on the anhydrous basis" },
+      { label: "Status in LIMS", value: "Active" },
+      { label: "Expiry date", value: "30-Nov-2026" },
+      { label: "Certificate", value: "COA-USP-1033005-R09" },
+      { label: "Storage", value: "2 to 8 degrees C, desiccated" },
+      { label: "Inactivated entry", value: "None detected" },
+    ],
   }),
   // LEVEL A — confirmed by the design partner during discovery.
   // Hygroscopic standards must be used within 24 hours of first opening.
@@ -148,6 +208,19 @@ const instrumentsCompliant = () => [
     expected: "Calibration due date after date of use — SOP-INST-004",
     actual: "BAL-2024-003 — calibrated, due 10-Oct-2026, used 08:00 to 08:45",
     expectedSource: "SOP-INST-004",
+    details: [
+      { label: "Instrument ID", value: "BAL-2024-003" },
+      { label: "Make and model", value: "Mettler Toledo XPR205" },
+      { label: "Location", value: "QC Wet Chemistry, Room 214" },
+      { label: "Last calibrated", value: "10-Apr-2026" },
+      { label: "Calibration due", value: "10-Oct-2026" },
+      {
+        label: "Daily verification",
+        value: "Recorded 30-Jul-2026 · 07:52 AM, before first use",
+      },
+      { label: "Used for this test", value: "30-Jul-2026 · 08:00 AM to 08:45 AM" },
+      { label: "Status in LIMS", value: "Active, no open maintenance" },
+    ],
   }),
   compliant({
     label: "Sonicator SON-2024-001",

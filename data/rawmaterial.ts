@@ -203,6 +203,16 @@ const sections: Section[] = [
         actual: "REF-SPEC-AMX-04 — current version, issued 12-Mar-2026, valid to 11-Mar-2027",
         expectedSource: "SOP-RM-QC-001 §4.2",
         source: "Caliber LIMS",
+        details: [
+          { label: "Spectrum ID", value: "REF-SPEC-AMX-04" },
+          { label: "Material", value: "Amoxicillin Trihydrate, USP grade" },
+          { label: "Library", value: "Site FTIR identity library, revision 11" },
+          { label: "Acquisition mode", value: "KBr transmission, 32 scans, 4 cm-1" },
+          { label: "Issued", value: "12-Mar-2026" },
+          { label: "Valid to", value: "11-Mar-2027" },
+          { label: "Supersedes", value: "REF-SPEC-AMX-03, retired 12-Mar-2026" },
+          { label: "Status in LIMS", value: "Current, no open change control" },
+        ],
       }),
       compliant({
         prefix: P,

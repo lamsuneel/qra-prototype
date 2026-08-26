@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { getBatch, orderedSections } from "@/data";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
+import { PageTitle } from "@/components/layout/PageTitle";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { BatchStatusBadge } from "@/components/review/Badges";
 
@@ -63,6 +64,7 @@ export default function AuthoriseDetailPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-app-bg">
+      <PageTitle title={`${batch.arNumber} — Authorisation`} />
       <TopNav batch={batch} />
       <Breadcrumbs
         crumbs={[

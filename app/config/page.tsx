@@ -14,6 +14,7 @@ import {
 } from "@/data/config";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
+import { PageTitle } from "@/components/layout/PageTitle";
 import { Breadcrumbs, roleRoot } from "@/components/layout/Breadcrumbs";
 
 /** Read only. No buttons that change anything, no forms, no edit affordances. */
@@ -30,6 +31,7 @@ export default function ConfigPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-app-bg">
+      <PageTitle title="Site Configuration" />
       <TopNav />
       <Breadcrumbs
         crumbs={[roleRoot(profile.role), { label: "Site Configuration" }]}

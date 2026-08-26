@@ -13,9 +13,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+/**
+ * The template gives every screen the product name in the tab. Screens below
+ * a dashboard set their own short title through <PageTitle>, which formats it
+ * the same way — every page in this app is a client component, so none of
+ * them can export metadata of their own.
+ */
 export const metadata: Metadata = {
-  title: "QA Compliance Review",
-  description: "Workflow validation prototype",
+  title: {
+    template: "%s | QRA — Quality Review Assistant",
+    default: "QRA — Quality Review Assistant",
+  },
+  description: "Pharmaceutical QA analytical batch release review platform",
 };
 
 export default function RootLayout({

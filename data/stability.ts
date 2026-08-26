@@ -242,6 +242,16 @@ const sections: Section[] = [
         actual: "Mean 74.3 % RH, minimum 70.8 % RH, maximum 75.3 % RH — all readings within limits",
         expectedSource: "SOP-STB-CHM-001",
         source: "iCDAS 1.2",
+        details: [
+          { label: "Chamber", value: "SCH-04, Thermolab accelerated stability chamber" },
+          { label: "Condition", value: "75 % RH plus or minus 5 % RH" },
+          { label: "Readings taken", value: "13, fortnightly from 05-Feb-2026" },
+          { label: "Mean", value: "74.3 % RH" },
+          { label: "Minimum", value: "70.8 % RH on 19-Mar-2026" },
+          { label: "Maximum", value: "75.3 % RH on 14-May-2026" },
+          { label: "Readings outside limit", value: "None" },
+          { label: "Sensor", value: "RH-SCH04-02, calibrated 24-Mar-2026" },
+        ],
       }),
       compliant({
         prefix: P,

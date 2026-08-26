@@ -1,4 +1,7 @@
-import type { CheckItem } from "@/types";
+"use client";
+
+import type { CheckItem, DetailField } from "@/types";
+import { cn } from "@/lib/utils";
 import { CalibrationBadge, CompliantBadge, SourceBadge } from "./Badges";
 import { EvidenceTable } from "./EvidenceTable";
 
@@ -33,19 +36,49 @@ const readingFor = (item: CheckItem, calibrationShown: boolean): string => {
 };
 
 /**
- * A compliant entry needs no reviewer action, so this is a static row — no
- * onClick, no hover state, nothing that suggests there is something to open.
- * It still has to be readable: the reviewer confirms the data by eye, so the
- * recorded value sits on the row rather than behind a control.
+ * What the expanded view lists. Entries carrying `details` show exactly what
+ * QRA read field by field; the rest fall back to the fields every entry has,
+ * so nothing is ever left with an empty panel.
+ */
+const detailsFor = (item: CheckItem): DetailField[] => {
+  if (item.details?.length) return item.details;
+
+  const fallback: DetailField[] = [];
+  if (item.reference) fallback.push({ label: "Reference", value: item.reference });
+  if (item.statusText) fallback.push({ label: "Status", value: item.statusText });
+  fallback.push({ label: "Recorded value", value: item.actual });
+
+  return fallback;
+};
+
+/**
+ * A compliant entry needs no reviewer action, so the row body is inert — no
+ * onClick, nothing that suggests the reviewer has to open it. It still has to
+ * be readable at a glance and inspectable on demand: the summary sits on the
+ * row, and the chevron on the right opens everything QRA read for that entry.
  *
  * Four columns: entry, recorded value, source, result.
  */
-export function CompliantRow({ item }: { item: CheckItem }) {
+export function CompliantRow({
+  item,
+  expanded,
+  onToggle,
+}: {
+  item: CheckItem;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
   const calibration = item.reference?.match(CAL_DUE)?.[1];
   const reading = readingFor(item, Boolean(calibration));
+  const details = detailsFor(item);
 
   return (
-    <div className="border-b border-slate-100 bg-white py-2.5 text-[13px]">
+    <div
+      className={cn(
+        "group border-b border-slate-100 py-2.5 text-[13px] transition-colors duration-150",
+        expanded ? "bg-[#F0F4FF]" : "bg-white",
+      )}
+    >
       <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3.5">
         <span className="shrink-0 text-slate-700 sm:w-[30%]">{item.label}</span>
 
@@ -57,12 +90,54 @@ export function CompliantRow({ item }: { item: CheckItem }) {
         <span className="flex shrink-0 items-center gap-2">
           <SourceBadge source={item.source} />
           <CompliantBadge />
+
+          {/* Kept out of the way until the reviewer looks for it. */}
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-expanded={expanded}
+            aria-label={
+              expanded ? `Hide details for ${item.label}` : `Show details for ${item.label}`
+            }
+            className={cn(
+              "flex size-5 cursor-pointer items-center justify-center rounded text-slate-400 transition-all duration-150 hover:bg-slate-100 hover:text-navy focus-visible:opacity-100",
+              expanded ? "rotate-90 opacity-100" : "opacity-0 group-hover:opacity-100",
+            )}
+          >
+            <span aria-hidden="true">&rsaquo;</span>
+          </button>
         </span>
       </div>
 
-      <div className="mt-1 text-[11px] text-slate-400 sm:pl-0">
-        Expected {item.expected}
-      </div>
+      <div className="mt-1 text-[11px] text-slate-400">Expected {item.expected}</div>
+
+      {expanded ? (
+        <dl className="mt-3 grid grid-cols-[minmax(120px,150px)_1fr] gap-x-4 gap-y-[3px] rounded-[5px] border border-slate-200 bg-white px-4 py-3 text-[12px]">
+          {details.map((field) => (
+            <div key={field.label} className="contents">
+              <dt className="text-slate-400">{field.label}</dt>
+              <dd className="text-slate-700">{field.value}</dd>
+            </div>
+          ))}
+
+          <dt className="text-slate-400">Source</dt>
+          <dd className="text-slate-700">{item.source}</dd>
+
+          <dt className="text-slate-400">Expected</dt>
+          <dd className="text-slate-700">
+            {item.expected}
+            {/* Most expectations already name their document — do not repeat it. */}
+            {item.expectedSource && !item.expected.includes(item.expectedSource) ? (
+              <span className="ml-1.5 text-slate-400">{item.expectedSource}</span>
+            ) : null}
+          </dd>
+
+          <dt className="text-slate-400">Result</dt>
+          <dd className="text-compliant-text">
+            <span aria-hidden="true">&#10003;</span> All checks compliant
+          </dd>
+        </dl>
+      ) : null}
 
       {item.table ? <EvidenceTable table={item.table} /> : null}
     </div>

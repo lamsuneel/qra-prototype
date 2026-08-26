@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import { PROFILES, SITE_NAME } from "@/data/profiles";
+import { PageTitle } from "@/components/layout/PageTitle";
 import { useReview } from "@/context/ReviewContext";
 
 /**
@@ -22,6 +23,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-app-bg px-6 py-10">
+      <PageTitle />
       <div className="mb-2 flex items-center gap-2.5">
         <span className="flex size-11 items-center justify-center rounded-lg bg-navy text-[19px] font-bold text-white">
           Q

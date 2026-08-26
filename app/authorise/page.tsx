@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ALL_BATCHES, flaggedItemsInBatch } from "@/data";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
+import { PageTitle } from "@/components/layout/PageTitle";
 import { BatchStatusBadge, ExceptionCountPill } from "@/components/review/Badges";
 
 export default function AuthoriseListPage() {
@@ -27,6 +28,7 @@ export default function AuthoriseListPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-app-bg">
+      <PageTitle title="Authorisation Queue" />
       <TopNav />
 
       <main className="flex-1 px-6 py-7 lg:px-10">

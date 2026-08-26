@@ -123,6 +123,12 @@ export interface EvidenceRow {
   flagged?: boolean;
 }
 
+/** One labelled line in the expanded view of an entry. */
+export interface DetailField {
+  label: string;
+  value: string;
+}
+
 export interface CheckItem {
   id: string;
   label: string;
@@ -145,6 +151,13 @@ export interface CheckItem {
 
   /** Sample sets and trends that belong with this item, rendered inline. */
   table?: EvidenceTable;
+
+  /**
+   * Everything QRA read for this entry, shown when the reviewer expands the
+   * row. Where it is absent the expanded view is built from the fields above,
+   * so every entry can still be inspected.
+   */
+  details?: DetailField[];
 
   /** Reviewer-entered, in memory only. Gates Mark Section Reviewed. */
   reviewerNote?: string;

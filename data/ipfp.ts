@@ -140,6 +140,16 @@ const sections: Section[] = [
       actual: "RSD 4.2 % across the ten sampling locations",
       expectedSource: "STP-IPFP-BU-002 §8.2",
       source: "Waters Empower",
+      details: [
+        { label: "Locations sampled", value: "10, per the blender sampling plan" },
+        { label: "Mean of locations", value: "98.7 % of label claim" },
+        { label: "Standard deviation", value: "4.15 % of label claim" },
+        { label: "RSD", value: "4.2 %" },
+        { label: "Limit", value: "Not more than 5.0 %" },
+        { label: "Sampling device", value: "Side-sampling thief, 10 mL cavity" },
+        { label: "Blend stage", value: "Post-lubrication, 5 minutes at 12 rpm" },
+        { label: "Analysed on", value: "03-Aug-2026 · 11:20 AM to 16:05 PM" },
+      ],
     }),
     compliant({
       prefix: P,

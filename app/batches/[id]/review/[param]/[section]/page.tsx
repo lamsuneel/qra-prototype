@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { getBatch, sectionSlug, sectionsForParameter } from "@/data";
 import { DOMAIN_META } from "@/types";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
+import { PageTitle } from "@/components/layout/PageTitle";
 import { ReviewSidebar } from "@/components/layout/ReviewSidebar";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { RightPanel } from "@/components/layout/RightPanel";
@@ -27,6 +28,9 @@ export default function ReviewWorkspacePage() {
   const params = useParams<{ id: string; param: string; section: string }>();
   const { profile, sectionStatus } = useReview();
   const pdf = usePdfViewer();
+
+  /* One compliant entry open at a time, reset whenever the section changes. */
+  const [openDetail, setOpenDetail] = useState<string | null>(null);
 
   const batch = getBatch(params.id);
 
@@ -54,6 +58,7 @@ export default function ReviewWorkspacePage() {
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-app-bg">
+      <PageTitle title={`${batch.arNumber} — ${parameter.name}`} />
       <TopNav batch={batch} />
       <Breadcrumbs
         crumbs={[
@@ -130,7 +135,14 @@ export default function ReviewWorkspacePage() {
                 </div>
                 <div className="flex flex-col">
                   {compliant.map((item) => (
-                    <CompliantRow key={item.id} item={item} />
+                    <CompliantRow
+                      key={item.id}
+                      item={item}
+                      expanded={openDetail === item.id}
+                      onToggle={() =>
+                        setOpenDetail((current) => (current === item.id ? null : item.id))
+                      }
+                    />
                   ))}
                 </div>
               </>

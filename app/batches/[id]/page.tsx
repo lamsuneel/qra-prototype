@@ -12,6 +12,7 @@ import {
 import { useReview } from "@/context/ReviewContext";
 import { DOMAIN_BY_SLUG, type Batch } from "@/types";
 import { TopNav } from "@/components/layout/TopNav";
+import { PageTitle } from "@/components/layout/PageTitle";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import {
   BatchStatusBadge,
@@ -77,6 +78,7 @@ export default function BatchListPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-app-bg">
+      <PageTitle title={meta.name} />
       <TopNav />
       <Breadcrumbs
         crumbs={[{ label: "QA Dashboard", href: "/dashboard" }, { label: meta.name }]}

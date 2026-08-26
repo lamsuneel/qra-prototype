@@ -8,6 +8,7 @@ import { RECENT_ACTIVITY } from "@/data/dashboard";
 import { SITE_NAME } from "@/data/profiles";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
+import { PageTitle } from "@/components/layout/PageTitle";
 import { DomainCard } from "@/components/dashboard/DomainCard";
 
 export default function DashboardPage() {
@@ -24,6 +25,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-app-bg">
+      <PageTitle title="QA Review Dashboard" />
       <TopNav />
 
       <main className="flex-1 px-6 py-8 lg:px-10">

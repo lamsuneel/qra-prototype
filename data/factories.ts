@@ -1,5 +1,6 @@
 import type {
   CheckItem,
+  DetailField,
   EvidenceTable,
   Section,
   SectionStatus,
@@ -26,6 +27,8 @@ export interface CompliantSpec {
   expectedSource?: string;
   source: SourceSystem;
   table?: EvidenceTable;
+  /** Everything QRA read for this entry, shown when the row is expanded. */
+  details?: DetailField[];
 }
 
 export const compliant = (spec: CompliantSpec): CheckItem => ({
@@ -39,6 +42,7 @@ export const compliant = (spec: CompliantSpec): CheckItem => ({
   source: spec.source,
   result: "COMPLIANT",
   table: spec.table,
+  details: spec.details,
 });
 
 export interface FlaggedSpec {

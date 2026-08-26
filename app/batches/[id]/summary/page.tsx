@@ -7,6 +7,7 @@ import { getBatch, orderedSections, sectionSlug } from "@/data";
 import { DOMAIN_META } from "@/types";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
+import { PageTitle } from "@/components/layout/PageTitle";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { SourceBadge, SpecVersionBadge } from "@/components/review/Badges";
 
@@ -56,6 +57,7 @@ export default function SummaryPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-app-bg">
+      <PageTitle title={`${batch.arNumber} — Review Summary`} />
       <TopNav batch={batch} />
       <Breadcrumbs
         crumbs={[

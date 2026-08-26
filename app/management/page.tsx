@@ -12,6 +12,7 @@ import {
 import { SITE_NAME } from "@/data/profiles";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
+import { PageTitle } from "@/components/layout/PageTitle";
 import { CycleTimeChart, ExceptionChart } from "@/components/dashboard/Charts";
 
 /**
@@ -31,6 +32,7 @@ export default function ManagementPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-app-bg">
+      <PageTitle title="Batch Review Performance" />
       <TopNav />
 
       <main className="flex-1 px-6 py-7 lg:px-10">
