@@ -158,19 +158,41 @@ export default function ManagementPage() {
               Open Alerts
             </h2>
             <div className="flex flex-col gap-2.5">
-              {MANAGEMENT_ALERTS.map((alert) => (
-                <div
-                  key={alert.title}
-                  className={`rounded-md border px-3 py-2.5 text-xs ${
-                    alert.severity === "high"
-                      ? "border-flagged-text/30 bg-flagged-bg/40"
-                      : "border-warn-text/30 bg-warn-bg/50"
-                  }`}
-                >
-                  <div className="mb-0.5 font-semibold text-slate-700">{alert.title}</div>
-                  <div className="text-source-text">{alert.detail}</div>
-                </div>
-              ))}
+              {/*
+                Red for the batch that is actually overdue, amber for the rest.
+                Two alerts can share a title, so the detail line — which names
+                the batch — is what makes each one distinct.
+              */}
+              {MANAGEMENT_ALERTS.map((alert) => {
+                const breached = alert.severity === "high";
+
+                return (
+                  <div
+                    key={alert.detail}
+                    className={`rounded-md border border-l-4 px-3 py-2.5 text-xs ${
+                      breached
+                        ? "border-flagged-text/30 border-l-[#C00000] bg-[#FEF2F2]"
+                        : "border-warn-text/25 border-l-[#C55A11] bg-[#FFF8F0]"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-0.5 font-semibold text-slate-700">
+                          {alert.title}
+                        </div>
+                        <div className="text-source-text">{alert.detail}</div>
+                      </div>
+                      <span
+                        className={`shrink-0 text-[10px] font-semibold tracking-wide uppercase ${
+                          breached ? "text-[#C00000]" : "text-[#C55A11]"
+                        }`}
+                      >
+                        {alert.label}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

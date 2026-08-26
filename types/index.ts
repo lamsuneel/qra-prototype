@@ -301,6 +301,8 @@ export interface ManagementAlert {
   title: string;
   detail: string;
   severity: "high" | "medium";
+  /** Short severity tag shown in the corner of the card. */
+  label: string;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -88,21 +88,25 @@ export const MANAGEMENT_ALERTS: ManagementAlert[] = [
     title: "SLA Breached — IPFP",
     detail: "IPFP-AR-2026-000122-03 · Amoxicillin 250mg compression · 0.5 days overdue",
     severity: "high",
+    label: "SLA Breached",
   },
   {
     title: "Approaching SLA — Raw Material",
     detail: "RM-AR-2026-004417 · Amoxicillin Trihydrate API · 6 hours remaining",
     severity: "medium",
+    label: "Approaching SLA",
   },
   {
     title: "OOS Open — Requires Close-Out",
     detail: "OOS-2026-0089 · LCMS Genotoxic Impurity · AR-2026-000122",
     severity: "medium",
+    label: "OOS Open",
   },
   {
     title: "OOS Open — Requires Close-Out",
     detail: "OOS-2026-0091 · Known Impurity B at 6 months · ST-AR-2026-000089-6M",
     severity: "medium",
+    label: "OOS Open",
   },
 ];
 
