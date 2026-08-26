@@ -8,6 +8,8 @@ import {
   KPIS,
   MANAGEMENT_ALERTS,
   MANAGEMENT_FOOTER_NOTE,
+  RECURRING_ISSUES,
+  RECURRING_ISSUES_INSIGHT,
 } from "@/data/dashboard";
 import { SITE_NAME } from "@/data/profiles";
 import { useReview } from "@/context/ReviewContext";
@@ -62,6 +64,9 @@ export default function ManagementPage() {
               >
                 {kpi.trend}
               </div>
+              {kpi.target ? (
+                <div className="mt-1 text-[11px] text-slate-400">{kpi.target}</div>
+              ) : null}
             </div>
           ))}
         </div>
@@ -132,6 +137,42 @@ export default function ManagementPage() {
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="mt-3.5 rounded-lg border border-slate-200 bg-white p-5">
+          <h2 className="text-[13px] font-semibold text-slate-900">
+            Recurring Review Issues — August 2026
+          </h2>
+          <p className="mt-1 mb-3.5 text-[11px] text-slate-400">
+            Most frequent exception types this month
+          </p>
+
+          <table className="w-full border-collapse text-xs">
+            <thead>
+              <tr className="border-b border-slate-100 text-left text-slate-400">
+                <th className="py-1.5 font-medium">Issue</th>
+                <th className="py-1.5 text-right font-medium">Occurrences</th>
+                <th className="py-1.5 text-right font-medium">% of all exceptions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {RECURRING_ISSUES.map((row) => (
+                <tr key={row.issue} className="border-b border-slate-50">
+                  <td className="py-2 text-slate-700">{row.issue}</td>
+                  <td className="py-2 text-right font-medium text-slate-700 tabular-nums">
+                    {row.occurrences}
+                  </td>
+                  <td className="py-2 text-right text-slate-700 tabular-nums">
+                    {row.share}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <p className="mt-3.5 rounded-[5px] border-l-[3px] border-navy-accent bg-blue-50 px-3.5 py-2.5 text-xs text-navy italic">
+            {RECURRING_ISSUES_INSIGHT}
+          </p>
         </div>
 
         <p className="mt-5 text-center text-[11px] text-slate-400">

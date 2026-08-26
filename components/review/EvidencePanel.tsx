@@ -15,6 +15,19 @@ import { EvidenceTable } from "./EvidenceTable";
 
 const CAL_DUE = /^Cal\. due (.+)$/;
 
+/** What kind of exception this is, for the heading of a flagged entry. */
+export const flagType = (item: CheckItem): string => {
+  const text = `${item.reference ?? ""} ${item.label} ${item.flagReason ?? ""}`;
+
+  if (/OOS/.test(text)) return "OOS Result";
+  if (/OOT|out-of-trend|out of trend/i.test(text)) return "Out-of-Trend Result";
+  if (/calibrat/i.test(text)) return "Calibration Gap";
+  if (/excursion/i.test(text)) return "Storage Excursion";
+  if (/inactivated/i.test(text)) return "Inactivated Entry";
+  if (/expired|expiry/i.test(text)) return "Expired Entry";
+  return "Exception";
+};
+
 /** Where the evidence physically sits, named on the collapsed row. */
 export const evidenceKind = (item: CheckItem): string => {
   if (item.source === "Paper Logbook") return "Logbook";
@@ -63,17 +76,28 @@ function Column({
   heading,
   value,
   lines,
+  emphasis = false,
 }: {
   heading: string;
   value: string;
   lines: { label: string; value: string }[];
+  /** The recorded value carries more weight than the requirement beside it. */
+  emphasis?: boolean;
 }) {
   return (
     <div>
       <div className="mb-1 text-[10px] font-semibold tracking-wider text-source-text uppercase">
         {heading}
       </div>
-      <div className="text-[13px] leading-relaxed text-slate-800">{value}</div>
+      <div
+        className={
+          emphasis
+            ? "text-[14px] leading-relaxed font-medium text-slate-900"
+            : "text-[14px] leading-relaxed text-source-text"
+        }
+      >
+        {value}
+      </div>
       {lines.map((line) => (
         <div key={line.label} className="mt-0.5 text-[11px] text-source-text">
           <span className="text-slate-400">{line.label}: </span>
@@ -123,6 +147,13 @@ export function EvidencePanel({
 
   return (
     <div className="mt-3">
+      {/* Level 1 — the finding itself, the first thing the eye lands on. */}
+      {flagged ? (
+        <div className="mb-3.5 flex items-center gap-2 rounded-[5px] bg-flagged-bg px-3.5 py-2.5 text-[16px] font-bold text-flagged-text">
+          <span aria-hidden="true">&#9888;</span> FLAGGED — {flagType(item)}
+        </div>
+      ) : null}
+
       <div className="mb-3">
         <div className="mb-1 text-[10px] font-semibold tracking-wider text-source-text uppercase">
           What QRA checked
@@ -132,7 +163,9 @@ export function EvidencePanel({
         </p>
       </div>
 
+      {/* Level 2 — the core facts. Actual leads; expected is muted beside it. */}
       <div className="grid gap-4 border-t border-slate-200/70 pt-3 sm:grid-cols-2">
+        <Column heading="Actual" value={readingFor(item)} lines={actualLines} emphasis />
         <Column
           heading="Expected"
           value={item.expected}
@@ -140,7 +173,6 @@ export function EvidencePanel({
             item.expectedSource ? [{ label: "Source", value: item.expectedSource }] : []
           }
         />
-        <Column heading="Actual" value={readingFor(item)} lines={actualLines} />
       </div>
 
       {item.details?.length ? (
@@ -156,20 +188,23 @@ export function EvidencePanel({
 
       {item.table ? <EvidenceTable table={item.table} /> : null}
 
-      <dl className="mt-3 grid grid-cols-[110px_1fr] border-t border-slate-200/70 pt-1">
-        <Field label="Comparison">{comparisonFor(item)}</Field>
-        <Field label="Result">
-          {flagged ? (
-            <span className="inline-flex items-center rounded bg-flagged-bg px-2 py-[2px] text-[11px] font-medium text-flagged-text">
-              Flagged — requires reviewer verification
-            </span>
-          ) : (
+      {/* Level 3 — supporting context, deliberately quiet. */}
+      <div className="mt-3 border-t border-slate-200/70 pt-2.5">
+        <div className="mb-0.5 text-[10px] font-semibold tracking-wider text-source-text uppercase">
+          Comparison performed
+        </div>
+        <p className="text-[13px] leading-relaxed text-source-text">{comparisonFor(item)}</p>
+      </div>
+
+      {flagged ? null : (
+        <dl className="mt-2.5 grid grid-cols-[110px_1fr]">
+          <Field label="Result">
             <span className="inline-flex items-center gap-1 rounded bg-compliant-bg px-2 py-[2px] text-[11px] font-medium text-compliant-text">
               <span aria-hidden="true">&#10003;</span> Compliant
             </span>
-          )}
-        </Field>
-      </dl>
+          </Field>
+        </dl>
+      )}
 
       {flagged ? (
         children

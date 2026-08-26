@@ -50,7 +50,7 @@ export function ReviewSidebar({
                 go(parameter.id, sections[0] ? sectionSlug(sections[0]) : sectionId)
               }
               className={cn(
-                "flex w-full cursor-pointer items-center gap-2 border-l-[3px] px-3.5 py-[7px] text-left transition-colors duration-150",
+                "flex w-full cursor-pointer items-center gap-2 border-l-[3px] px-3.5 py-[7px] text-left transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none",
                 active
                   ? "border-l-navy bg-blue-50 font-semibold text-navy hover:bg-blue-100"
                   : "border-l-transparent text-source-text hover:bg-blue-50 hover:text-navy",
@@ -87,8 +87,9 @@ export function ReviewSidebar({
               key={section.id}
               type="button"
               onClick={() => go(parameterId, sectionSlug(section))}
+              aria-label={`Open section ${section.name}${flags > 0 ? `, ${flags} flagged` : ""}`}
               className={cn(
-                "flex w-full cursor-pointer items-center gap-2 border-l-[3px] px-3.5 py-[7px] text-left transition-colors duration-150",
+                "flex w-full cursor-pointer items-center gap-2 border-l-[3px] px-3.5 py-[7px] text-left transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none",
                 active
                   ? flags > 0
                     ? "border-l-flagged-text bg-red-50/60 font-semibold text-navy hover:bg-red-100/70"

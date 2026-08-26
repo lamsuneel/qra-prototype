@@ -269,6 +269,15 @@ export interface Kpi {
   value: string;
   trend: string;
   trendGood: boolean;
+  /** Smaller supporting line beneath the trend, where the KPI has a target. */
+  target?: string;
+}
+
+/** A recurring exception type, counted across the month. */
+export interface RecurringIssue {
+  issue: string;
+  occurrences: number;
+  share: string;
 }
 
 export interface CycleTimePoint {

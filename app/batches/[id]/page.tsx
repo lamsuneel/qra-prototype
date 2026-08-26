@@ -142,9 +142,19 @@ export default function BatchListPage() {
                 return (
                   <tr
                     key={batch.arNumber}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Open review for ${batch.arNumber}, ${batch.product}`}
                     onClick={() => openBatch(batch)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openBatch(batch);
+                      }
+                    }}
                     className={cn(
-                      "cursor-pointer border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50",
+                      "cursor-pointer border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50 " +
+                        "focus-visible:ring-2 focus-visible:ring-navy focus-visible:-outline-offset-2 focus-visible:outline-none",
                       /* A breached SLA has to be legible from the row, not
                          only from the badge. */
                       batch.slaStatus === "red" &&

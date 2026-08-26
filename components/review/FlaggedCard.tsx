@@ -19,6 +19,20 @@ import { EvidencePanel, evidenceKind, expectationFor, readingFor } from "./Evide
  */
 const CAL_DUE = /^Cal\. due (.+)$/;
 
+/**
+ * The placeholder tells the reviewer what to write, not merely that they may
+ * write. Where the finding already names an investigation, it names the same
+ * series so the reference format is unambiguous.
+ */
+const notePlaceholder = (item: CheckItem): string => {
+  const reference = `${item.reference ?? ""} ${item.flagReason ?? ""} ${item.flagAction ?? ""}`;
+  const series = reference.match(/(OOS|DEV|OOT|LIR)-\d{4}-\d{4}/)?.[1];
+
+  return series
+    ? `Record your observation and ${series} investigation reference (e.g. ${series}-2026-XXXX)...`
+    : "Record your observation and any investigation reference (e.g. DEV-2026-XXXX)...";
+};
+
 export function FlaggedCard({
   item,
   expanded,
@@ -53,10 +67,21 @@ export function FlaggedCard({
         </span>
 
         <div className="min-w-0 flex-1">
-          <div className="text-[13px] font-semibold text-flagged-text">
-            FLAGGED — Action Required
+          {/* The expanded panel leads with its own heading, so the card header
+              only announces the flag while collapsed. */}
+          {expanded ? null : (
+            <div className="text-[13px] font-semibold text-flagged-text">
+              FLAGGED — Action Required
+            </div>
+          )}
+          <div
+            className={cn(
+              "text-[13px] font-medium text-slate-800",
+              expanded ? null : "mt-0.5",
+            )}
+          >
+            {item.label}
           </div>
-          <div className="mt-0.5 text-[13px] font-medium text-slate-800">{item.label}</div>
 
           <div className="mt-0.5 text-[11px] text-source-text">
             <span className="text-slate-400">Expected: </span>
@@ -103,9 +128,10 @@ export function FlaggedCard({
             <p className="text-[13px] leading-relaxed text-slate-700">{item.flagReason}</p>
           </div>
 
-          <div className="mt-3">
-            <div className="mb-1 text-[10px] font-semibold tracking-wider text-flagged-text uppercase">
-              Required action
+          {/* Level 4 — the instruction, amber so it reads apart from the finding. */}
+          <div className="mt-3 rounded-[5px] bg-warn-bg px-3.5 py-2.5">
+            <div className="mb-1 flex items-center gap-1.5 text-[13px] font-bold text-warn-text">
+              <span aria-hidden="true">&#9888;</span> Required action
             </div>
             <p className="text-[13px] leading-relaxed text-slate-700">{item.flagAction}</p>
           </div>
@@ -136,7 +162,7 @@ export function FlaggedCard({
                       confirm();
                     }
                   }}
-                  placeholder="Record your observation and any investigation reference..."
+                  placeholder={notePlaceholder(item)}
                   className="flex-1 rounded-[5px] border border-slate-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-navy-accent focus:ring-3 focus:ring-navy-accent/10"
                 />
                 <button

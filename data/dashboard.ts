@@ -5,6 +5,7 @@ import type {
   ExceptionPoint,
   Kpi,
   ManagementAlert,
+  RecurringIssue,
 } from "@/types";
 
 /**
@@ -36,7 +37,13 @@ export const RECENT_ACTIVITY: ActivityEntry[] = [
 ];
 
 export const KPIS: Kpi[] = [
-  { title: "Avg Cycle Time", value: "1.8d", trend: "42% faster vs prior quarter", trendGood: true },
+  {
+    title: "Avg Cycle Time",
+    value: "1.8 days",
+    trend: "↓ 42% vs prior quarter",
+    trendGood: true,
+    target: "Target: ≤ 2 days · ✓ On target",
+  },
   { title: "Right First Time", value: "94.2%", trend: "up from 91.4%", trendGood: true },
   { title: "SLA Compliance", value: "97.8%", trend: "1 breach this month", trendGood: true },
   { title: "Batches Reviewed", value: "47", trend: "this month", trendGood: true },
@@ -93,6 +100,23 @@ export const MANAGEMENT_ALERTS: ManagementAlert[] = [
     severity: "medium",
   },
 ];
+
+/**
+ * The same exceptions the Exceptions by Test Parameter chart is drawn from,
+ * counted as a share of the 23 raised across all domains this month. Nothing
+ * new is measured here — this is the recurring-problem view of data the
+ * dashboard already carries.
+ */
+export const RECURRING_ISSUES: RecurringIssue[] = [
+  { issue: "Related Substances", occurrences: 8, share: "35%" },
+  { issue: "Standards — expired or inactive", occurrences: 5, share: "22%" },
+  { issue: "KF — determination count", occurrences: 3, share: "13%" },
+  { issue: "Instruments — calibration gap", occurrences: 2, share: "9%" },
+  { issue: "Chemicals — inactivated entry", occurrences: 2, share: "9%" },
+];
+
+export const RECURRING_ISSUES_INSIGHT =
+  "Related Substances accounts for more than a third of all review exceptions this month.";
 
 export const MANAGEMENT_FOOTER_NOTE =
   "Cycle time measures total process time from review opened to authorisation. Individual reviewer activity is not tracked.";

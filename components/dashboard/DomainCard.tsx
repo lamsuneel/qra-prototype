@@ -19,8 +19,9 @@ export function DomainCard({ summary }: { summary: DomainSummary }) {
     <button
       type="button"
       onClick={() => router.push(`/batches/${meta.slug}`)}
+      aria-label={`Open ${meta.name} review queue — ${summary.batchCount} batches, ${summary.flaggedCount} flagged`}
       className={cn(
-        "cursor-pointer rounded-lg border border-slate-200 bg-white p-5 text-left transition-all duration-150 hover:border-navy-accent hover:shadow-md",
+        "cursor-pointer rounded-lg border border-slate-200 bg-white p-5 text-left transition-all duration-150 hover:border-navy-accent hover:shadow-md focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none",
         /* A breached SLA reads from the card itself, not only the dot. */
         summary.slaStatus === "red" && "border-l-[3px] border-l-flagged-text",
       )}
