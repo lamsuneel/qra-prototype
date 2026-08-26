@@ -29,8 +29,14 @@ export default function ReviewWorkspacePage() {
   const { profile, sectionStatus } = useReview();
   const pdf = usePdfViewer();
 
-  /* One compliant entry open at a time, reset whenever the section changes. */
-  const [openDetail, setOpenDetail] = useState<string | null>(null);
+  /**
+   * One entry expanded at a time, per section. Flagged entries open by
+   * default because the reviewer has to act on them; the default is derived
+   * rather than set in an effect, so switching section resets it for free.
+   */
+  const [opened, setOpened] = useState<{ section: string; item: string | null } | null>(
+    null,
+  );
 
   const batch = getBatch(params.id);
 
@@ -55,6 +61,12 @@ export default function ReviewWorkspacePage() {
   const flagged = section.items.filter((item) => item.result === "FLAGGED");
   const compliant = section.items.filter((item) => item.result === "COMPLIANT");
   const reviewed = sectionStatus(section.id) === "REVIEWED";
+
+  const openId =
+    opened && opened.section === section.id ? opened.item : (flagged[0]?.id ?? null);
+
+  const toggle = (id: string) =>
+    setOpened({ section: section.id, item: openId === id ? null : id });
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-app-bg">
@@ -124,7 +136,12 @@ export default function ReviewWorkspacePage() {
             ) : null}
 
             {flagged.map((item) => (
-              <FlaggedCard key={item.id} item={item} />
+              <FlaggedCard
+                key={item.id}
+                item={item}
+                expanded={openId === item.id}
+                onToggle={() => toggle(item.id)}
+              />
             ))}
 
             {compliant.length > 0 ? (
@@ -138,10 +155,8 @@ export default function ReviewWorkspacePage() {
                     <CompliantRow
                       key={item.id}
                       item={item}
-                      expanded={openDetail === item.id}
-                      onToggle={() =>
-                        setOpenDetail((current) => (current === item.id ? null : item.id))
-                      }
+                      expanded={openId === item.id}
+                      onToggle={() => toggle(item.id)}
                     />
                   ))}
                 </div>

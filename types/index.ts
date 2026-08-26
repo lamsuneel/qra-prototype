@@ -144,7 +144,14 @@ export interface CheckItem {
   source: SourceSystem;
   result: ItemResult;
 
-  /** Populated on flagged items — the six-field expanded view. */
+  /**
+   * One sentence saying what QRA compared and against what. Every item can
+   * answer this; where it is not written out, it is derived from the fields
+   * below so no entry is ever left without an explanation.
+   */
+  checkDescription?: string;
+
+  /** How the actual read against the expected — "Match", "Within limits". */
   comparison?: string;
   flagReason?: string;
   flagAction?: string;
