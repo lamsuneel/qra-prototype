@@ -187,6 +187,33 @@ const ICDAS: StandaloneInstrument = {
   auditTrail: ICDAS_AUDIT,
 };
 
+const BALANCE_STB_AUDIT = `SARTORIUS CUBIS II - BALANCE AUDIT TRAIL
+Instrument      : BAL-003 (Sartorius Cubis II MSA225S)
+Software        : Sartorius QApp 4.2
+Report exported : 07-Aug-2026 10:02:18
+Exported by     : A.KULKARNI (Analyst)
+--------------------------------------------------------------
+06-Aug-2026 09:20:04  DAILY CHECK   Internal calibration passed
+06-Aug-2026 09:22:31  DAILY CHECK   Test weight 200 g / reading 199.9999 g
+06-Aug-2026 09:35:10  LOGIN         A.KULKARNI
+06-Aug-2026 09:38:22  WEIGHING #001 6-month pull sample / 25.0 mg
+06-Aug-2026 09:44:50  WEIGHING #002 6-month pull sample / 24.9 mg
+06-Aug-2026 09:52:16  LOGOUT        A.KULKARNI
+06-Aug-2026 09:52:30  NO DELETIONS  No weighings deleted or overwritten
+--------------------------------------------------------------
+END OF AUDIT TRAIL`;
+
+const BALANCE_STB: StandaloneInstrument = {
+  name: "Sartorius",
+  version: "QApp 4.2",
+  source: "Caliber LIMS",
+  analyst: "Anil Kulkarni",
+  loginAt: "06-Aug-2026 09:35",
+  logoutAt: "06-Aug-2026 09:52",
+  pdfFilename: "Sartorius_BAL003_AMX-2026-0288-6M_06Aug2026.pdf",
+  auditTrail: BALANCE_STB_AUDIT,
+};
+
 /* -------------------------------------------------------------------------- */
 /* Sections                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -313,6 +340,38 @@ const sections: Section[] = [
       source: "Caliber LIMS — Manual Entry",
     }),
   ]),
+
+  /* The balance keeps its own audit trail of the pull-sample weighings. */
+  section(
+    "assay",
+    "Weighing Balance",
+    2,
+    [
+      compliant({
+        prefix: P,
+        label: "Weighing Balance BAL-003",
+        reference: "Cal. due 21-Dec-2026",
+        statusText: "Calibrated",
+        expected: "Calibration current and within tolerance at date of use — SOP-INST-004",
+        actual:
+          "BAL-003 — calibrated 21-Jun-2026, due 21-Dec-2026, daily check 199.9999 g against a 200 g test weight",
+        expectedSource: "SOP-INST-004",
+        source: "Caliber LIMS",
+        serialContinuity: { range: "Weighing #001 – #002" },
+        details: [
+          { label: "Instrument ID", value: "BAL-003" },
+          { label: "Make and model", value: "Sartorius Cubis II MSA225S" },
+          { label: "Software", value: "Sartorius QApp 4.2" },
+          { label: "Calibration status", value: "Calibrated — within interval" },
+          { label: "Last calibrated", value: "21-Jun-2026" },
+          { label: "Calibration due", value: "21-Dec-2026" },
+          { label: "Daily check", value: "199.9999 g against a 200 g test weight, tolerance ± 0.2 mg" },
+          { label: "Record held in", value: "Caliber LIMS" },
+        ],
+      }),
+    ],
+    { standaloneInstrument: BALANCE_STB },
+  ),
 
   /* --- Related Substances — the characteristic stability finding ---------- */
   section("rs", "Related Substances Trend", 1, [

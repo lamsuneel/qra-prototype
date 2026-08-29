@@ -3,9 +3,10 @@ import type {
   Batch,
   CheckItem,
   DetailField,
-  SerialContinuity,
   Section,
+  SerialContinuity,
   SourceSystem,
+  StandaloneInstrument,
   TestParameter,
 } from "@/types";
 
@@ -372,6 +373,34 @@ const columnCompliant = (columnId: string, used: number, limit: number) => [
   }),
 ];
 
+const BALANCE_FP_AUDIT = `SARTORIUS CUBIS II - BALANCE AUDIT TRAIL
+Instrument      : BAL-001 (Sartorius Cubis II MSA225S)
+Software        : Sartorius QApp 4.2
+Report exported : 30-Jul-2026 09:10:22
+Exported by     : P.SHARMA (Analyst)
+--------------------------------------------------------------
+30-Jul-2026 07:52:10  DAILY CHECK   Internal calibration passed
+30-Jul-2026 07:54:38  DAILY CHECK   Test weight 200 g / reading 200.0001 g
+30-Jul-2026 08:00:14  LOGIN         P.SHARMA
+30-Jul-2026 08:02:41  WEIGHING #001 Standard WS-2024-41 / 24.8 mg
+30-Jul-2026 08:09:05  WEIGHING #002 Sample AMX-2026-0341 / 25.1 mg
+30-Jul-2026 08:15:33  WEIGHING #003 Sample AMX-2026-0341 / 24.9 mg
+30-Jul-2026 08:44:52  LOGOUT        P.SHARMA
+30-Jul-2026 08:45:00  NO DELETIONS  No weighings deleted or overwritten
+--------------------------------------------------------------
+END OF AUDIT TRAIL`;
+
+const BALANCE_FP: StandaloneInstrument = {
+  name: "Sartorius",
+  version: "QApp 4.2",
+  source: LIMS,
+  analyst: "Priya Sharma",
+  loginAt: "30-Jul-2026 08:00",
+  logoutAt: "30-Jul-2026 08:44",
+  pdfFilename: "Sartorius_BAL001_07FP260122_30Jul2026.pdf",
+  auditTrail: BALANCE_FP_AUDIT,
+};
+
 /* -------------------------------------------------------------------------- */
 /* Test parameters                                                            */
 /* -------------------------------------------------------------------------- */
@@ -569,6 +598,41 @@ const batchBSections: Section[] = [
       source: LIMS,
     }),
   ]),
+
+  /*
+   * The balance has a section of its own as well as a row in Instruments:
+   * it keeps its own audit trail, and the reviewer reads the weighing
+   * record rather than only the calibration state.
+   */
+  section(
+    "assay",
+    "Weighing Balance",
+    6,
+    [
+      compliant({
+        label: "Weighing Balance BAL-001",
+        reference: "Cal. due 14-Nov-2026",
+        statusText: "Calibrated",
+        expected: "Calibration current and within tolerance at date of use — SOP-INST-004",
+        actual:
+          "BAL-001 — calibrated 14-May-2026, due 14-Nov-2026, daily check 200.0001 g against a 200 g test weight",
+        expectedSource: "SOP-INST-004",
+        source: LIMS,
+        serialContinuity: { range: "Weighing #001 – #003" },
+        details: [
+          { label: "Instrument ID", value: "BAL-001" },
+          { label: "Make and model", value: "Sartorius Cubis II MSA225S" },
+          { label: "Software", value: "Sartorius QApp 4.2" },
+          { label: "Calibration status", value: "Calibrated — within interval" },
+          { label: "Last calibrated", value: "14-May-2026" },
+          { label: "Calibration due", value: "14-Nov-2026" },
+          { label: "Daily check", value: "200.0001 g against a 200 g test weight, tolerance ± 0.2 mg" },
+          { label: "Record held in", value: "Caliber LIMS" },
+        ],
+      }),
+    ],
+    { standaloneInstrument: BALANCE_FP },
+  ),
 
   /* ---- Related Substances ---- */
   section("rs", "Chemicals", 1, chemicalsCompliant()),

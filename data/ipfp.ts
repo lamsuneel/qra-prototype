@@ -88,6 +88,35 @@ const TIAMO_IPFP: StandaloneInstrument = {
   auditTrail: TIAMO_IPFP_AUDIT,
 };
 
+const BALANCE_IPFP_AUDIT = `METROHM - BALANCE AUDIT TRAIL
+Instrument      : BAL-002 (Metrohm Precisa 320XB)
+Software        : Metrohm BalanceLink 3.1
+Report exported : 04-Aug-2026 09:05:41
+Exported by     : R.IYER (Analyst)
+--------------------------------------------------------------
+03-Aug-2026 09:40:02  DAILY CHECK   Internal calibration passed
+03-Aug-2026 09:42:20  DAILY CHECK   Test weight 100 g / reading 99.9998 g
+03-Aug-2026 10:40:11  LOGIN         R.IYER
+03-Aug-2026 10:42:35  WEIGHING #001 Tablet set 1 of 4 / 250.1 mg mean
+03-Aug-2026 10:48:07  WEIGHING #002 Tablet set 2 of 4 / 249.8 mg mean
+03-Aug-2026 10:53:44  WEIGHING #003 Tablet set 3 of 4 / 250.4 mg mean
+03-Aug-2026 10:59:12  WEIGHING #004 Tablet set 4 of 4 / 250.0 mg mean
+03-Aug-2026 11:05:30  LOGOUT        R.IYER
+03-Aug-2026 11:05:40  NO DELETIONS  No weighings deleted or overwritten
+--------------------------------------------------------------
+END OF AUDIT TRAIL`;
+
+const BALANCE_IPFP: StandaloneInstrument = {
+  name: "Metrohm",
+  version: "BalanceLink 3.1",
+  source: "Caliber LIMS",
+  analyst: "Rajesh Iyer",
+  loginAt: "03-Aug-2026 10:40",
+  logoutAt: "03-Aug-2026 11:05",
+  pdfFilename: "Metrohm_BAL002_AMX-2026-0341-C03_03Aug2026.pdf",
+  auditTrail: BALANCE_IPFP_AUDIT,
+};
+
 /* -------------------------------------------------------------------------- */
 /* Sections                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -205,6 +234,38 @@ const sections: Section[] = [
       source: "Caliber LIMS",
     }),
   ]),
+
+  /* The balance keeps its own audit trail of the tablet weighings. */
+  section(
+    "weight",
+    "Weighing Balance",
+    2,
+    [
+      compliant({
+        prefix: P,
+        label: "Weighing Balance BAL-002",
+        reference: "Cal. due 09-Jan-2027",
+        statusText: "Calibrated",
+        expected: "Calibration current and within tolerance at date of use — SOP-INST-004",
+        actual:
+          "BAL-002 — calibrated 09-Jul-2026, due 09-Jan-2027, daily check 99.9998 g against a 100 g test weight",
+        expectedSource: "SOP-INST-004",
+        source: "Caliber LIMS",
+        serialContinuity: { range: "Weighing #001 – #004" },
+        details: [
+          { label: "Instrument ID", value: "BAL-002" },
+          { label: "Make and model", value: "Metrohm Precisa 320XB" },
+          { label: "Software", value: "Metrohm BalanceLink 3.1" },
+          { label: "Calibration status", value: "Calibrated — within interval" },
+          { label: "Last calibrated", value: "09-Jul-2026" },
+          { label: "Calibration due", value: "09-Jan-2027" },
+          { label: "Daily check", value: "99.9998 g against a 100 g test weight, tolerance ± 1 mg" },
+          { label: "Record held in", value: "Caliber LIMS" },
+        ],
+      }),
+    ],
+    { standaloneInstrument: BALANCE_IPFP },
+  ),
 
   /* --- Disintegration Time ------------------------------------------------ */
   section("disintegration", "Disintegration Result", 1, [
