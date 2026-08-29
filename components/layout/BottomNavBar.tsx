@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 import { orderedSections, sectionSlug } from "@/data";
 import { useReview } from "@/context/ReviewContext";
-import type { Batch, Section } from "@/types";
+import { resultFor, type Batch, type Section } from "@/types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -31,7 +31,7 @@ export function BottomNavBar({
   const unlocked = canMarkReviewed(section);
 
   /* Name the entry that is actually blocking, not "flagged items". */
-  const flags = section.items.filter((item) => item.result === "FLAGGED");
+  const flags = section.items.filter((item) => resultFor(item) === "FLAGGED");
   const outstanding = flags.filter((item) => !isNoted(item.id));
   const blocker = outstanding[0];
   const blockingMessage = blocker

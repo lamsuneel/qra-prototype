@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import type { CheckItem } from "@/types";
 import { useReview } from "@/context/ReviewContext";
 import { cn } from "@/lib/utils";
-import { CalibrationBadge, SourceBadge } from "./Badges";
+import { CalibrationBadge, InactivationBadge, SourceBadge } from "./Badges";
 import { EvidencePanel, evidenceKind, expectationFor, readingFor } from "./EvidencePanel";
 
 /**
@@ -119,6 +119,9 @@ export function FlaggedCard({
             <span className="inline-flex shrink-0 items-center rounded bg-source-bg px-[7px] py-[2px] text-[10px] text-source-text">
               {evidenceKind(item)}
             </span>
+            {item.inactivationStatus ? (
+              <InactivationBadge status={item.inactivationStatus} />
+            ) : null}
             {confirmed ? (
               <span className="rounded bg-compliant-bg px-2 py-[2px] text-[10px] font-medium text-compliant-text">
                 Observation recorded

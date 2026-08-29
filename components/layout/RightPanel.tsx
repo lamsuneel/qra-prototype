@@ -2,7 +2,7 @@
 
 import { useReview } from "@/context/ReviewContext";
 import { flaggedItemsInBatch, orderedSections, sourcesUsedIn } from "@/data";
-import type { Batch } from "@/types";
+import { resultFor, type Batch } from "@/types";
 import { SourceBadge } from "@/components/review/Badges";
 
 export function RightPanel({ batch }: { batch: Batch }) {
@@ -15,7 +15,7 @@ export function RightPanel({ batch }: { batch: Batch }) {
   /* What is actually blocking the reviewer, across the whole batch. */
   const unnoted = orderedSections(batch)
     .flatMap((section) => section.items)
-    .filter((item) => item.result === "FLAGGED" && !isNoted(item.id)).length;
+    .filter((item) => resultFor(item) === "FLAGGED" && !isNoted(item.id)).length;
 
   return (
     <aside className="hidden w-44 shrink-0 overflow-y-auto border-l border-slate-200 bg-white px-3.5 py-4 xl:block">

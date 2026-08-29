@@ -35,6 +35,15 @@ export interface CompliantSpec {
   prescribedQty?: string;
   actualQty?: string;
   quantityComparison?: "MATCH" | "WITHIN TOLERANCE" | "MISMATCH";
+  inactivationStatus?: "Approved" | "Pending Approval";
+  inactivationApprovalDate?: string;
+  /**
+   * Present where a rule may flag an entry that the data itself records as
+   * compliant — the panel still has to explain why and say what to do.
+   */
+  comparison?: string;
+  flagReason?: string;
+  flagAction?: string;
 }
 
 export const compliant = (spec: CompliantSpec): CheckItem => ({
@@ -55,6 +64,11 @@ export const compliant = (spec: CompliantSpec): CheckItem => ({
   prescribedQty: spec.prescribedQty,
   actualQty: spec.actualQty,
   quantityComparison: spec.quantityComparison,
+  inactivationStatus: spec.inactivationStatus,
+  inactivationApprovalDate: spec.inactivationApprovalDate,
+  comparison: spec.comparison,
+  flagReason: spec.flagReason,
+  flagAction: spec.flagAction,
 });
 
 export interface FlaggedSpec {
@@ -66,6 +80,8 @@ export interface FlaggedSpec {
   expectedSource: string;
   usageSource?: string;
   potencySource?: string;
+  inactivationStatus?: "Approved" | "Pending Approval";
+  inactivationApprovalDate?: string;
   comparison: string;
   flagReason: string;
   flagAction: string;

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { getBatch, orderedSections, sectionSlug } from "@/data";
-import { DOMAIN_META } from "@/types";
+import { DOMAIN_META, resultFor } from "@/types";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
 import { PageTitle } from "@/components/layout/PageTitle";
@@ -39,7 +39,7 @@ export default function SummaryPage() {
   const sections = orderedSections(batch);
   const exceptions = sections.flatMap((section) =>
     section.items
-      .filter((item) => item.result === "FLAGGED")
+      .filter((item) => resultFor(item) === "FLAGGED")
       .map((item) => ({ section, item })),
   );
   const compliantSections = sections.length - new Set(

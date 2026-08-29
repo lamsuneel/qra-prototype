@@ -3,7 +3,7 @@
 import type { CheckItem } from "@/types";
 import { resultFor } from "@/types";
 import { cn } from "@/lib/utils";
-import { CalibrationBadge, SourceBadge } from "./Badges";
+import { CalibrationBadge, InactivationBadge, SourceBadge } from "./Badges";
 import {
   EvidencePanel,
   evidenceKind,
@@ -115,6 +115,9 @@ export function CompliantRow({
             <span className="inline-flex shrink-0 items-center rounded bg-source-bg px-[7px] py-[2px] text-[10px] text-source-text">
               {evidenceKind(item)}
             </span>
+            {item.inactivationStatus ? (
+              <InactivationBadge status={item.inactivationStatus} />
+            ) : null}
           </div>
 
           {/* Always on the row, never hidden — the reviewer should never have

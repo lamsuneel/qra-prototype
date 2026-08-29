@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { getBatch, orderedSections } from "@/data";
+import { resultFor } from "@/types";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
 import { PageTitle } from "@/components/layout/PageTitle";
@@ -47,7 +48,7 @@ export default function AuthoriseDetailPage() {
 
   const exceptions = orderedSections(batch).flatMap((section) =>
     section.items
-      .filter((item) => item.result === "FLAGGED")
+      .filter((item) => resultFor(item) === "FLAGGED")
       .map((item) => ({ section, item })),
   );
 

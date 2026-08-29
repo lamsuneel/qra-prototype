@@ -44,6 +44,15 @@ interface CompliantSpec {
   prescribedQty?: string;
   actualQty?: string;
   quantityComparison?: "MATCH" | "WITHIN TOLERANCE" | "MISMATCH";
+  inactivationStatus?: "Approved" | "Pending Approval";
+  inactivationApprovalDate?: string;
+  /**
+   * Present where a rule may flag an entry that the data itself records as
+   * compliant — the panel still has to explain why and say what to do.
+   */
+  comparison?: string;
+  flagReason?: string;
+  flagAction?: string;
 }
 
 const compliant = (spec: CompliantSpec): CheckItem => ({
@@ -63,6 +72,11 @@ const compliant = (spec: CompliantSpec): CheckItem => ({
   prescribedQty: spec.prescribedQty,
   actualQty: spec.actualQty,
   quantityComparison: spec.quantityComparison,
+  inactivationStatus: spec.inactivationStatus,
+  inactivationApprovalDate: spec.inactivationApprovalDate,
+  comparison: spec.comparison,
+  flagReason: spec.flagReason,
+  flagAction: spec.flagAction,
 });
 
 interface FlaggedSpec {
@@ -73,6 +87,8 @@ interface FlaggedSpec {
   expectedSource: string;
   usageSource?: string;
   potencySource?: string;
+  inactivationStatus?: "Approved" | "Pending Approval";
+  inactivationApprovalDate?: string;
   comparison: string;
   flagReason: string;
   flagAction: string;
@@ -96,6 +112,8 @@ const flagged = (spec: FlaggedSpec): CheckItem => ({
   flagReason: spec.flagReason,
   flagAction: spec.flagAction,
   details: spec.details,
+  inactivationStatus: spec.inactivationStatus,
+  inactivationApprovalDate: spec.inactivationApprovalDate,
 });
 
 const section = (
@@ -485,6 +503,31 @@ const batchBSections: Section[] = [
         "An inactivated chemical entry was used in the analysis. Inactivated entries are withdrawn from use and should not appear in the usage record.",
       flagAction:
         "Verify that inactivated entry AC-7701 has documented justification in LIMS before marking the Chemicals section as Reviewed. Check analyst comments and supervisor sign-off in the audit trail.",
+      inactivationStatus: "Pending Approval",
+    }),
+    // LEVEL D — an inactivation that was authorised, for contrast with AC-7701.
+    compliant({
+      label: "Methanol HPLC grade",
+      reference: "Lot MET-2024-118",
+      statusText: "Inactivated",
+      requiresQuantityCheck: true,
+      prescribedQty: "250 mL",
+      actualQty: "250 mL",
+      expected: "Inactivation authorised before the entry leaves service — SOP-CHEM-003 §7",
+      actual:
+        "Methanol HPLC grade — Lot MET-2024-118 — inactivated 12-Jul-2026, authorised by the QC supervisor",
+      expectedSource: "SOP-CHEM-003 §7",
+      inactivationStatus: "Approved",
+      inactivationApprovalDate: "12-Jul-2026",
+      details: [
+        { label: "Lot number", value: "MET-2024-118" },
+        { label: "Manufacturer", value: "Merck" },
+        { label: "Reason for inactivation", value: "Container seal integrity not assured" },
+        { label: "Inactivated on", value: "12-Jul-2026" },
+        { label: "Authorised by", value: "S. Deshmukh, QC Supervisor" },
+        { label: "Quantity used before inactivation", value: "250 mL" },
+        { label: "Status in LIMS", value: "Inactivated, withdrawn from use" },
+      ],
     }),
     ...chemicalsCompliant(),
   ]),

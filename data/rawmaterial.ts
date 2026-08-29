@@ -243,6 +243,40 @@ const sections: Section[] = [
 
   /* --- Assay (HPLC) — the standard five-section Empower layout ------------ */
   section("assay", "Chemicals", 1, [
+    /*
+     * LEVEL D — written as a compliant entry on purpose. Nothing here says
+     * FLAGGED; the unauthorised inactivation is what flags it, so a future
+     * entry cannot be added in this state and quietly read as green.
+     */
+    compliant({
+      prefix: P,
+      label: "Triethylamine HPLC grade",
+      reference: "Lot TEA-2025-04",
+      statusText: "Inactivated",
+      requiresQuantityCheck: true,
+      prescribedQty: "5 mL",
+      actualQty: "5 mL",
+      expected: "Inactivation authorised before the entry leaves service — SOP-CHEM-003 §7",
+      actual:
+        "Triethylamine HPLC grade — Lot TEA-2025-04 — inactivated 03-Aug-2026, authorisation not recorded",
+      expectedSource: "SOP-CHEM-003 §7",
+      source: "Caliber LIMS",
+      inactivationStatus: "Pending Approval",
+      comparison:
+        "The entry is inactivated in LIMS but carries no authorisation record against the inactivation",
+      flagReason:
+        "Lot TEA-2025-04 was inactivated on 03-Aug-2026 but the inactivation has not been authorised. Until it is, there is no record of who withdrew the reagent from service or why, and the entry was still available to the analysis.",
+      flagAction:
+        "Obtain the supervisor authorisation for the inactivation of TEA-2025-04 and record the approval date in LIMS. Confirm whether the reagent was used after it was inactivated.",
+      details: [
+        { label: "Lot number", value: "TEA-2025-04" },
+        { label: "Manufacturer", value: "Spectrochem" },
+        { label: "Reason for inactivation", value: "Recorded as decanted to a secondary container" },
+        { label: "Inactivated on", value: "03-Aug-2026" },
+        { label: "Authorised by", value: "Not recorded" },
+        { label: "Status in LIMS", value: "Inactivated, authorisation outstanding" },
+      ],
+    }),
     compliant({
       prefix: P,
       label: "Acetonitrile HPLC grade",

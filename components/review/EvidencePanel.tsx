@@ -130,7 +130,8 @@ export function EvidencePanel({
   /** Flagged items append why, action and the reviewer observation. */
   children?: React.ReactNode;
 }) {
-  const flagged = item.result === "FLAGGED";
+  /* Derived, so an unauthorised inactivation reads as flagged here too. */
+  const flagged = resultFor(item) === "FLAGGED";
   const unverified = resultFor(item) === "NEEDS_VERIFICATION";
   const comparison = quantityComparison(item);
   const calibration = item.reference?.match(CAL_DUE)?.[1];
@@ -184,6 +185,30 @@ export function EvidencePanel({
           }
         />
       </div>
+
+      {item.inactivationStatus ? (
+        <dl className="mt-3 grid grid-cols-[minmax(180px,220px)_1fr] gap-x-4 gap-y-[3px] border-t border-slate-200/70 pt-3 text-[12px]">
+          <dt className="text-slate-400">Inactivation status</dt>
+          <dd
+            className={
+              item.inactivationStatus === "Approved"
+                ? "font-medium text-compliant-text"
+                : "font-medium text-warn-text"
+            }
+          >
+            {item.inactivationStatus}
+          </dd>
+
+          <dt className="text-slate-400">Inactivation approval date</dt>
+          <dd
+            className={
+              item.inactivationApprovalDate ? "text-slate-700" : "text-warn-text"
+            }
+          >
+            {item.inactivationApprovalDate ?? "Pending"}
+          </dd>
+        </dl>
+      ) : null}
 
       {item.requiresQuantityCheck ? (
         <dl className="mt-3 grid grid-cols-[minmax(180px,220px)_1fr] gap-x-4 gap-y-[3px] border-t border-slate-200/70 pt-3 text-[12px]">

@@ -20,6 +20,7 @@ import {
 
 import { ALL_BATCHES, getBatch, orderedSections } from "@/data";
 import { getProfile } from "@/data/profiles";
+import { resultFor } from "@/types";
 import type { BatchStatus, Profile, Section, SectionStatus } from "@/types";
 
 interface ReviewContextValue {
@@ -137,7 +138,7 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
   const canMarkReviewed = useCallback(
     (section: Section) =>
       section.items
-        .filter((item) => item.result === "FLAGGED")
+        .filter((item) => resultFor(item) === "FLAGGED")
         .every((item) => (notes[item.id] ?? "").trim().length > 0),
     [notes],
   );

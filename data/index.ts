@@ -7,6 +7,7 @@ import {
   DOMAINS,
   type Batch,
   type SourceSystem,
+  resultFor,
   type Domain,
   type DomainSummary,
   type Section,
@@ -70,7 +71,7 @@ export const batchesForDomain = (domain: Domain): Batch[] =>
 export const flaggedItemsInBatch = (batch: Batch): number =>
   batch.sections.reduce(
     (total, section) =>
-      total + section.items.filter((item) => item.result === "FLAGGED").length,
+      total + section.items.filter((item) => resultFor(item) === "FLAGGED").length,
     0,
   );
 

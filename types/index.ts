@@ -180,6 +180,15 @@ export interface CheckItem {
   prescribedQty?: string;
   /** The quantity actually recorded as used. */
   actualQty?: string;
+
+  /**
+   * Set only on a chemical that has been taken out of service. The words are
+   * the site's own terms for the LIMS inactivation workflow and describe that
+   * record, never the disposition of a review.
+   */
+  inactivationStatus?: "Approved" | "Pending Approval";
+  /** When the inactivation was authorised, or absent while it is not. */
+  inactivationApprovalDate?: string;
   /** Stated where the comparison is not a plain equality. */
   quantityComparison?: "MATCH" | "WITHIN TOLERANCE" | "MISMATCH";
 
@@ -386,6 +395,10 @@ export interface ConfiguredRule {
 export const resultFor = (item: CheckItem): ItemResult => {
   if (item.result === "FLAGGED") return "FLAGGED";
 
+  /* An inactivation that has not been authorised is an open question, so the
+     entry is flagged whatever the data says. */
+  if (item.inactivationStatus === "Pending Approval") return "FLAGGED";
+
   if (item.requiresQuantityCheck && !(item.prescribedQty && item.actualQty)) {
     return "NEEDS_VERIFICATION";
   }
@@ -407,11 +420,11 @@ export const canMarkSectionReviewed = (
   notes: Record<string, string>,
 ): boolean =>
   section.items
-    .filter((item) => item.result === "FLAGGED")
+    .filter((item) => resultFor(item) === "FLAGGED")
     .every((item) => (notes[item.id] ?? item.reviewerNote ?? "").trim().length > 0);
 
 export const flaggedCount = (section: Section): number =>
-  section.items.filter((item) => item.result === "FLAGGED").length;
+  section.items.filter((item) => resultFor(item) === "FLAGGED").length;
 
 export const BATCH_STATUS_LABELS: Record<BatchStatus, string> = {
   NEEDS_REVIEW: "Needs Review",

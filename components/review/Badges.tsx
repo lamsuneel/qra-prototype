@@ -12,6 +12,32 @@ export function SourceBadge({ source }: { source: SourceSystem }) {
   );
 }
 
+/**
+ * Whether a chemical's removal from service was authorised. The wording is
+ * the site's own term for the LIMS inactivation workflow — it describes that
+ * record, never the disposition of a review.
+ */
+export function InactivationBadge({
+  status,
+}: {
+  status: "Approved" | "Pending Approval";
+}) {
+  const authorised = status === "Approved";
+
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center rounded px-2 py-[2px] text-[11px] font-medium",
+        authorised
+          ? "bg-compliant-bg text-compliant-text"
+          : "bg-warn-bg text-warn-text",
+      )}
+    >
+      Inactivation: {status}
+    </span>
+  );
+}
+
 export function CompliantBadge() {
   return (
     <span className="inline-flex shrink-0 items-center gap-1 rounded bg-compliant-bg px-2 py-[2px] text-[11px] font-medium text-compliant-text">

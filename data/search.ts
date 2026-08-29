@@ -1,5 +1,5 @@
 import { ALL_BATCHES, flaggedItemsInBatch, orderedSections, sectionSlug } from "./index";
-import { DOMAIN_META, type Batch, type Domain } from "@/types";
+import { DOMAIN_META, resultFor, type Batch, type Domain } from "@/types";
 
 /**
  * Search index over every batch in every domain.
@@ -30,7 +30,7 @@ export interface SearchResult {
 export const entryPointFor = (batch: Batch): string => {
   const sections = orderedSections(batch);
   const target =
-    sections.find((section) => section.items.some((item) => item.result === "FLAGGED")) ??
+    sections.find((section) => section.items.some((item) => resultFor(item) === "FLAGGED")) ??
     sections[0];
 
   if (!target) return `/batches/${batch.arNumber}/summary`;
