@@ -373,7 +373,8 @@ const sections: Section[] = [
       expected: "Cumulative injections at or below 400 — SOP-HPLC-001 §8",
       actual: "COL-2025-03 — 214 of 400 injections used, 18 added by this test",
       expectedSource: "SOP-HPLC-001 §8",
-      source: "Waters Empower",
+      /* Column injection life is held in LIMS, not in Empower. */
+      source: "Caliber LIMS",
     }),
   ]),
 

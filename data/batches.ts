@@ -315,7 +315,9 @@ const columnCompliant = (columnId: string, used: number, limit: number) => [
     expected: `Cumulative injections at or below ${limit} — SOP-COL-005`,
     actual: `${columnId} — ${used} cumulative injections, ${limit - used} remaining`,
     expectedSource: "SOP-HPLC-001 §8",
-    source: EMPOWER,
+    /* Column injection life is held in LIMS, not in the chromatography data
+       system. Chromatograms and system suitability stay on Empower. */
+    source: LIMS,
   }),
 ];
 
@@ -482,12 +484,13 @@ const batchBSections: Section[] = [
       expected: "Cumulative injections at or below 400 — SOP-HPLC-001 §8",
       actual: "COL-2024-09 — 412 cumulative injections, limit exceeded by 12",
       expectedSource: "SOP-HPLC-001 §8",
-      comparison: "Cumulative count from Empower exceeds the qualified limit by 12 injections",
+      comparison:
+        "Cumulative count from Caliber LIMS exceeds the qualified limit by 12 injections",
       flagReason:
         "The column has been used beyond its qualified injection life. Results obtained after the limit was exceeded may not be reliable.",
       flagAction:
         "Column must be retired or re-qualified before further use. Verify in Caliber LIMS whether the column was within limit for the specific injections used in this sample set.",
-      source: EMPOWER,
+      source: LIMS,
     }),
   ]),
 
