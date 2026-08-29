@@ -1,6 +1,7 @@
 "use client";
 
 import type { CheckItem } from "@/types";
+import { resultFor } from "@/types";
 import { cn } from "@/lib/utils";
 import { CalibrationBadge, SourceBadge } from "./Badges";
 import {
@@ -13,12 +14,14 @@ import {
 const CAL_DUE = /^Cal\. due (.+)$/;
 
 /**
- * A compliant entry. QRA did the checking, so the reviewer is never required
- * to open it — but the evidence is always one click away and the row says so.
- * "View evidence" is always on the row at low opacity; the whole row is the
- * click target.
+ * An entry that is not flagged — either compliant, or waiting on a comparison
+ * QRA could not make. A chemical or working standard has no fixed
+ * specification: it is checked against the quantity the worksheet prescribes,
+ * so without both figures the row reads amber, never green.
  *
- * Expanding a compliant entry has no effect on the section gate.
+ * QRA did the checking, so the reviewer is never required to open the row —
+ * but the evidence is always one click away and the row says so. Expanding
+ * has no effect on the section gate.
  */
 export function CompliantRow({
   item,
@@ -30,6 +33,7 @@ export function CompliantRow({
   onToggle: () => void;
 }) {
   const calibration = item.reference?.match(CAL_DUE)?.[1];
+  const unverified = resultFor(item) === "NEEDS_VERIFICATION";
 
   return (
     <div
@@ -46,16 +50,21 @@ export function CompliantRow({
       className={cn(
         "group cursor-pointer border-b border-slate-100 px-3 py-3 text-left transition-colors duration-150",
         expanded
-          ? "border-l-4 border-l-compliant-text bg-[#F0FDF4]"
+          ? unverified
+            ? "border-l-4 border-l-warn-text bg-[#FFF8F0]"
+            : "border-l-4 border-l-compliant-text bg-[#F0FDF4]"
           : "bg-white hover:bg-blue-50",
       )}
     >
       <div className="flex flex-wrap items-start gap-x-3 gap-y-1">
         <span
           aria-hidden="true"
-          className="mt-[1px] shrink-0 text-[13px] font-semibold text-compliant-text"
+          className={cn(
+            "mt-[1px] shrink-0 text-[13px] font-semibold",
+            unverified ? "text-warn-text" : "text-compliant-text",
+          )}
         >
-          &#10003;
+          {unverified ? "⚠" : "✓"}
         </span>
 
         <div className="min-w-0 flex-1">
@@ -67,8 +76,21 @@ export function CompliantRow({
             ) : item.reference ? (
               <span>{item.reference} ·</span>
             ) : null}
-            <span className="font-medium text-compliant-text">Compliant</span>
+            <span
+              className={cn(
+                "font-medium",
+                unverified ? "text-warn-text" : "text-compliant-text",
+              )}
+            >
+              {unverified ? "Needs Verification" : "Compliant"}
+            </span>
           </div>
+
+          {unverified ? (
+            <div className="mt-0.5 text-[11px] font-medium text-warn-text">
+              Verify against worksheet: prescribed quantity not fetched from LIMS
+            </div>
+          ) : null}
 
           <div className="mt-0.5 text-[11px] text-source-text">
             <span className="text-slate-400">Expected: </span>
@@ -76,6 +98,17 @@ export function CompliantRow({
             <span className="text-slate-400"> · Actual: </span>
             {readingFor(item)}
           </div>
+
+          {/* The quantity check sits alongside the criterion, never instead of
+              it — the row still has to say what was expected. */}
+          {item.prescribedQty && item.actualQty ? (
+            <div className="mt-0.5 text-[11px] text-source-text">
+              <span className="text-slate-400">Prescribed: </span>
+              {item.prescribedQty}
+              <span className="text-slate-400"> · Used: </span>
+              {item.actualQty}
+            </div>
+          ) : null}
 
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <SourceBadge source={item.source} />
@@ -90,7 +123,9 @@ export function CompliantRow({
             className={cn(
               "mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium transition-opacity duration-150",
               expanded
-                ? "text-compliant-text opacity-100"
+                ? unverified
+                  ? "text-warn-text opacity-100"
+                  : "text-compliant-text opacity-100"
                 : "text-navy-accent opacity-40 group-hover:opacity-100",
             )}
           >

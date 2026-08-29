@@ -30,7 +30,12 @@ export type BatchStatus =
 
 export type SectionStatus = "NOT_STARTED" | "IN_PROGRESS" | "REVIEWED";
 
-export type ItemResult = "COMPLIANT" | "FLAGGED";
+/**
+ * NEEDS_VERIFICATION is never written in the data. It is derived: an entry
+ * whose check depends on a prescribed quantity cannot be shown as compliant
+ * until both the prescribed and the actual quantity are present to compare.
+ */
+export type ItemResult = "COMPLIANT" | "NEEDS_VERIFICATION" | "FLAGGED";
 
 /** Approver is the customer own term for the role and is kept as-is. */
 export type UserRole = "REVIEWER" | "APPROVER" | "CQO";
@@ -155,6 +160,19 @@ export interface CheckItem {
   comparison?: string;
   flagReason?: string;
   flagAction?: string;
+
+  /**
+   * Chemicals and working standards are checked against the quantity the LIMS
+   * worksheet prescribes, so both figures have to be present before the entry
+   * can read as compliant.
+   */
+  requiresQuantityCheck?: boolean;
+  /** The quantity the worksheet prescribes, e.g. "25 mg". */
+  prescribedQty?: string;
+  /** The quantity actually recorded as used. */
+  actualQty?: string;
+  /** Stated where the comparison is not a plain equality. */
+  quantityComparison?: "MATCH" | "WITHIN TOLERANCE" | "MISMATCH";
 
   /** Sample sets and trends that belong with this item, rendered inline. */
   table?: EvidenceTable;
@@ -346,6 +364,33 @@ export interface ConfiguredRule {
 /* -------------------------------------------------------------------------- */
 /* Derived helpers                                                            */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * What the reviewer is actually shown for an entry.
+ *
+ * There is no fixed specification for chemical or working standard usage: the
+ * check is the prescribed quantity in the LIMS worksheet against the quantity
+ * actually used. Without both figures there is no comparison, so the entry
+ * cannot be shown as compliant — it is shown as needing verification against
+ * the worksheet instead.
+ */
+export const resultFor = (item: CheckItem): ItemResult => {
+  if (item.result === "FLAGGED") return "FLAGGED";
+
+  if (item.requiresQuantityCheck && !(item.prescribedQty && item.actualQty)) {
+    return "NEEDS_VERIFICATION";
+  }
+
+  return item.result;
+};
+
+/** MATCH, WITHIN TOLERANCE or MISMATCH, where both quantities are present. */
+export const quantityComparison = (item: CheckItem): string | null => {
+  if (!item.prescribedQty || !item.actualQty) return null;
+  if (item.quantityComparison) return item.quantityComparison;
+
+  return item.prescribedQty === item.actualQty ? "MATCH" : "WITHIN TOLERANCE";
+};
 
 /** A section unlocks once every flagged item in it carries a reviewer note. */
 export const canMarkSectionReviewed = (

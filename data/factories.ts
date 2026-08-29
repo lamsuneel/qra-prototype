@@ -29,6 +29,10 @@ export interface CompliantSpec {
   table?: EvidenceTable;
   /** Everything QRA read for this entry, shown when the row is expanded. */
   details?: DetailField[];
+  requiresQuantityCheck?: boolean;
+  prescribedQty?: string;
+  actualQty?: string;
+  quantityComparison?: "MATCH" | "WITHIN TOLERANCE" | "MISMATCH";
 }
 
 export const compliant = (spec: CompliantSpec): CheckItem => ({
@@ -43,6 +47,10 @@ export const compliant = (spec: CompliantSpec): CheckItem => ({
   result: "COMPLIANT",
   table: spec.table,
   details: spec.details,
+  requiresQuantityCheck: spec.requiresQuantityCheck,
+  prescribedQty: spec.prescribedQty,
+  actualQty: spec.actualQty,
+  quantityComparison: spec.quantityComparison,
 });
 
 export interface FlaggedSpec {

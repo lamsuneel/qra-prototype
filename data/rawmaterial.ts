@@ -217,6 +217,10 @@ const sections: Section[] = [
       compliant({
         prefix: P,
         label: "Potassium bromide IR grade",
+        requiresQuantityCheck: true,
+        prescribedQty: "200 mg ± 10 mg",
+        actualQty: "198 mg",
+        quantityComparison: "WITHIN TOLERANCE",
         reference: "Lot KBR-2024-031",
         expected: "Active entry, within expiry — SOP-CHEM-003",
         actual: "Potassium bromide IR grade — Lot KBR-2024-031 — active, expiry 31-Dec-2026",
@@ -242,6 +246,9 @@ const sections: Section[] = [
     compliant({
       prefix: P,
       label: "Acetonitrile HPLC grade",
+      requiresQuantityCheck: true,
+      prescribedQty: "450 mL",
+      actualQty: "450 mL",
       reference: "Lot AC-2024-0441",
       expected: "Active entry, within expiry — SOP-CHEM-003",
       actual: "Acetonitrile HPLC grade — Lot AC-2024-0441 — active, expiry 30-Nov-2026",
@@ -251,6 +258,10 @@ const sections: Section[] = [
     compliant({
       prefix: P,
       label: "Potassium dihydrogen phosphate",
+      requiresQuantityCheck: true,
+      prescribedQty: "13.6 g ± 5%",
+      actualQty: "13.61 g",
+      quantityComparison: "WITHIN TOLERANCE",
       reference: "Lot PH-2024-0892",
       expected: "Active entry, within expiry — SOP-CHEM-003",
       actual: "Potassium dihydrogen phosphate — Lot PH-2024-0892 — active, expiry 15-Aug-2027",
@@ -260,6 +271,9 @@ const sections: Section[] = [
     compliant({
       prefix: P,
       label: "Water for HPLC",
+      requiresQuantityCheck: true,
+      prescribedQty: "1800 mL",
+      actualQty: "1800 mL",
       reference: "Lot WH-2024-1102",
       expected: "Active entry, within expiry — SOP-CHEM-003",
       actual: "Water for HPLC — Lot WH-2024-1102 — active, expiry 30-Sep-2026",
@@ -271,6 +285,10 @@ const sections: Section[] = [
     compliant({
       prefix: P,
       label: "Amoxicillin Trihydrate USP Reference Standard",
+      requiresQuantityCheck: true,
+      prescribedQty: "25 mg ± 2 mg",
+      actualQty: "25.2 mg",
+      quantityComparison: "WITHIN TOLERANCE",
       reference: "Lot R09480",
       statusText: "Valid",
       expected: "Valid reference standard, within re-test date — SOP-STD-002",
@@ -281,6 +299,10 @@ const sections: Section[] = [
     compliant({
       prefix: P,
       label: "Standard preparation — duplicate weighings",
+      requiresQuantityCheck: true,
+      prescribedQty: "25 mg per preparation ± 2 mg",
+      actualQty: "25.0 mg and 24.9 mg",
+      quantityComparison: "WITHIN TOLERANCE",
       reference: "STD-2026-0812-A/B",
       statusText: "Verified",
       expected: "Duplicate standard preparations agreeing within 2.0 % — STP-RM-ASSAY-001",

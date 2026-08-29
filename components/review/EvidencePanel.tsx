@@ -1,4 +1,5 @@
 import type { CheckItem } from "@/types";
+import { quantityComparison, resultFor } from "@/types";
 import { SourceBadge } from "./Badges";
 import { EvidenceTable } from "./EvidenceTable";
 
@@ -130,6 +131,8 @@ export function EvidencePanel({
   children?: React.ReactNode;
 }) {
   const flagged = item.result === "FLAGGED";
+  const unverified = resultFor(item) === "NEEDS_VERIFICATION";
+  const comparison = quantityComparison(item);
   const calibration = item.reference?.match(CAL_DUE)?.[1];
 
   const actualLines: { label: string; value: string }[] = [];
@@ -175,6 +178,29 @@ export function EvidencePanel({
         />
       </div>
 
+      {item.requiresQuantityCheck ? (
+        <dl className="mt-3 grid grid-cols-[minmax(180px,220px)_1fr] gap-x-4 gap-y-[3px] border-t border-slate-200/70 pt-3 text-[12px]">
+          <dt className="text-slate-400">Prescribed quantity (LIMS worksheet)</dt>
+          <dd className={item.prescribedQty ? "text-slate-700" : "text-warn-text"}>
+            {item.prescribedQty ?? "Not fetched from LIMS"}
+          </dd>
+
+          <dt className="text-slate-400">Actual quantity used</dt>
+          <dd className={item.actualQty ? "text-slate-700" : "text-warn-text"}>
+            {item.actualQty ?? "Not fetched from LIMS"}
+          </dd>
+
+          <dt className="text-slate-400">Comparison</dt>
+          <dd
+            className={
+              comparison ? "font-medium text-compliant-text" : "font-medium text-warn-text"
+            }
+          >
+            {comparison ?? "NO COMPARISON — VERIFY AGAINST WORKSHEET"}
+          </dd>
+        </dl>
+      ) : null}
+
       {item.details?.length ? (
         <dl className="mt-3 grid grid-cols-[minmax(120px,160px)_1fr] gap-x-4 gap-y-[3px] border-t border-slate-200/70 pt-3 text-[12px]">
           {item.details.map((field) => (
@@ -199,15 +225,27 @@ export function EvidencePanel({
       {flagged ? null : (
         <dl className="mt-2.5 grid grid-cols-[110px_1fr]">
           <Field label="Result">
-            <span className="inline-flex items-center gap-1 rounded bg-compliant-bg px-2 py-[2px] text-[11px] font-medium text-compliant-text">
-              <span aria-hidden="true">&#10003;</span> Compliant
-            </span>
+            {unverified ? (
+              <span className="inline-flex items-center gap-1 rounded bg-warn-bg px-2 py-[2px] text-[11px] font-medium text-warn-text">
+                <span aria-hidden="true">&#9888;</span> Needs verification
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded bg-compliant-bg px-2 py-[2px] text-[11px] font-medium text-compliant-text">
+                <span aria-hidden="true">&#10003;</span> Compliant
+              </span>
+            )}
           </Field>
         </dl>
       )}
 
       {flagged ? (
         children
+      ) : unverified ? (
+        <p className="mt-2.5 rounded-[5px] bg-warn-bg px-3 py-2 text-[11px] leading-relaxed font-medium text-warn-text">
+          <span aria-hidden="true">&#9888;</span> Verify against worksheet: prescribed
+          quantity not fetched from LIMS. Confirm the quantity used against the LIMS
+          worksheet before marking this section as Reviewed.
+        </p>
       ) : (
         <p className="mt-2.5 text-[11px] text-slate-400">
           No action required — this entry requires no reviewer action.

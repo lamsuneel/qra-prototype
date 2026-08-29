@@ -38,6 +38,10 @@ interface CompliantSpec {
   source?: SourceSystem;
   /** Everything QRA read for this entry, shown when the row is expanded. */
   details?: DetailField[];
+  requiresQuantityCheck?: boolean;
+  prescribedQty?: string;
+  actualQty?: string;
+  quantityComparison?: "MATCH" | "WITHIN TOLERANCE" | "MISMATCH";
 }
 
 const compliant = (spec: CompliantSpec): CheckItem => ({
@@ -51,6 +55,10 @@ const compliant = (spec: CompliantSpec): CheckItem => ({
   source: spec.source ?? LIMS,
   result: "COMPLIANT",
   details: spec.details,
+  requiresQuantityCheck: spec.requiresQuantityCheck,
+  prescribedQty: spec.prescribedQty,
+  actualQty: spec.actualQty,
+  quantityComparison: spec.quantityComparison,
 });
 
 interface FlaggedSpec {
@@ -102,6 +110,9 @@ const section = (
 const chemicalsCompliant = () => [
   compliant({
     label: "Acetonitrile HPLC grade",
+    requiresQuantityCheck: true,
+    prescribedQty: "450 mL",
+    actualQty: "450 mL",
     reference: "Lot AC-2024-0441",
     expected: "Active entry, within expiry — SOP-CHEM-003",
     actual: "Acetonitrile HPLC grade — Lot AC-2024-0441 — active, expiry 30-Nov-2026",
@@ -119,6 +130,9 @@ const chemicalsCompliant = () => [
   }),
   compliant({
     label: "Water for HPLC",
+    requiresQuantityCheck: true,
+    prescribedQty: "1800 mL",
+    actualQty: "1800 mL",
     reference: "Lot WH-2024-1102",
     expected: "Active entry, within expiry — SOP-CHEM-003",
     actual: "Water for HPLC — Lot WH-2024-1102 — active, expiry 31-Dec-2026",
@@ -136,6 +150,10 @@ const chemicalsCompliant = () => [
   }),
   compliant({
     label: "Potassium dihydrogen phosphate",
+    requiresQuantityCheck: true,
+    prescribedQty: "13.6 g ± 5%",
+    actualQty: "13.61 g",
+    quantityComparison: "WITHIN TOLERANCE",
     reference: "Lot PH-2024-0892",
     expected: "Active entry, within expiry — SOP-CHEM-003",
     actual: "Potassium dihydrogen phosphate — Lot PH-2024-0892 — active, expiry 31-Oct-2026",
@@ -156,6 +174,10 @@ const chemicalsCompliant = () => [
 const standardsCompliant = () => [
   compliant({
     label: "Working Standard — Amoxicillin",
+    requiresQuantityCheck: true,
+    prescribedQty: "25 mg (within 10–15% of 24.8 mg)",
+    actualQty: "24.8 mg",
+    quantityComparison: "WITHIN TOLERANCE",
     reference: "WS-2024-41",
     expected: "Active lot, expiry on or after analysis date — SOP-STD-002",
     actual: "WS-2024-41 — active, expiry 31-Oct-2026, potency 99.6%",
@@ -173,6 +195,10 @@ const standardsCompliant = () => [
   }),
   compliant({
     label: "Reference Standard — Amoxicillin",
+    requiresQuantityCheck: true,
+    prescribedQty: "25 mg ± 2 mg",
+    actualQty: "25.1 mg",
+    quantityComparison: "WITHIN TOLERANCE",
     reference: "RS-2024-18",
     expected: "Active lot, expiry on or after analysis date — SOP-STD-002",
     actual: "RS-2024-18 — active, expiry 30-Nov-2026, potency 99.8%",
@@ -192,6 +218,10 @@ const standardsCompliant = () => [
   // Hygroscopic standards must be used within 24 hours of first opening.
   compliant({
     label: "Hygroscopic standard 24-hour window",
+    requiresQuantityCheck: true,
+    prescribedQty: "25 mg ± 2 mg",
+    actualQty: "24.9 mg",
+    quantityComparison: "WITHIN TOLERANCE",
     reference: "WS-2024-41",
     statusText: "Within window",
     expected: "Used within 24 hours of first opening — SOP-STD-002 §6.2",
@@ -466,6 +496,10 @@ const batchBSections: Section[] = [
   section("rs", "Standards", 2, [
     compliant({
       label: "Reference Standard — Amoxicillin RS",
+      requiresQuantityCheck: true,
+      prescribedQty: "50 mg ± 2 mg",
+      actualQty: "50.3 mg",
+      quantityComparison: "WITHIN TOLERANCE",
       reference: "RS-AMX-2024-12",
       expected: "Active lot, expiry on or after analysis date — SOP-STD-002",
       actual: "RS-AMX-2024-12 — active, expiry 15-Dec-2026",
@@ -485,6 +519,8 @@ const batchBSections: Section[] = [
   section("disso", "Chemicals", 1, [
     compliant({
       label: "Buffer pH 6.8",
+      requiresQuantityCheck: true,
+      actualQty: "900 mL per vessel",
       reference: "Lot BUF-2024-067",
       expected: "Active entry, within expiry — SOP-CHEM-003",
       actual: "Buffer pH 6.8 — Lot BUF-2024-067 — active, expiry 30-Sep-2026",
@@ -492,6 +528,9 @@ const batchBSections: Section[] = [
     }),
     compliant({
       label: "Water for HPLC",
+      requiresQuantityCheck: true,
+      prescribedQty: "1800 mL",
+      actualQty: "1800 mL",
       reference: "Lot WH-2024-1102",
       expected: "Active entry, within expiry — SOP-CHEM-003",
       actual: "Water for HPLC — Lot WH-2024-1102 — active, expiry 31-Dec-2026",
@@ -501,6 +540,10 @@ const batchBSections: Section[] = [
   section("disso", "Standards", 2, [
     compliant({
       label: "Reference Standard — Amoxicillin",
+      requiresQuantityCheck: true,
+      prescribedQty: "25 mg ± 2 mg",
+      actualQty: "25.1 mg",
+      quantityComparison: "WITHIN TOLERANCE",
       reference: "RS-2024-18",
       expected: "Active lot, expiry on or after analysis date — SOP-STD-002",
       actual: "RS-2024-18 — active, expiry 30-Nov-2026",
@@ -585,6 +628,9 @@ const batchBSections: Section[] = [
   section("kf", "Chemicals", 1, [
     compliant({
       label: "Karl Fischer Reagent",
+      requiresQuantityCheck: true,
+      prescribedQty: "40 mL",
+      actualQty: "40 mL",
       reference: "Lot KFR-2024-023",
       expected: "Active entry, within expiry — SOP-CHEM-003",
       actual: "Karl Fischer Reagent — Lot KFR-2024-023 — active, expiry 31-Aug-2026",
@@ -592,6 +638,9 @@ const batchBSections: Section[] = [
     }),
     compliant({
       label: "Methanol anhydrous",
+      requiresQuantityCheck: true,
+      prescribedQty: "50 mL",
+      actualQty: "50 mL",
       reference: "Lot MET-2024-221",
       expected: "Active entry, within expiry — SOP-CHEM-003",
       actual: "Methanol anhydrous — Lot MET-2024-221 — active, expiry 30-Sep-2026",
@@ -601,6 +650,10 @@ const batchBSections: Section[] = [
   section("kf", "Standards", 2, [
     compliant({
       label: "Water Standard WST-2024-044",
+      requiresQuantityCheck: true,
+      prescribedQty: "1.0 g ± 0.05 g",
+      actualQty: "1.02 g",
+      quantityComparison: "WITHIN TOLERANCE",
       reference: "WST-2024-044",
       expected: "Active lot, expiry on or after analysis date — SOP-STD-002",
       actual: "WST-2024-044 — active, expiry 31-Dec-2026",
@@ -673,6 +726,9 @@ const batchBSections: Section[] = [
   section("lcms", "Chemicals", 1, [
     compliant({
       label: "Acetonitrile LC-MS grade",
+      requiresQuantityCheck: true,
+      prescribedQty: "200 mL",
+      actualQty: "200 mL",
       reference: "Lot ACM-2024-018",
       expected: "Active entry, within expiry — SOP-CHEM-003",
       actual: "Acetonitrile LC-MS grade — Lot ACM-2024-018 — active, expiry 31-Jan-2027",
@@ -680,6 +736,8 @@ const batchBSections: Section[] = [
     }),
     compliant({
       label: "Formic acid LC-MS grade",
+      requiresQuantityCheck: true,
+      actualQty: "1.0 mL",
       reference: "Lot FMA-2024-007",
       expected: "Active entry, within expiry — SOP-CHEM-003",
       actual: "Formic acid LC-MS grade — Lot FMA-2024-007 — active, expiry 30-Nov-2026",
@@ -689,6 +747,10 @@ const batchBSections: Section[] = [
   section("lcms", "Standards", 2, [
     compliant({
       label: "MpTS Reference Standard",
+      requiresQuantityCheck: true,
+      prescribedQty: "10 mg (within 10–15% of 9.8 mg)",
+      actualQty: "9.8 mg",
+      quantityComparison: "WITHIN TOLERANCE",
       reference: "RS-MPTS-2024-03",
       expected: "Active lot, expiry on or after analysis date — SOP-STD-002",
       actual: "RS-MPTS-2024-03 — active, expiry 28-Feb-2027",
