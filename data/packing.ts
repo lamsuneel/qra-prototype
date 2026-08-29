@@ -372,8 +372,8 @@ const sections: Section[] = [
 
 export const PACKING_MATERIAL_BATCHES: Batch[] = [
   {
-    id: "PM-AR-2026-008823",
-    arNumber: "PM-AR-2026-008823",
+    id: "07-PM-26-8823",
+    arNumber: "07-PM-26-8823",
     product: "HDPE Bottle 60ml",
     batchNumber: "HDPE-2026-1147",
     domain: "PACKING_MATERIAL",

@@ -40,7 +40,6 @@ export default function DashboardPage() {
           <div className="mt-4">
             <BatchSearch
               variant="page"
-              placeholder="Search any batch — AR number, product or batch number..."
             />
           </div>
         </header>

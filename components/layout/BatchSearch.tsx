@@ -3,7 +3,12 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { searchBatches, type SearchResult } from "@/data/search";
+import {
+  AR_NUMBER_EXAMPLE,
+  looksLikeMalformedAr,
+  searchBatches,
+  type SearchResult,
+} from "@/data/search";
 import { cn } from "@/lib/utils";
 
 /**
@@ -16,7 +21,7 @@ import { cn } from "@/lib/utils";
  */
 export function BatchSearch({
   variant = "nav",
-  placeholder = "Search AR number, product or batch...",
+  placeholder = `Search AR number (e.g. ${AR_NUMBER_EXAMPLE})`,
 }: {
   variant?: "nav" | "page";
   placeholder?: string;
@@ -30,6 +35,8 @@ export function BatchSearch({
 
   const results = query.trim() ? searchBatches(query) : [];
   const showing = open && results.length > 0;
+  /* Advisory only — the query still runs. */
+  const malformed = looksLikeMalformedAr(query);
 
   const openResult = (result: SearchResult) => {
     setOpen(false);
@@ -128,6 +135,17 @@ export function BatchSearch({
             </li>
           ))}
         </ul>
+      ) : null}
+
+      {malformed ? (
+        <div
+          className={cn(
+            "absolute top-full left-0 z-40 mt-1 text-[11px]",
+            nav ? "text-slate-300" : "text-source-text",
+          )}
+        >
+          Format: {AR_NUMBER_EXAMPLE}
+        </div>
       ) : null}
 
       {open && query.trim() && results.length === 0 ? (

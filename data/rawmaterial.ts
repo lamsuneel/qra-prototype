@@ -571,8 +571,8 @@ const sections: Section[] = [
 
 export const RAW_MATERIAL_BATCHES: Batch[] = [
   {
-    id: "RM-AR-2026-004417",
-    arNumber: "RM-AR-2026-004417",
+    id: "07-RM-26-4417",
+    arNumber: "07-RM-26-4417",
     product: "Amoxicillin Trihydrate API",
     batchNumber: "AMXAPI-2026-0088",
     domain: "RAW_MATERIAL",

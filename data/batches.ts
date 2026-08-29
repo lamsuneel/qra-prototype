@@ -408,7 +408,7 @@ const TIAMO_AUDIT = `===========================================================
 
 ANALYSIS DETAILS
 Method:     STP-AMX-KF-001 v2.3
-AR Number:  AR-2026-000122
+AR Number:  07-FP-26-0122
 Sample:     Amoxicillin 250mg Tablet — Batch AMX-2026-0341
 
 ANALYST LOG
@@ -449,7 +449,7 @@ const MASSLYNX_AUDIT = `========================================================
 
 ANALYSIS DETAILS
 Method:     STP-AMX-LCMS-001 v1.6
-AR Number:  AR-2026-000122
+AR Number:  07-FP-26-0122
 Sample:     Amoxicillin 250mg Tablet — Batch AMX-2026-0341
 Analyte:    Methyl p-toluenesulphonate (MpTS)
 
@@ -484,7 +484,7 @@ Signature ID: ES-2026-07-30-014   Hash: b21e7740...
 ===========================================================`;
 
 /* -------------------------------------------------------------------------- */
-/* Batch B — AR-2026-000122 — the primary demonstration batch                 */
+/* Batch B — 07-FP-26-0122 — the primary demonstration batch                 */
 /* -------------------------------------------------------------------------- */
 
 const batchBSections: Section[] = [
@@ -829,7 +829,7 @@ const batchBSections: Section[] = [
         analyst: "Priya Sharma",
         loginAt: "08:42 AM · 30-Jul-2026",
         logoutAt: "09:15 AM · 30-Jul-2026",
-        pdfFilename: "Tiamo_KFA2004_AR2026000122_20260730.pdf",
+        pdfFilename: "Tiamo_KFA2004_07FP260122_20260730.pdf",
         auditTrail: TIAMO_AUDIT,
       },
     },
@@ -953,7 +953,7 @@ const batchBSections: Section[] = [
         analyst: "Priya Sharma",
         loginAt: "01:02 PM · 30-Jul-2026",
         logoutAt: "04:02 PM · 30-Jul-2026",
-        pdfFilename: "MassLynx_LCMS8060_AR2026000122_20260730.pdf",
+        pdfFilename: "MassLynx_LCMS8060_07FP260122_20260730.pdf",
         auditTrail: MASSLYNX_AUDIT,
       },
     },
@@ -961,8 +961,8 @@ const batchBSections: Section[] = [
 ];
 
 const batchB: Batch = {
-  id: "AR-2026-000122",
-  arNumber: "AR-2026-000122",
+  id: "07-FP-26-0122",
+  arNumber: "07-FP-26-0122",
   product: "Amoxicillin 250mg Tablet",
   batchNumber: "AMX-2026-0341",
   domain: "FINISHED_PRODUCT",
@@ -1062,8 +1062,8 @@ const batchASections: Section[] = [
 ];
 
 const batchA: Batch = {
-  id: "AR-2026-000121",
-  arNumber: "AR-2026-000121",
+  id: "07-FP-26-0121",
+  arNumber: "07-FP-26-0121",
   product: "Ciprofloxacin 500mg Tablet",
   batchNumber: "CIP-2026-0198",
   domain: "FINISHED_PRODUCT",
@@ -1083,8 +1083,8 @@ const batchA: Batch = {
 };
 
 const batchC: Batch = {
-  id: "AR-2026-000120",
-  arNumber: "AR-2026-000120",
+  id: "07-FP-26-0120",
+  arNumber: "07-FP-26-0120",
   product: "Metformin 500mg Tablet",
   batchNumber: "MET-2026-0452",
   domain: "FINISHED_PRODUCT",

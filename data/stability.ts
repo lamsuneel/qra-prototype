@@ -534,8 +534,8 @@ const sections: Section[] = [
 
 export const STABILITY_BATCHES: Batch[] = [
   {
-    id: "ST-AR-2026-000089-6M",
-    arNumber: "ST-AR-2026-000089-6M",
+    id: "07-ST-26-0089",
+    arNumber: "07-ST-26-0089",
     product: "Amoxicillin 250mg — 6-Month Accelerated",
     batchNumber: "AMX-2026-0288",
     domain: "STABILITY",

@@ -348,8 +348,8 @@ const sections: Section[] = [
 
 export const IPFP_BATCHES: Batch[] = [
   {
-    id: "IPFP-AR-2026-000122-03",
-    arNumber: "IPFP-AR-2026-000122-03",
+    id: "07-IPFP-26-0122",
+    arNumber: "07-IPFP-26-0122",
     product: "Amoxicillin 250mg — Compression Stage",
     batchNumber: "AMX-2026-0341-C03",
     domain: "IPFP",

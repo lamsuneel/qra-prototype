@@ -106,7 +106,6 @@ export default function BatchListPage() {
         <div className="mb-4">
           <BatchSearch
             variant="page"
-            placeholder="Search any batch — AR number, product or batch number..."
           />
         </div>
 

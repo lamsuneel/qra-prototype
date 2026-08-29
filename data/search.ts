@@ -9,6 +9,35 @@ import { DOMAIN_META, resultFor, type Batch, type Domain } from "@/types";
  * call and nothing to keep in sync.
  */
 
+/**
+ * The site AR number format: unit, review type, year, sequence.
+ *
+ *   07-FP-26-0001
+ *
+ * Validation is advisory only. The search matches on product, batch number
+ * and analyst too, so a query that is not an AR number is perfectly valid —
+ * the hint exists for someone who is clearly typing one and has it wrong.
+ */
+export const AR_TYPE_CODES = ["FP", "RM", "PM", "IPFP", "ST", "HS", "SFP", "PRS"] as const;
+
+export const AR_NUMBER_PATTERN =
+  /^\d{2}-(FP|RM|PM|IPFP|ST|HS|SFP|PRS)-\d{2}-\d{4}$/i;
+
+export const AR_NUMBER_EXAMPLE = "07-FP-26-0001";
+
+/**
+ * True where the query reads as an attempt at an AR number — it carries a
+ * hyphen and a digit — but does not match the format. A plain product name
+ * or a bare sequence number is not an attempt, and gets no hint.
+ */
+export const looksLikeMalformedAr = (query: string): boolean => {
+  const trimmed = query.trim();
+  if (trimmed.length < 3) return false;
+  if (!trimmed.includes("-") || !/\d/.test(trimmed)) return false;
+
+  return !AR_NUMBER_PATTERN.test(trimmed);
+};
+
 export interface SearchResult {
   arNumber: string;
   product: string;

@@ -22,17 +22,17 @@ export const RECENT_ACTIVITY: ActivityEntry[] = [
   {
     at: "11:20 AM",
     description:
-      "Anil Kulkarni completed the 6-month pull for ST-AR-2026-000089-6M (Amoxicillin 250mg accelerated)",
+      "Anil Kulkarni completed the 6-month pull for 07-ST-26-0089 (Amoxicillin 250mg accelerated)",
   },
   {
     at: "10:05 AM",
     description:
-      "Caliber LIMS results received for PM-AR-2026-008823 (HDPE Bottle 60ml) — 1 exception raised",
+      "Caliber LIMS results received for 07-PM-26-8823 (HDPE Bottle 60ml) — 1 exception raised",
   },
   {
     at: "Yesterday 14:35",
     description:
-      "Priya Sharma submitted AR-2026-000121 (Ciprofloxacin 500mg) for authorisation — 1 documented exception",
+      "Priya Sharma submitted 07-FP-26-0121 (Ciprofloxacin 500mg) for authorisation — 1 documented exception",
   },
 ];
 
@@ -86,25 +86,25 @@ export const DOMAIN_BREAKDOWN: DomainBreakdownRow[] = [
 export const MANAGEMENT_ALERTS: ManagementAlert[] = [
   {
     title: "SLA Breached — IPFP",
-    detail: "IPFP-AR-2026-000122-03 · Amoxicillin 250mg compression · 0.5 days overdue",
+    detail: "07-IPFP-26-0122 · Amoxicillin 250mg compression · 0.5 days overdue",
     severity: "high",
     label: "SLA Breached",
   },
   {
     title: "Approaching SLA — Raw Material",
-    detail: "RM-AR-2026-004417 · Amoxicillin Trihydrate API · 6 hours remaining",
+    detail: "07-RM-26-4417 · Amoxicillin Trihydrate API · 6 hours remaining",
     severity: "medium",
     label: "Approaching SLA",
   },
   {
     title: "OOS Open — Requires Close-Out",
-    detail: "OOS-2026-0089 · LCMS Genotoxic Impurity · AR-2026-000122",
+    detail: "OOS-2026-0089 · LCMS Genotoxic Impurity · 07-FP-26-0122",
     severity: "medium",
     label: "OOS Open",
   },
   {
     title: "OOS Open — Requires Close-Out",
-    detail: "OOS-2026-0091 · Known Impurity B at 6 months · ST-AR-2026-000089-6M",
+    detail: "OOS-2026-0091 · Known Impurity B at 6 months · 07-ST-26-0089",
     severity: "medium",
     label: "OOS Open",
   },
