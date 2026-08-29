@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import type { CheckItem } from "@/types";
 import { useReview } from "@/context/ReviewContext";
@@ -18,6 +18,17 @@ import { EvidencePanel, evidenceKind, expectationFor, readingFor } from "./Evide
  * The note is what unlocks Mark Section Reviewed for the section.
  */
 const CAL_DUE = /^Cal\. due (.+)$/;
+
+/**
+ * Quick-select observations. Starting points, never locked text — the
+ * reviewer can edit or replace whatever a template puts in the field, and
+ * typing straight into it without touching a template is equally valid.
+ */
+const TEMPLATES = [
+  "Reviewed — found satisfactory",
+  "Exception noted — investigation initiated",
+  "Deviation raised",
+] as const;
 
 /**
  * The placeholder tells the reviewer what to write, not merely that they may
@@ -45,6 +56,18 @@ export function FlaggedCard({
   const calibration = item.reference?.match(CAL_DUE)?.[1];
   const { noteFor, setNote, isNoted } = useReview();
   const [draft, setDraft] = useState(() => noteFor(item.id));
+  const noteRef = useRef<HTMLTextAreaElement>(null);
+
+  const applyTemplate = (text: string) => {
+    setDraft(text);
+    const field = noteRef.current;
+    if (!field) return;
+    field.focus();
+    /* Caret at the end, so the reviewer types on from the template. */
+    window.requestAnimationFrame(() => {
+      field.selectionStart = field.selectionEnd = field.value.length;
+    });
+  };
 
   const confirmed = isNoted(item.id);
 
@@ -151,28 +174,64 @@ export function FlaggedCard({
                 </span>
               </div>
             ) : (
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <input
-                  type="text"
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      confirm();
-                    }
-                  }}
-                  placeholder={notePlaceholder(item)}
-                  className="flex-1 rounded-[5px] border border-slate-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-navy-accent focus:ring-3 focus:ring-navy-accent/10"
-                />
-                <button
-                  type="button"
-                  onClick={confirm}
-                  className="shrink-0 cursor-pointer rounded-[5px] bg-compliant-text px-3.5 py-2 text-xs font-medium text-white transition-opacity duration-150 hover:opacity-90"
-                >
-                  Confirm
-                </button>
-              </div>
+              <>
+                <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                  {TEMPLATES.map((template) => (
+                    <button
+                      key={template}
+                      type="button"
+                      onClick={() => applyTemplate(template)}
+                      aria-pressed={draft === template}
+                      className={cn(
+                        "cursor-pointer rounded-full border px-2.5 py-[3px] text-[11px] transition-colors duration-150",
+                        "focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-1 focus-visible:outline-none",
+                        draft === template
+                          ? "border-navy-accent bg-blue-50 font-medium text-navy"
+                          : "border-slate-300 bg-white text-source-text hover:border-navy-accent hover:text-navy",
+                      )}
+                    >
+                      {template}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => applyTemplate("")}
+                    className={cn(
+                      "cursor-pointer rounded-full border border-dashed px-2.5 py-[3px] text-[11px] transition-colors duration-150",
+                      "focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-1 focus-visible:outline-none",
+                      "border-slate-300 bg-white text-source-text hover:border-navy-accent hover:text-navy",
+                    )}
+                  >
+                    Custom note
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <textarea
+                    ref={noteRef}
+                    rows={2}
+                    value={draft}
+                    onChange={(event) => setDraft(event.target.value)}
+                    onKeyDown={(event) => {
+                      /* Enter is a new line here; the button confirms, and so
+                         does the shortcut for anyone working from the keyboard. */
+                      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                        event.preventDefault();
+                        confirm();
+                      }
+                    }}
+                    placeholder={notePlaceholder(item)}
+                    className="flex-1 resize-y rounded-[5px] border border-slate-200 bg-white px-3 py-2 text-[13px] leading-relaxed outline-none focus:border-navy-accent focus:ring-3 focus:ring-navy-accent/10"
+                  />
+                  <button
+                    type="button"
+                    onClick={confirm}
+                    className="h-fit shrink-0 cursor-pointer rounded-[5px] bg-compliant-text px-3.5 py-2 text-xs font-medium text-white transition-opacity duration-150 hover:opacity-90"
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </EvidencePanel>
