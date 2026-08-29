@@ -74,6 +74,12 @@ export default function ReviewWorkspacePage() {
   const compliant = section.items.filter((item) => resultFor(item) === "COMPLIANT");
   const reviewed = sectionStatus(section.id) === "REVIEWED";
 
+  /* Derived rather than set per section, so the note appears wherever a
+     two-module standard record does and cannot fall out of step with it. */
+  const twoModuleStandards = section.items.some(
+    (item) => item.usageSource && item.potencySource,
+  );
+
   const openId =
     opened && opened.section === section.id ? opened.item : (flagged[0]?.id ?? null);
 
@@ -138,6 +144,13 @@ export default function ReviewWorkspacePage() {
                 instrument={section.standaloneInstrument}
                 onOpenPdf={pdf.openPdf}
               />
+            ) : null}
+
+            {twoModuleStandards ? (
+              <div className="mb-4 rounded-md border border-navy-accent/30 bg-blue-50 px-4 py-2.5 text-xs leading-relaxed text-navy">
+                Reference standard data is sourced from two Caliber LIMS modules.
+                Both are required for a complete review.
+              </div>
             ) : null}
 
             {section.paperLogbook ? (

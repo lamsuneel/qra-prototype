@@ -140,13 +140,20 @@ export function EvidencePanel({
     actualLines.push({ label: "Reference", value: item.reference });
   }
   if (calibration) actualLines.push({ label: "Calibration due", value: calibration });
-  actualLines.push({
-    label: "Source",
-    value:
-      item.source === "Paper Logbook"
-        ? "Paper Logbook — no electronic record"
-        : `${item.source} — ${evidenceKind(item)}`,
-  });
+  /* A reference standard is read from two LIMS modules, so the panel names
+     each one rather than collapsing them into a single source. */
+  if (item.usageSource && item.potencySource) {
+    actualLines.push({ label: "Usage data source", value: item.usageSource });
+    actualLines.push({ label: "Potency/assigned value source", value: item.potencySource });
+  } else {
+    actualLines.push({
+      label: "Source",
+      value:
+        item.source === "Paper Logbook"
+          ? "Paper Logbook — no electronic record"
+          : `${item.source} — ${evidenceKind(item)}`,
+    });
+  }
 
   return (
     <div className="mt-3">

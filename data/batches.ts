@@ -35,6 +35,8 @@ interface CompliantSpec {
   expected: string;
   actual: string;
   expectedSource?: string;
+  usageSource?: string;
+  potencySource?: string;
   source?: SourceSystem;
   /** Everything QRA read for this entry, shown when the row is expanded. */
   details?: DetailField[];
@@ -52,6 +54,8 @@ const compliant = (spec: CompliantSpec): CheckItem => ({
   expected: spec.expected,
   actual: spec.actual,
   expectedSource: spec.expectedSource,
+  usageSource: spec.usageSource,
+  potencySource: spec.potencySource,
   source: spec.source ?? LIMS,
   result: "COMPLIANT",
   details: spec.details,
@@ -67,6 +71,8 @@ interface FlaggedSpec {
   expected: string;
   actual: string;
   expectedSource: string;
+  usageSource?: string;
+  potencySource?: string;
   comparison: string;
   flagReason: string;
   flagAction: string;
@@ -82,6 +88,8 @@ const flagged = (spec: FlaggedSpec): CheckItem => ({
   expected: spec.expected,
   actual: spec.actual,
   expectedSource: spec.expectedSource,
+  usageSource: spec.usageSource,
+  potencySource: spec.potencySource,
   source: spec.source ?? LIMS,
   result: "FLAGGED",
   comparison: spec.comparison,
@@ -177,6 +185,8 @@ const chemicalsCompliant = () => [
 const standardsCompliant = () => [
   compliant({
     label: "Working Standard — Amoxicillin",
+    usageSource: "Caliber LIMS — Reference Standard Record",
+    potencySource: "Caliber LIMS — eLIMS Reference Standard Audit Trail",
     requiresQuantityCheck: true,
     prescribedQty: "25 mg (within 10–15% of 24.8 mg)",
     actualQty: "24.8 mg",
@@ -198,6 +208,8 @@ const standardsCompliant = () => [
   }),
   compliant({
     label: "Reference Standard — Amoxicillin",
+    usageSource: "Caliber LIMS — Reference Standard Record",
+    potencySource: "Caliber LIMS — eLIMS Reference Standard Audit Trail",
     requiresQuantityCheck: true,
     prescribedQty: "25 mg ± 2 mg",
     actualQty: "25.1 mg",
@@ -502,13 +514,23 @@ const batchBSections: Section[] = [
   section("rs", "Standards", 2, [
     compliant({
       label: "Reference Standard — Amoxicillin RS",
+      usageSource: "Caliber LIMS — Reference Standard Record",
+      potencySource: "Caliber LIMS — eLIMS Reference Standard Audit Trail",
+      details: [
+        { label: "Standard number", value: "RS-AMX-2024-12" },
+        { label: "Origin", value: "United States Pharmacopeia, catalogue 1033005" },
+        { label: "Assigned potency", value: "99.7 % on the anhydrous basis" },
+        { label: "Potency held in", value: "eLIMS Reference Standard Audit Trail" },
+        { label: "Status in LIMS", value: "Active" },
+        { label: "Expiry date", value: "15-Dec-2026" },
+      ],
       requiresQuantityCheck: true,
       prescribedQty: "50 mg ± 2 mg",
       actualQty: "50.3 mg",
       quantityComparison: "WITHIN TOLERANCE",
       reference: "RS-AMX-2024-12",
       expected: "Active lot, expiry on or after analysis date — SOP-STD-002",
-      actual: "RS-AMX-2024-12 — active, expiry 15-Dec-2026",
+      actual: "RS-AMX-2024-12 — active, expiry 15-Dec-2026, potency 99.7%",
       expectedSource: "SOP-STD-002",
     }),
   ]),
@@ -546,6 +568,8 @@ const batchBSections: Section[] = [
   section("disso", "Standards", 2, [
     compliant({
       label: "Reference Standard — Amoxicillin",
+      usageSource: "Caliber LIMS — Reference Standard Record",
+      potencySource: "Caliber LIMS — eLIMS Reference Standard Audit Trail",
       requiresQuantityCheck: true,
       prescribedQty: "25 mg ± 2 mg",
       actualQty: "25.1 mg",
@@ -793,13 +817,23 @@ const batchBSections: Section[] = [
   section("lcms", "Standards", 2, [
     compliant({
       label: "MpTS Reference Standard",
+      usageSource: "Caliber LIMS — Reference Standard Record",
+      potencySource: "Caliber LIMS — eLIMS Reference Standard Audit Trail",
+      details: [
+        { label: "Standard number", value: "RS-MPTS-2024-03" },
+        { label: "Origin", value: "Sigma-Aldrich, certified reference material" },
+        { label: "Assigned potency", value: "99.2 % as methyl p-toluenesulphonate" },
+        { label: "Potency held in", value: "eLIMS Reference Standard Audit Trail" },
+        { label: "Status in LIMS", value: "Active" },
+        { label: "Expiry date", value: "28-Feb-2027" },
+      ],
       requiresQuantityCheck: true,
       prescribedQty: "10 mg (within 10–15% of 9.8 mg)",
       actualQty: "9.8 mg",
       quantityComparison: "WITHIN TOLERANCE",
       reference: "RS-MPTS-2024-03",
       expected: "Active lot, expiry on or after analysis date — SOP-STD-002",
-      actual: "RS-MPTS-2024-03 — active, expiry 28-Feb-2027",
+      actual: "RS-MPTS-2024-03 — active, expiry 28-Feb-2027, potency 99.2%",
       expectedSource: "SOP-STD-002",
       source: "MassLynx",
     }),

@@ -25,6 +25,8 @@ export interface CompliantSpec {
   expected: string;
   actual: string;
   expectedSource?: string;
+  usageSource?: string;
+  potencySource?: string;
   source: SourceSystem;
   table?: EvidenceTable;
   /** Everything QRA read for this entry, shown when the row is expanded. */
@@ -43,6 +45,8 @@ export const compliant = (spec: CompliantSpec): CheckItem => ({
   expected: spec.expected,
   actual: spec.actual,
   expectedSource: spec.expectedSource,
+  usageSource: spec.usageSource,
+  potencySource: spec.potencySource,
   source: spec.source,
   result: "COMPLIANT",
   table: spec.table,
@@ -60,6 +64,8 @@ export interface FlaggedSpec {
   expected: string;
   actual: string;
   expectedSource: string;
+  usageSource?: string;
+  potencySource?: string;
   comparison: string;
   flagReason: string;
   flagAction: string;
@@ -76,6 +82,8 @@ export const flagged = (spec: FlaggedSpec): CheckItem => ({
   expected: spec.expected,
   actual: spec.actual,
   expectedSource: spec.expectedSource,
+  usageSource: spec.usageSource,
+  potencySource: spec.potencySource,
   source: spec.source,
   result: "FLAGGED",
   comparison: spec.comparison,

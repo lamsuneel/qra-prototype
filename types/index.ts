@@ -146,6 +146,15 @@ export interface CheckItem {
   actual: string;
   /** Named document the expectation comes from, e.g. "SOP-CHEM-003". */
   expectedSource?: string;
+
+  /**
+   * Reference and working standard records live in two Caliber LIMS modules:
+   * usage in the standard record itself, the assigned value in the eLIMS
+   * Reference Standard Audit Trail. Both are named so the reviewer — and an
+   * auditor — can see QRA read each of them.
+   */
+  usageSource?: string;
+  potencySource?: string;
   source: SourceSystem;
   result: ItemResult;
 

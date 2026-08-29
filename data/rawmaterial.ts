@@ -285,6 +285,8 @@ const sections: Section[] = [
     compliant({
       prefix: P,
       label: "Amoxicillin Trihydrate USP Reference Standard",
+      usageSource: "Caliber LIMS — Reference Standard Record",
+      potencySource: "Caliber LIMS — eLIMS Reference Standard Audit Trail",
       requiresQuantityCheck: true,
       prescribedQty: "25 mg ± 2 mg",
       actualQty: "25.2 mg",
