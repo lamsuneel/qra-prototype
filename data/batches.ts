@@ -70,6 +70,8 @@ interface FlaggedSpec {
   comparison: string;
   flagReason: string;
   flagAction: string;
+  /** Everything QRA read for this entry, shown when the row is expanded. */
+  details?: DetailField[];
   source?: SourceSystem;
 }
 
@@ -85,6 +87,7 @@ const flagged = (spec: FlaggedSpec): CheckItem => ({
   comparison: spec.comparison,
   flagReason: spec.flagReason,
   flagAction: spec.flagAction,
+  details: spec.details,
 });
 
 const section = (
@@ -242,6 +245,7 @@ const instrumentsCompliant = () => [
       { label: "Instrument ID", value: "BAL-2024-003" },
       { label: "Make and model", value: "Mettler Toledo XPR205" },
       { label: "Location", value: "QC Wet Chemistry, Room 214" },
+      { label: "Calibration status", value: "Calibrated — within interval" },
       { label: "Last calibrated", value: "10-Apr-2026" },
       { label: "Calibration due", value: "10-Oct-2026" },
       {
@@ -254,20 +258,19 @@ const instrumentsCompliant = () => [
   }),
   compliant({
     label: "Sonicator SON-2024-001",
+    details: [
+      { label: "Instrument ID", value: "SON-2024-001" },
+      { label: "Make and model", value: "Elma Elmasonic P30H" },
+      { label: "Calibration status", value: "Calibrated — within interval" },
+      { label: "Last calibrated", value: "22-Mar-2026" },
+      { label: "Calibration due", value: "22-Sep-2026" },
+      { label: "Record held in", value: "Caliber LIMS" },
+    ],
     reference: "Cal. due 22-Sep-2026",
     statusText: "Calibrated",
     expected: "Calibration due date after date of use — SOP-INST-004",
     actual: "SON-2024-001 — calibrated, due 22-Sep-2026, used 08:30 to 08:45",
     expectedSource: "SOP-INST-004",
-  }),
-  // LEVEL A — analyst qualification is checked as part of instrument review.
-  compliant({
-    label: "Analyst qualification — Priya Sharma",
-    reference: "QUAL-2026-0114",
-    statusText: "Qualified",
-    expected: "Current qualification for the instrument used — SOP-INST-004 §3.1",
-    actual: "Qualified for HPLC and balance operation, valid to 31-Mar-2027",
-    expectedSource: "SOP-INST-004 §3.1",
   }),
 ];
 
@@ -557,6 +560,14 @@ const batchBSections: Section[] = [
     // LEVEL D — demonstration scenario. Principal instrument for dissolution.
     flagged({
       label: "UV Spectrophotometer UV-2024-02 — calibration overdue",
+      details: [
+        { label: "Instrument ID", value: "UV-2024-02" },
+        { label: "Make and model", value: "Shimadzu UV-1900i" },
+        { label: "Calibration status", value: "Overdue — 29 days past due at date of use" },
+        { label: "Last calibrated", value: "01-Jan-2026" },
+        { label: "Calibration due", value: "01-Jul-2026" },
+        { label: "Record held in", value: "Caliber LIMS" },
+      ],
       reference: "Cal. due 01-Jul-2026",
       expected: "Calibration due date after date of use — SOP-INST-004",
       actual: "UV-2024-02 — calibration overdue since 01-Jul-2026, used 09:15 to 11:45",
@@ -569,6 +580,14 @@ const batchBSections: Section[] = [
     }),
     compliant({
       label: "Dissolution Apparatus DA-2024-001",
+      details: [
+        { label: "Instrument ID", value: "DA-2024-001" },
+        { label: "Make and model", value: "Electrolab TDT-08L" },
+        { label: "Calibration status", value: "Calibrated — within interval" },
+        { label: "Last calibrated", value: "15-May-2026" },
+        { label: "Calibration due", value: "15-Nov-2026" },
+        { label: "Record held in", value: "Caliber LIMS" },
+      ],
       reference: "Cal. due 15-Nov-2026",
       statusText: "Calibrated",
       expected: "Calibration due date after date of use — SOP-INST-004",
@@ -577,6 +596,14 @@ const batchBSections: Section[] = [
     }),
     compliant({
       label: "Weighing Balance BAL-2024-003",
+      details: [
+        { label: "Instrument ID", value: "BAL-2024-003" },
+        { label: "Make and model", value: "Mettler Toledo XPR205" },
+        { label: "Calibration status", value: "Calibrated — within interval" },
+        { label: "Last calibrated", value: "10-Apr-2026" },
+        { label: "Calibration due", value: "10-Oct-2026" },
+        { label: "Record held in", value: "Caliber LIMS" },
+      ],
       reference: "Cal. due 10-Oct-2026",
       statusText: "Calibrated",
       expected: "Calibration due date after date of use — SOP-INST-004",
@@ -666,6 +693,14 @@ const batchBSections: Section[] = [
   section("kf", "Instruments", 3, [
     compliant({
       label: "Karl Fischer Titrator KFT-2024-001",
+      details: [
+        { label: "Instrument ID", value: "KFT-2024-001" },
+        { label: "Make and model", value: "Metrohm 831 KF Coulometer" },
+        { label: "Calibration status", value: "Calibrated — within interval" },
+        { label: "Last calibrated", value: "30-May-2026" },
+        { label: "Calibration due", value: "30-Nov-2026" },
+        { label: "Record held in", value: "Caliber LIMS" },
+      ],
       reference: "Cal. due 30-Nov-2026",
       statusText: "Calibrated",
       expected: "Calibration due date after date of use — SOP-INST-004",
@@ -675,6 +710,14 @@ const batchBSections: Section[] = [
     }),
     compliant({
       label: "Weighing Balance BAL-2024-003",
+      details: [
+        { label: "Instrument ID", value: "BAL-2024-003" },
+        { label: "Make and model", value: "Mettler Toledo XPR205" },
+        { label: "Calibration status", value: "Calibrated — within interval" },
+        { label: "Last calibrated", value: "10-Apr-2026" },
+        { label: "Calibration due", value: "10-Oct-2026" },
+        { label: "Record held in", value: "Caliber LIMS" },
+      ],
       reference: "Cal. due 10-Oct-2026",
       statusText: "Calibrated",
       expected: "Calibration due date after date of use — SOP-INST-004",
@@ -764,6 +807,14 @@ const batchBSections: Section[] = [
   section("lcms", "Instruments", 3, [
     compliant({
       label: "LC-MS/MS LCMS-8060",
+      details: [
+        { label: "Instrument ID", value: "LCMS-8060" },
+        { label: "Make and model", value: "Shimadzu LCMS-8060" },
+        { label: "Calibration status", value: "Calibrated — within interval" },
+        { label: "Last calibrated", value: "15-Jun-2026" },
+        { label: "Calibration due", value: "15-Dec-2026" },
+        { label: "Record held in", value: "Caliber LIMS" },
+      ],
       reference: "Cal. due 15-Dec-2026",
       statusText: "Calibrated",
       expected: "Calibration due date after date of use — SOP-INST-004",
@@ -881,6 +932,14 @@ const batchASections: Section[] = [
     [
       compliant({
         label: "Weighing Balance BAL-2024-003",
+        details: [
+          { label: "Instrument ID", value: "BAL-2024-003" },
+          { label: "Make and model", value: "Mettler Toledo XPR205" },
+          { label: "Calibration status", value: "Calibrated — within interval" },
+          { label: "Last calibrated", value: "10-Apr-2026" },
+          { label: "Calibration due", value: "10-Oct-2026" },
+          { label: "Record held in", value: "Caliber LIMS" },
+        ],
         reference: "Cal. due 10-Oct-2026",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",
@@ -890,6 +949,14 @@ const batchASections: Section[] = [
       {
         ...flagged({
           label: "Sonicator SON-2024-002 — daily verification recorded late",
+          details: [
+            { label: "Instrument ID", value: "SON-2024-002" },
+            { label: "Make and model", value: "Elma Elmasonic P30H" },
+            { label: "Calibration status", value: "Calibrated — within interval" },
+            { label: "Last calibrated", value: "18-May-2026" },
+            { label: "Calibration due", value: "18-Nov-2026" },
+            { label: "Record held in", value: "Caliber LIMS" },
+          ],
           reference: "Cal. due 18-Nov-2026",
           expected:
             "Daily performance verification recorded before first use — SOP-INST-004 §5.2",
@@ -906,14 +973,6 @@ const batchASections: Section[] = [
           "Analyst confirmed verification was performed at 07:55 before use; the LIMS entry was made late. Documentation practice deviation DEV-2026-0217 raised. Result is unaffected.",
         noteAt: "01-Aug-2026 · 14:22",
       },
-      compliant({
-        label: "Analyst qualification — Priya Sharma",
-        reference: "QUAL-2026-0114",
-        statusText: "Qualified",
-        expected: "Current qualification for the instrument used — SOP-INST-004 §3.1",
-        actual: "Qualified for HPLC and balance operation, valid to 31-Mar-2027",
-        expectedSource: "SOP-INST-004 §3.1",
-      }),
     ],
     { status: "REVIEWED" },
   ),

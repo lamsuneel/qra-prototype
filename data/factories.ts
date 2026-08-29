@@ -63,6 +63,8 @@ export interface FlaggedSpec {
   comparison: string;
   flagReason: string;
   flagAction: string;
+  /** Everything QRA read for this entry, shown when the row is expanded. */
+  details?: DetailField[];
   source: SourceSystem;
   table?: EvidenceTable;
 }
@@ -79,6 +81,7 @@ export const flagged = (spec: FlaggedSpec): CheckItem => ({
   comparison: spec.comparison,
   flagReason: spec.flagReason,
   flagAction: spec.flagAction,
+  details: spec.details,
   table: spec.table,
 });
 
