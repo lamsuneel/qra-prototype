@@ -11,6 +11,7 @@ import { TopNav } from "@/components/layout/TopNav";
 import { BatchSearch } from "@/components/layout/BatchSearch";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { DomainCard } from "@/components/dashboard/DomainCard";
+import { ComingSoonCard } from "@/components/dashboard/ComingSoonCard";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -48,6 +49,15 @@ export default function DashboardPage() {
           {summaries.map((summary) => (
             <DomainCard key={summary.domain} summary={summary} />
           ))}
+
+          {/* Sixth card, after Stability. Display only — microbiology
+              parameters are reviewed today under the Finished Product and
+              Stability AR numbers. */}
+          <ComingSoonCard
+            name="Microbiology"
+            abbreviation="MB"
+            note="Parameters reviewed under FP and Stability AR numbers"
+          />
         </div>
 
         <section className="border-t border-slate-200 pt-5">
