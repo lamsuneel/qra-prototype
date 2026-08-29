@@ -54,7 +54,7 @@ export type SourceSystem =
   | "Spectrum ES"
   | "Mastersizer 3000"
   | "Qtegra ICP"
-  | "Ascom BRC2002"
+  | "Axicon Barcode Verifier"
   | "LabSolutions UV"
   | "iCDAS 1.2"
   | "Chamber Monitoring System"

@@ -77,9 +77,9 @@ Exported by     : S.NAIR (Analyst)
 --------------------------------------------------------------
 END OF AUDIT TRAIL`;
 
-const ASCOM_AUDIT = `ASCOM BRC2002 - BARCODE VERIFIER AUDIT TRAIL
-Instrument      : BRC-2025-001 (Ascom BRC2002)
-Software        : BRC2002 Verifier 4.1.7
+const AXICON_AUDIT = `AXICON BARCODE VERIFIER - AUDIT TRAIL
+Instrument      : BRC-2025-001 (Axicon Barcode Verifier)
+Software        : Axicon Verifier 4.1.7
 Standard        : ISO/IEC 15416 - linear symbol print quality
 Report exported : 12-Aug-2026 16:14:03
 Exported by     : S.NAIR (Analyst)
@@ -114,15 +114,15 @@ const SPECTRUM_PM: StandaloneInstrument = {
   auditTrail: SPECTRUM_PM_AUDIT,
 };
 
-const ASCOM: StandaloneInstrument = {
-  name: "Ascom BRC2002",
+const AXICON: StandaloneInstrument = {
+  name: "Axicon Barcode Verifier",
   version: "4.1.7",
-  source: "Ascom BRC2002",
+  source: "Axicon Barcode Verifier",
   analyst: "Sunita Nair",
   loginAt: "12-Aug-2026 15:40",
   logoutAt: "12-Aug-2026 15:58",
-  pdfFilename: "AscomBRC2002_BRC2025001_HDPE-2026-1147_12Aug2026.pdf",
-  auditTrail: ASCOM_AUDIT,
+  pdfFilename: "AxiconVerifier_BRC2025001_HDPE-2026-1147_12Aug2026.pdf",
+  auditTrail: AXICON_AUDIT,
 };
 
 /* -------------------------------------------------------------------------- */
@@ -242,7 +242,7 @@ const sections: Section[] = [
           "Overall print quality grade B or better — ISO/IEC 15416 and SOP-PM-QC-004 §6.3",
         actual: "Mean overall grade C (1.74) across five labels",
         expectedSource: "SOP-PM-QC-004 §6.3",
-        source: "Ascom BRC2002",
+        source: "Axicon Barcode Verifier",
         comparison:
           "Every one of the five labels verified graded C; none reached the grade B minimum, with modulation and defects the limiting parameters",
         flagReason:
@@ -269,7 +269,7 @@ const sections: Section[] = [
         expected: "Calibration card verified before the first scan — SOP-PM-QC-004 §5.1",
         actual: "Calibration verified at 15:41 against the EAN-13 reference card",
         expectedSource: "SOP-PM-QC-004 §5.1",
-        source: "Ascom BRC2002",
+        source: "Axicon Barcode Verifier",
       }),
       compliant({
         prefix: P,
@@ -279,7 +279,7 @@ const sections: Section[] = [
         expected: "GTIN and batch number matching the packing order — SOP-PM-QC-004 §6.1",
         actual: "GTIN 08901234567890, batch HDPE-2026-1147 — decoded correctly on all five labels",
         expectedSource: "SOP-PM-QC-004 §6.1",
-        source: "Ascom BRC2002",
+        source: "Axicon Barcode Verifier",
         details: [
           { label: "Symbology", value: "GS1-128" },
           { label: "GTIN decoded", value: "08901234567890" },
@@ -287,12 +287,12 @@ const sections: Section[] = [
           { label: "Packing order", value: "PO-2026-0774" },
           { label: "Label roll", value: "LBL-2026-0771" },
           { label: "Labels verified", value: "5 of 5 decoded without error" },
-          { label: "Verifier", value: "BRC-2025-001, Ascom BRC2002" },
+          { label: "Verifier", value: "BRC-2025-001, Axicon Barcode Verifier" },
           { label: "Read on", value: "12-Aug-2026 · 15:44 to 15:53" },
         ],
       }),
     ],
-    { standaloneInstrument: ASCOM },
+    { standaloneInstrument: AXICON },
   ),
 
   /* --- Weight ------------------------------------------------------------- */
@@ -391,7 +391,7 @@ export const PACKING_MATERIAL_BATCHES: Batch[] = [
     dataSources: [
       "Caliber LIMS",
       "Spectrum ES",
-      "Ascom BRC2002",
+      "Axicon Barcode Verifier",
       "Paper Logbook",
     ],
   },
