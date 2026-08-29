@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 import { orderedSections, sectionSlug } from "@/data";
 import { useReview } from "@/context/ReviewContext";
-import { resultFor, type Batch, type Section } from "@/types";
+import { requiresNote, resultFor, type Batch, type Section } from "@/types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -30,16 +30,20 @@ export function BottomNavBar({
   const reviewed = sectionStatus(section.id) === "REVIEWED";
   const unlocked = canMarkReviewed(section);
 
-  /* Name the entry that is actually blocking, not "flagged items". */
-  const flags = section.items.filter((item) => resultFor(item) === "FLAGGED");
-  const outstanding = flags.filter((item) => !isNoted(item.id));
+  /* Name the entry that is actually blocking, not "flagged items". The two
+     kinds block for opposite reasons, so the message says which. */
+  const awaiting = section.items.filter(requiresNote);
+  const outstanding = awaiting.filter((item) => !isNoted(item.id));
   const blocker = outstanding[0];
+  const blockerFlagged = blocker ? resultFor(blocker) === "FLAGGED" : false;
   const blockingMessage = blocker
-    ? flags.length > 1
-      ? `${outstanding.length} of ${flags.length} flagged entries still ${
+    ? awaiting.length > 1
+      ? `${outstanding.length} of ${awaiting.length} entries still ${
           outstanding.length === 1 ? "needs" : "need"
         } your note — ${blocker.label}.`
-      : `Open the flagged entry “${blocker.label}” and add your observation note to continue.`
+      : blockerFlagged
+        ? `Open the flagged entry “${blocker.label}” and add your observation note to continue.`
+        : `Confirm your worksheet verification of “${blocker.label}” to continue.`
     : null;
 
   const goTo = (target: Section) =>
@@ -63,7 +67,9 @@ export function BottomNavBar({
           disabled={!previous}
           /* The accessible name must contain the visible label — WCAG 2.5.3. */
           aria-label={
-            previous ? `Previous Section: ${previous.name}` : "Previous Section, none"
+            previous
+              ? `Previous Section: ${previous.name}`
+              : "Previous Section, none"
           }
           onClick={() => previous && goTo(previous)}
           className={cn(

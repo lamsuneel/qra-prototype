@@ -20,7 +20,7 @@ import {
 
 import { ALL_BATCHES, getBatch, orderedSections } from "@/data";
 import { getProfile } from "@/data/profiles";
-import { resultFor } from "@/types";
+import { requiresNote } from "@/types";
 import type { BatchStatus, Profile, Section, SectionStatus } from "@/types";
 
 interface ReviewContextValue {
@@ -56,7 +56,9 @@ interface ReviewContextValue {
 const ReviewContext = createContext<ReviewContextValue | null>(null);
 
 const seedBatchStatuses = (): Record<string, BatchStatus> =>
-  Object.fromEntries(ALL_BATCHES.map((batch) => [batch.arNumber, batch.status]));
+  Object.fromEntries(
+    ALL_BATCHES.map((batch) => [batch.arNumber, batch.status]),
+  );
 
 /**
  * A batch that arrives already submitted carries the notes its reviewer wrote
@@ -83,9 +85,13 @@ const seedSectionStatuses = (): Record<string, SectionStatus> =>
 export function ReviewProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>(seedNotes);
-  const [reviewed, setReviewed] = useState<Record<string, SectionStatus>>(seedSectionStatuses);
-  const [statuses, setStatuses] = useState<Record<string, BatchStatus>>(seedBatchStatuses);
-  const [returnReasons, setReturnReasons] = useState<Record<string, string>>({});
+  const [reviewed, setReviewed] =
+    useState<Record<string, SectionStatus>>(seedSectionStatuses);
+  const [statuses, setStatuses] =
+    useState<Record<string, BatchStatus>>(seedBatchStatuses);
+  const [returnReasons, setReturnReasons] = useState<Record<string, string>>(
+    {},
+  );
 
   /* ---------------------------------------------------------------- */
   /* Profile                                                          */
@@ -132,13 +138,15 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
   );
 
   /**
-   * A section unlocks once every flagged item in it carries a note. Sections
-   * with nothing flagged unlock immediately — there is nothing to confirm.
+   * A section unlocks once every entry that is not compliant carries a note —
+   * flagged entries and entries QRA could not conclude alike. Sections where
+   * everything came back compliant unlock immediately: there is nothing for
+   * the reviewer to confirm.
    */
   const canMarkReviewed = useCallback(
     (section: Section) =>
       section.items
-        .filter((item) => resultFor(item) === "FLAGGED")
+        .filter(requiresNote)
         .every((item) => (notes[item.id] ?? "").trim().length > 0),
     [notes],
   );
@@ -156,9 +164,12 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
     [statuses],
   );
 
-  const setBatchStatus = useCallback((arNumber: string, status: BatchStatus) => {
-    setStatuses((current) => ({ ...current, [arNumber]: status }));
-  }, []);
+  const setBatchStatus = useCallback(
+    (arNumber: string, status: BatchStatus) => {
+      setStatuses((current) => ({ ...current, [arNumber]: status }));
+    },
+    [],
+  );
 
   const submitForAuthorisation = useCallback(
     (arNumber: string) => setBatchStatus(arNumber, "AWAITING_AUTHORISATION"),
@@ -254,11 +265,14 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return <ReviewContext.Provider value={value}>{children}</ReviewContext.Provider>;
+  return (
+    <ReviewContext.Provider value={value}>{children}</ReviewContext.Provider>
+  );
 }
 
 export function useReview(): ReviewContextValue {
   const context = useContext(ReviewContext);
-  if (!context) throw new Error("useReview must be used inside a ReviewProvider");
+  if (!context)
+    throw new Error("useReview must be used inside a ReviewProvider");
   return context;
 }

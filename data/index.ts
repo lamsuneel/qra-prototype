@@ -63,7 +63,9 @@ export const sectionSlug = (section: Section): string =>
   section.id.split("::").pop() as string;
 
 export const getBatch = (id: string): Batch | undefined =>
-  ALL_BATCHES.find((batch) => batch.arNumber.toUpperCase() === id.trim().toUpperCase());
+  ALL_BATCHES.find(
+    (batch) => batch.arNumber.toUpperCase() === id.trim().toUpperCase(),
+  );
 
 export const batchesForDomain = (domain: Domain): Batch[] =>
   ALL_BATCHES.filter((batch) => batch.domain === domain);
@@ -71,19 +73,43 @@ export const batchesForDomain = (domain: Domain): Batch[] =>
 export const flaggedItemsInBatch = (batch: Batch): number =>
   batch.sections.reduce(
     (total, section) =>
-      total + section.items.filter((item) => resultFor(item) === "FLAGGED").length,
+      total +
+      section.items.filter((item) => resultFor(item) === "FLAGGED").length,
     0,
   );
 
+/**
+ * Every entry behind a parameter's exception count, named with the section it
+ * sits in. The badge is a number; this is what the number is made of, so a
+ * count can be read back against the entries rather than taken on trust.
+ *
+ * Only FLAGGED entries count. An entry needing verification is outstanding
+ * work, not an exception, and a compliant one is neither.
+ */
+export const exceptionContributors = (
+  batch: Batch,
+  parameterId: string,
+): { section: string; item: string }[] =>
+  sectionsForParameter(batch, parameterId).flatMap((section) =>
+    section.items
+      .filter((item) => resultFor(item) === "FLAGGED")
+      .map((item) => ({ section: section.name, item: item.label })),
+  );
+
 /** Sections belonging to one test parameter, in display order. */
-export const sectionsForParameter = (batch: Batch, parameterId: string): Section[] =>
+export const sectionsForParameter = (
+  batch: Batch,
+  parameterId: string,
+): Section[] =>
   batch.sections
     .filter((section) => section.parameter === parameterId)
     .sort((a, b) => a.order - b.order);
 
 /** Flat ordered walk of every section, used by Previous / Next navigation. */
 export const orderedSections = (batch: Batch): Section[] =>
-  batch.parameters.flatMap((parameter) => sectionsForParameter(batch, parameter.id));
+  batch.parameters.flatMap((parameter) =>
+    sectionsForParameter(batch, parameter.id),
+  );
 
 /** The most severe SLA state present in a set of batches. */
 const worstSla = (batches: Batch[]): SlaStatus => {
@@ -96,8 +122,12 @@ export const domainSummaries = (): DomainSummary[] =>
   DOMAINS.map((meta) => {
     const batches = batchesForDomain(meta.id);
     const sla = worstSla(batches);
-    const breached = batches.filter((batch) => batch.slaStatus === "red").length;
-    const approaching = batches.filter((batch) => batch.slaStatus === "amber").length;
+    const breached = batches.filter(
+      (batch) => batch.slaStatus === "red",
+    ).length;
+    const approaching = batches.filter(
+      (batch) => batch.slaStatus === "amber",
+    ).length;
 
     const slaNote =
       sla === "red"
@@ -109,11 +139,22 @@ export const domainSummaries = (): DomainSummary[] =>
     return {
       domain: meta.id,
       batchCount: batches.length,
-      flaggedCount: batches.reduce((total, batch) => total + flaggedItemsInBatch(batch), 0),
-      needsReviewCount: batches.filter((batch) => batch.status === "NEEDS_REVIEW").length,
+      flaggedCount: batches.reduce(
+        (total, batch) => total + flaggedItemsInBatch(batch),
+        0,
+      ),
+      needsReviewCount: batches.filter(
+        (batch) => batch.status === "NEEDS_REVIEW",
+      ).length,
       slaStatus: sla,
       slaNote,
     };
   });
 
-export { FINISHED_PRODUCT_BATCHES, RAW_MATERIAL_BATCHES, PACKING_MATERIAL_BATCHES, IPFP_BATCHES, STABILITY_BATCHES };
+export {
+  FINISHED_PRODUCT_BATCHES,
+  RAW_MATERIAL_BATCHES,
+  PACKING_MATERIAL_BATCHES,
+  IPFP_BATCHES,
+  STABILITY_BATCHES,
+};

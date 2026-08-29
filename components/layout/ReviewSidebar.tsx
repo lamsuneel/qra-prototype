@@ -1,8 +1,14 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { orderedSections, sectionSlug, sectionsForParameter } from "@/data";
+import {
+  exceptionContributors,
+  orderedSections,
+  sectionSlug,
+  sectionsForParameter,
+} from "@/data";
 import { useReview } from "@/context/ReviewContext";
 import { resultFor, type Batch } from "@/types";
 import { cn } from "@/lib/utils";
@@ -25,6 +31,23 @@ export function ReviewSidebar({
   const params = useSearchParams();
   const { sectionStatus } = useReview();
 
+  /*
+   * What each exception badge is made of, for anyone checking a count against
+   * the entries behind it. Development only — the demo build stays silent.
+   */
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+    console.groupCollapsed(`QRA exception counts — ${batch.arNumber}`);
+    for (const parameter of batch.parameters) {
+      const contributors = exceptionContributors(batch, parameter.id);
+      console.log(
+        `${parameter.shortName}: ${contributors.length}`,
+        contributors.map((entry) => `${entry.section} → ${entry.item}`),
+      );
+    }
+    console.groupEnd();
+  }, [batch]);
+
   /* Arriving from search, mark where the work still is. */
   const fromSearch = params.get("from") === "search";
   const firstIncomplete = orderedSections(batch).find(
@@ -44,7 +67,9 @@ export function ReviewSidebar({
           const sections = sectionsForParameter(batch, parameter.id);
           const flags = sections.reduce(
             (total, section) =>
-              total + section.items.filter((item) => resultFor(item) === "FLAGGED").length,
+              total +
+              section.items.filter((item) => resultFor(item) === "FLAGGED")
+                .length,
             0,
           );
           const active = parameter.id === parameterId;
@@ -54,7 +79,10 @@ export function ReviewSidebar({
               key={parameter.id}
               type="button"
               onClick={() =>
-                go(parameter.id, sections[0] ? sectionSlug(sections[0]) : sectionId)
+                go(
+                  parameter.id,
+                  sections[0] ? sectionSlug(sections[0]) : sectionId,
+                )
               }
               className={cn(
                 "flex w-full cursor-pointer items-center gap-2 border-l-[3px] px-3.5 py-[7px] text-left transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none",
@@ -69,7 +97,9 @@ export function ReviewSidebar({
                   flags > 0 ? "bg-flagged-text" : "bg-compliant-text",
                 )}
               />
-              <span className="flex-1 truncate text-xs">{parameter.shortName}</span>
+              <span className="flex-1 truncate text-xs">
+                {parameter.shortName}
+              </span>
               {flags > 0 ? (
                 <span className="rounded bg-flagged-bg px-[5px] text-[10px] text-flagged-text">
                   {flags}
@@ -85,7 +115,9 @@ export function ReviewSidebar({
           Sections
         </div>
         {sectionsForParameter(batch, parameterId).map((section) => {
-          const flags = section.items.filter((item) => resultFor(item) === "FLAGGED").length;
+          const flags = section.items.filter(
+            (item) => resultFor(item) === "FLAGGED",
+          ).length;
           const reviewed = sectionStatus(section.id) === "REVIEWED";
           const active = section.id === sectionId;
           const pulse = fromSearch && section.id === firstIncomplete;

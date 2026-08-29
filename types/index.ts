@@ -79,15 +79,30 @@ export const DOMAINS: DomainMeta[] = [
     abbreviation: "FP",
     slug: "finished-product",
   },
-  { id: "RAW_MATERIAL", name: "Raw Material", abbreviation: "RM", slug: "raw-material" },
+  {
+    id: "RAW_MATERIAL",
+    name: "Raw Material",
+    abbreviation: "RM",
+    slug: "raw-material",
+  },
   {
     id: "PACKING_MATERIAL",
     name: "Packing Material",
     abbreviation: "PM",
     slug: "packing-material",
   },
-  { id: "IPFP", name: "In-Process Finished Product", abbreviation: "IPFP", slug: "ipfp" },
-  { id: "STABILITY", name: "Stability", abbreviation: "STB", slug: "stability" },
+  {
+    id: "IPFP",
+    name: "In-Process Finished Product",
+    abbreviation: "IPFP",
+    slug: "ipfp",
+  },
+  {
+    id: "STABILITY",
+    name: "Stability",
+    abbreviation: "STB",
+    slug: "stability",
+  },
 ];
 
 export const DOMAIN_BY_SLUG: Record<string, DomainMeta> = Object.fromEntries(
@@ -433,7 +448,8 @@ export const resultFor = (item: CheckItem): ItemResult => {
   if (item.inactivationStatus === "Pending Approval") return "FLAGGED";
 
   /* A broken audit trail is a finding on its own, however the run read. */
-  if (item.auditTrailSequence?.some((entry) => entry.status !== "ok")) return "FLAGGED";
+  if (item.auditTrailSequence?.some((entry) => entry.status !== "ok"))
+    return "FLAGGED";
   if (item.serialContinuity?.gap) return "FLAGGED";
 
   if (item.requiresQuantityCheck && !(item.prescribedQty && item.actualQty)) {
@@ -442,6 +458,16 @@ export const resultFor = (item: CheckItem): ItemResult => {
 
   return item.result;
 };
+
+/**
+ * An entry the reviewer has to write against before the section can be
+ * marked reviewed. Flagged, because QRA compared and the comparison failed;
+ * or needing verification, because QRA could not compare at all and the
+ * reviewer has to do it against the worksheet. Compliant entries ask for
+ * nothing.
+ */
+export const requiresNote = (item: CheckItem): boolean =>
+  resultFor(item) !== "COMPLIANT";
 
 /** MATCH, WITHIN TOLERANCE or MISMATCH, where both quantities are present. */
 export const quantityComparison = (item: CheckItem): string | null => {
@@ -458,7 +484,9 @@ export const canMarkSectionReviewed = (
 ): boolean =>
   section.items
     .filter((item) => resultFor(item) === "FLAGGED")
-    .every((item) => (notes[item.id] ?? item.reviewerNote ?? "").trim().length > 0);
+    .every(
+      (item) => (notes[item.id] ?? item.reviewerNote ?? "").trim().length > 0,
+    );
 
 export const flaggedCount = (section: Section): number =>
   section.items.filter((item) => resultFor(item) === "FLAGGED").length;
