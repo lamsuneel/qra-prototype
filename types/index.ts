@@ -153,6 +153,13 @@ export interface SerialContinuity {
 export interface CheckItem {
   id: string;
   label: string;
+  /** A second line under the label, saying what the finding requires. */
+  subLabel?: string;
+  /**
+   * What kind of exception this is, for the heading of a flagged entry.
+   * Stated where it matters rather than inferred from the wording.
+   */
+  exceptionType?: string;
   /** Secondary identifier shown beside the label, e.g. a lot number. */
   reference?: string;
   /** Short status word shown on a compliant row, e.g. "Active". */

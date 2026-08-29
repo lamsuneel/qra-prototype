@@ -105,6 +105,9 @@ export function FlaggedCard({
           >
             {item.label}
           </div>
+          {item.subLabel ? (
+            <div className="mt-0.5 text-[12px] text-source-text">{item.subLabel}</div>
+          ) : null}
 
           <div className="mt-0.5 text-[11px] text-source-text">
             <span className="text-slate-400">Expected: </span>

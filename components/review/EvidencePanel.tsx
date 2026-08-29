@@ -17,8 +17,13 @@ import { AuditTrailTimeline } from "./AuditTrailTimeline";
 
 const CAL_DUE = /^Cal\. due (.+)$/;
 
-/** What kind of exception this is, for the heading of a flagged entry. */
+/**
+ * What kind of exception this is, for the heading of a flagged entry. An
+ * entry may state its own type; the rest are inferred from their wording.
+ */
 export const flagType = (item: CheckItem): string => {
+  if (item.exceptionType) return item.exceptionType;
+
   const text = `${item.reference ?? ""} ${item.label} ${item.flagReason ?? ""}`;
 
   if (/OOS/.test(text)) return "OOS Result";

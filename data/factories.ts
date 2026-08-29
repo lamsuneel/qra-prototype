@@ -22,6 +22,8 @@ const nextId = (prefix: string) => `${prefix}-${(counter += 1)}`;
 export interface CompliantSpec {
   prefix: string;
   label: string;
+  subLabel?: string;
+  exceptionType?: string;
   reference?: string;
   statusText?: string;
   expected: string;
@@ -53,6 +55,8 @@ export interface CompliantSpec {
 export const compliant = (spec: CompliantSpec): CheckItem => ({
   id: nextId(spec.prefix),
   label: spec.label,
+  subLabel: spec.subLabel,
+  exceptionType: spec.exceptionType,
   reference: spec.reference,
   statusText: spec.statusText ?? "Active",
   expected: spec.expected,
@@ -80,6 +84,8 @@ export const compliant = (spec: CompliantSpec): CheckItem => ({
 export interface FlaggedSpec {
   prefix: string;
   label: string;
+  subLabel?: string;
+  exceptionType?: string;
   reference?: string;
   expected: string;
   actual: string;
@@ -102,6 +108,8 @@ export interface FlaggedSpec {
 export const flagged = (spec: FlaggedSpec): CheckItem => ({
   id: nextId(spec.prefix),
   label: spec.label,
+  subLabel: spec.subLabel,
+  exceptionType: spec.exceptionType,
   reference: spec.reference,
   expected: spec.expected,
   actual: spec.actual,

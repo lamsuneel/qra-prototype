@@ -32,6 +32,8 @@ const nextId = (prefix: string) => `${prefix}-${(seq += 1)}`;
 
 interface CompliantSpec {
   label: string;
+  subLabel?: string;
+  exceptionType?: string;
   reference?: string;
   statusText?: string;
   expected: string;
@@ -62,6 +64,8 @@ interface CompliantSpec {
 const compliant = (spec: CompliantSpec): CheckItem => ({
   id: nextId("item"),
   label: spec.label,
+  subLabel: spec.subLabel,
+  exceptionType: spec.exceptionType,
   reference: spec.reference,
   statusText: spec.statusText ?? "Active",
   expected: spec.expected,
@@ -87,6 +91,8 @@ const compliant = (spec: CompliantSpec): CheckItem => ({
 
 interface FlaggedSpec {
   label: string;
+  subLabel?: string;
+  exceptionType?: string;
   reference?: string;
   expected: string;
   actual: string;
@@ -108,6 +114,8 @@ interface FlaggedSpec {
 const flagged = (spec: FlaggedSpec): CheckItem => ({
   id: nextId("item"),
   label: spec.label,
+  subLabel: spec.subLabel,
+  exceptionType: spec.exceptionType,
   reference: spec.reference,
   expected: spec.expected,
   actual: spec.actual,
@@ -931,16 +939,23 @@ const batchBSections: Section[] = [
     4,
     [
       flagged({
-        label: "Methyl p-toluenesulphonate — exceeds ICH M7 limit",
+        /*
+         * QRA read this from the analytical data during review and surfaced
+         * it. It does not claim to have prevented anything, and it makes no
+         * recommendation about the batch — the reviewer decides what follows.
+         */
+        label: "OOS Result — Genotoxic Impurity",
+        subLabel: "Requires OOS investigation per site SOP",
+        exceptionType: "OOS Result",
         reference: "OOS-2026-0089",
         expected: "Not more than 0.05 ppm — ICH M7 permitted daily exposure",
         actual: "0.08 ppm (mean of 3 injections: 0.081, 0.079, 0.080)",
         expectedSource: "ICH M7",
         comparison: "Reported result exceeds the ICH M7 permitted limit by 0.03 ppm",
         flagReason:
-          "Genotoxic impurity result 0.08 ppm exceeds the ICH M7 permitted limit of 0.05 ppm. OOS investigation OOS-2026-0089 has been initiated and the batch is on hold.",
+          "Result (0.08 ppm) exceeds ICH M7 specification limit (NMT 0.05 ppm). Source: MassLynx via Caliber LIMS.",
         flagAction:
-          "Do not progress the batch disposition until OOS-2026-0089 is closed. Confirm the investigation reference, the hold status, and that the supervisor has been notified.",
+          "Raise OOS number in QMS. Do not release batch until investigation complete and root cause identified.",
         source: "MassLynx",
       }),
       compliant({
