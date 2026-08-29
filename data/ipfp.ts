@@ -281,6 +281,14 @@ const sections: Section[] = [
       compliant({
         prefix: P,
         label: "Karl Fischer Coulometer KFA-2004-01",
+        auditTrailSequence: [
+          { step: 1, label: "Conditioning started", timestamp: "03-Aug-2026 14:23:40", status: "ok" },
+          { step: 2, label: "Analysis started", timestamp: "03-Aug-2026 14:24:02", status: "ok" },
+          { step: 3, label: "Weight added", timestamp: "03-Aug-2026 14:29:44", status: "ok" },
+          { step: 4, label: "Conditioning stopped", timestamp: "03-Aug-2026 14:40:10", status: "ok" },
+          { step: 5, label: "Finished", timestamp: "03-Aug-2026 14:40:32", status: "ok" },
+        ],
+        serialContinuity: { range: "Trial #001 – #003" },
         reference: "Cal. due 08-Feb-2027",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",

@@ -2,6 +2,7 @@ import type { CheckItem } from "@/types";
 import { quantityComparison, resultFor } from "@/types";
 import { SourceBadge } from "./Badges";
 import { EvidenceTable } from "./EvidenceTable";
+import { AuditTrailTimeline } from "./AuditTrailTimeline";
 
 /**
  * The evidence visibility principle, in one component.
@@ -243,6 +244,11 @@ export function EvidencePanel({
           ))}
         </dl>
       ) : null}
+
+      <AuditTrailTimeline
+        steps={item.auditTrailSequence}
+        continuity={item.serialContinuity}
+      />
 
       {item.table ? <EvidenceTable table={item.table} /> : null}
 

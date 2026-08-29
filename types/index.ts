@@ -134,6 +134,22 @@ export interface DetailField {
   value: string;
 }
 
+/** One entry in an instrument's own audit trail, in the order it was written. */
+export interface AuditTrailStep {
+  step: number;
+  label: string;
+  timestamp: string;
+  status: "ok" | "missing" | "out-of-order";
+}
+
+/** The run of trial numbers reviewed, and any break in it. */
+export interface SerialContinuity {
+  /** The span reviewed, e.g. "Trial #001 – #004". */
+  range: string;
+  /** Stated only where the run is broken, e.g. "Gap detected: #003 missing". */
+  gap?: string;
+}
+
 export interface CheckItem {
   id: string;
   label: string;
@@ -191,6 +207,13 @@ export interface CheckItem {
   inactivationApprovalDate?: string;
   /** Stated where the comparison is not a plain equality. */
   quantityComparison?: "MATCH" | "WITHIN TOLERANCE" | "MISMATCH";
+
+  /**
+   * The instrument's own audit trail, which the reviewer has to read in
+   * order. A step out of order or missing is a finding in itself.
+   */
+  auditTrailSequence?: AuditTrailStep[];
+  serialContinuity?: SerialContinuity;
 
   /** Sample sets and trends that belong with this item, rendered inline. */
   table?: EvidenceTable;
@@ -398,6 +421,10 @@ export const resultFor = (item: CheckItem): ItemResult => {
   /* An inactivation that has not been authorised is an open question, so the
      entry is flagged whatever the data says. */
   if (item.inactivationStatus === "Pending Approval") return "FLAGGED";
+
+  /* A broken audit trail is a finding on its own, however the run read. */
+  if (item.auditTrailSequence?.some((entry) => entry.status !== "ok")) return "FLAGGED";
+  if (item.serialContinuity?.gap) return "FLAGGED";
 
   if (item.requiresQuantityCheck && !(item.prescribedQty && item.actualQty)) {
     return "NEEDS_VERIFICATION";

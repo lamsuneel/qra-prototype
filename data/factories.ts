@@ -1,6 +1,8 @@
 import type {
+  AuditTrailStep,
   CheckItem,
   DetailField,
+  SerialContinuity,
   EvidenceTable,
   Section,
   SectionStatus,
@@ -44,6 +46,8 @@ export interface CompliantSpec {
   comparison?: string;
   flagReason?: string;
   flagAction?: string;
+  auditTrailSequence?: AuditTrailStep[];
+  serialContinuity?: SerialContinuity;
 }
 
 export const compliant = (spec: CompliantSpec): CheckItem => ({
@@ -66,6 +70,8 @@ export const compliant = (spec: CompliantSpec): CheckItem => ({
   quantityComparison: spec.quantityComparison,
   inactivationStatus: spec.inactivationStatus,
   inactivationApprovalDate: spec.inactivationApprovalDate,
+  auditTrailSequence: spec.auditTrailSequence,
+  serialContinuity: spec.serialContinuity,
   comparison: spec.comparison,
   flagReason: spec.flagReason,
   flagAction: spec.flagAction,
@@ -85,6 +91,8 @@ export interface FlaggedSpec {
   comparison: string;
   flagReason: string;
   flagAction: string;
+  auditTrailSequence?: AuditTrailStep[];
+  serialContinuity?: SerialContinuity;
   /** Everything QRA read for this entry, shown when the row is expanded. */
   details?: DetailField[];
   source: SourceSystem;
@@ -105,6 +113,8 @@ export const flagged = (spec: FlaggedSpec): CheckItem => ({
   comparison: spec.comparison,
   flagReason: spec.flagReason,
   flagAction: spec.flagAction,
+  auditTrailSequence: spec.auditTrailSequence,
+  serialContinuity: spec.serialContinuity,
   details: spec.details,
   table: spec.table,
 });

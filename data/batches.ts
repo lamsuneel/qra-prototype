@@ -1,7 +1,9 @@
 import type {
+  AuditTrailStep,
   Batch,
   CheckItem,
   DetailField,
+  SerialContinuity,
   Section,
   SourceSystem,
   TestParameter,
@@ -53,6 +55,8 @@ interface CompliantSpec {
   comparison?: string;
   flagReason?: string;
   flagAction?: string;
+  auditTrailSequence?: AuditTrailStep[];
+  serialContinuity?: SerialContinuity;
 }
 
 const compliant = (spec: CompliantSpec): CheckItem => ({
@@ -74,6 +78,8 @@ const compliant = (spec: CompliantSpec): CheckItem => ({
   quantityComparison: spec.quantityComparison,
   inactivationStatus: spec.inactivationStatus,
   inactivationApprovalDate: spec.inactivationApprovalDate,
+  auditTrailSequence: spec.auditTrailSequence,
+  serialContinuity: spec.serialContinuity,
   comparison: spec.comparison,
   flagReason: spec.flagReason,
   flagAction: spec.flagAction,
@@ -92,6 +98,8 @@ interface FlaggedSpec {
   comparison: string;
   flagReason: string;
   flagAction: string;
+  auditTrailSequence?: AuditTrailStep[];
+  serialContinuity?: SerialContinuity;
   /** Everything QRA read for this entry, shown when the row is expanded. */
   details?: DetailField[];
   source?: SourceSystem;
@@ -111,6 +119,8 @@ const flagged = (spec: FlaggedSpec): CheckItem => ({
   comparison: spec.comparison,
   flagReason: spec.flagReason,
   flagAction: spec.flagAction,
+  auditTrailSequence: spec.auditTrailSequence,
+  serialContinuity: spec.serialContinuity,
   details: spec.details,
   inactivationStatus: spec.inactivationStatus,
   inactivationApprovalDate: spec.inactivationApprovalDate,
@@ -814,6 +824,19 @@ const batchBSections: Section[] = [
       }),
       compliant({
         label: "Result — Karl Fischer Titration",
+        auditTrailSequence: [
+          { step: 1, label: "Conditioning started", timestamp: "30-Jul-2026 08:44:02", status: "ok" },
+          { step: 2, label: "Weight added", timestamp: "30-Jul-2026 08:45:10", status: "out-of-order" },
+          { step: 3, label: "Analysis started", timestamp: "30-Jul-2026 08:45:38", status: "out-of-order" },
+          { step: 4, label: "Conditioning stopped", timestamp: "30-Jul-2026 08:51:20", status: "ok" },
+          { step: 5, label: "Finished", timestamp: "30-Jul-2026 08:52:04", status: "ok" },
+        ],
+        serialContinuity: { range: "Trial #001 – #002" },
+        comparison: "Audit trail sequence read against the method",
+        flagReason:
+          "The Tiamo audit trail records the weight being added before analysis started. STP-AMX-KF-001 requires conditioning, then analysis started, then the weight added — a weight entered before the analysis begins is not covered by the conditioning that precedes it.",
+        flagAction:
+          "Review the Tiamo audit trail with the analyst and confirm whether the sequence reflects what was done or a late entry. Record the finding before marking KF as Reviewed.",
         statusText: "Within specification",
         expected: "Not more than 0.50% w/w — STP-AMX-KF-001",
         actual: "0.41% w/w",

@@ -230,6 +230,7 @@ const sections: Section[] = [
       compliant({
         prefix: P,
         label: "FTIR Spectrometer FTIR-2024-002",
+        serialContinuity: { range: "Scan #001 – #003" },
         reference: "Cal. due 20-Oct-2026",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",
@@ -450,6 +451,14 @@ const sections: Section[] = [
       compliant({
         prefix: P,
         label: "Karl Fischer Titrator KFT-2024-005",
+        auditTrailSequence: [
+          { step: 1, label: "Conditioning started", timestamp: "11-Aug-2026 11:02:40", status: "ok" },
+          { step: 2, label: "Analysis started", timestamp: "11-Aug-2026 11:04:12", status: "ok" },
+          { step: 3, label: "Weight added", timestamp: "11-Aug-2026 11:08:47", status: "ok" },
+          { step: 4, label: "Conditioning stopped", timestamp: "11-Aug-2026 11:15:02", status: "ok" },
+          { step: 5, label: "Finished", timestamp: "11-Aug-2026 11:16:03", status: "ok" },
+        ],
+        serialContinuity: { range: "Trial #001 – #002" },
         reference: "Cal. due 12-Jan-2027",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",
@@ -500,6 +509,7 @@ const sections: Section[] = [
       compliant({
         prefix: P,
         label: "Particle Size Analyser PSD-2023-001",
+        serialContinuity: { range: "Measurement #001 – #003" },
         reference: "Cal. due 28-Feb-2027",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",

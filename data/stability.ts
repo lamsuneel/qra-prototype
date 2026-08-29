@@ -410,6 +410,14 @@ const sections: Section[] = [
       compliant({
         prefix: P,
         label: "Karl Fischer Titrator KFT-2024-005",
+        auditTrailSequence: [
+          { step: 1, label: "Conditioning started", timestamp: "11-Aug-2026 11:02:40", status: "ok" },
+          { step: 2, label: "Analysis started", timestamp: "11-Aug-2026 11:04:12", status: "ok" },
+          { step: 3, label: "Weight added", timestamp: "11-Aug-2026 11:08:47", status: "ok" },
+          { step: 4, label: "Conditioning stopped", timestamp: "11-Aug-2026 11:15:02", status: "ok" },
+          { step: 5, label: "Finished", timestamp: "11-Aug-2026 11:16:03", status: "ok" },
+        ],
+        serialContinuity: { range: "Trial #001 – #002" },
         reference: "Cal. due 12-Jan-2027",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",
@@ -472,6 +480,18 @@ const sections: Section[] = [
       compliant({
         prefix: P,
         label: "UV Spectrophotometer UV-2024-02",
+        auditTrailSequence: [
+          { step: 1, label: "Auto-zero / Baseline zero", timestamp: "06-Aug-2026 10:17:30", status: "ok" },
+          { step: 2, label: "Method loaded", timestamp: "06-Aug-2026 10:16:47", status: "ok" },
+          { step: 3, label: "Vessel readings 1 to 6", timestamp: "06-Aug-2026 11:05:14", status: "ok" },
+          { step: 4, label: "End", timestamp: "06-Aug-2026 11:12:20", status: "ok" },
+        ],
+        serialContinuity: { range: "Trial #001 – #004", gap: "Gap detected: #003 missing" },
+        comparison: "Audit trail sequence read against the method",
+        flagReason:
+          "The LabSolutions UV run opens on an auto-zero and closes on End as required, but trial #003 is absent from the reviewed run. A missing trial number means a determination was made and not carried into the record, or the numbering was reused.",
+        flagAction:
+          "Retrieve trial #003 from the LabSolutions UV audit trail and confirm whether it was excluded, and on what authority, before marking Dissolution as Reviewed.",
         reference: "Cal. due 14-Dec-2026",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",
