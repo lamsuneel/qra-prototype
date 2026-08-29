@@ -117,6 +117,33 @@ const BALANCE_IPFP: StandaloneInstrument = {
   auditTrail: BALANCE_IPFP_AUDIT,
 };
 
+const TPW_IPFP_AUDIT = `TPW - TABLET PROCESSING WORKSTATION AUDIT TRAIL
+Instrument      : TPW-002 (Tablet Processing Workstation)
+Software        : TPW 5.3
+Report exported : 04-Aug-2026 08:55:02
+Exported by     : R.IYER (Analyst)
+--------------------------------------------------------------
+03-Aug-2026 08:30:19  DAILY CHECK   Hardness reference 80 N / reading 79.9 N
+03-Aug-2026 08:33:40  DAILY CHECK   Friability drum 25 rpm verified
+03-Aug-2026 12:40:07  LOGIN         R.IYER
+03-Aug-2026 12:44:51  RUN #001      Friability, 20 tablets, 100 revolutions
+03-Aug-2026 13:02:36  RUN #002      Disintegration, 6 tablets
+03-Aug-2026 13:20:14  LOGOUT        R.IYER
+03-Aug-2026 13:20:25  NO DELETIONS  No runs deleted or overwritten
+--------------------------------------------------------------
+END OF AUDIT TRAIL`;
+
+const TPW_IPFP: StandaloneInstrument = {
+  name: "TPW",
+  version: "5.3",
+  source: "Caliber LIMS",
+  analyst: "Rajesh Iyer",
+  loginAt: "03-Aug-2026 12:40",
+  logoutAt: "03-Aug-2026 13:20",
+  pdfFilename: "TPW_TPW002_AMX-2026-0341-C03_03Aug2026.pdf",
+  auditTrail: TPW_IPFP_AUDIT,
+};
+
 /* -------------------------------------------------------------------------- */
 /* Sections                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -359,6 +386,44 @@ const sections: Section[] = [
       }),
     ],
     { standaloneInstrument: TIAMO_IPFP },
+  ),
+
+  /*
+   * The workstation sits beside the hardness logbook rather than replacing
+   * it: the tester on the compression floor writes to paper, this one keeps
+   * its own record.
+   */
+  section(
+    "hardness",
+    "Tablet Processing Workstation",
+    2,
+    [
+      compliant({
+        prefix: P,
+        label: "Tablet Processing Workstation TPW-002",
+        reference: "Cal. due 17-Dec-2026",
+        statusText: "Calibrated",
+        expected: "Calibration current and within tolerance at date of use — SOP-INST-004",
+        actual:
+          "TPW-002 — calibrated 17-Jun-2026, due 17-Dec-2026, daily check 79.9 N against an 80 N hardness reference",
+        expectedSource: "SOP-INST-004",
+        source: "Caliber LIMS",
+        serialContinuity: { range: "Run #001 – #002" },
+        details: [
+          { label: "Instrument ID", value: "TPW-002" },
+          { label: "Make and model", value: "Tablet Processing Workstation" },
+          { label: "Software", value: "TPW 5.3" },
+          { label: "Records", value: "Tablet hardness, friability and disintegration" },
+          { label: "Calibration status", value: "Calibrated — within interval" },
+          { label: "Last calibrated", value: "17-Jun-2026" },
+          { label: "Calibration due", value: "17-Dec-2026" },
+          { label: "Daily check", value: "79.9 N against an 80 N hardness reference, tolerance ± 2 N" },
+          { label: "In-process hardness", value: "Read at the press and written into logbook LB-2026-IPFP-007" },
+          { label: "Record held in", value: "Caliber LIMS" },
+        ],
+      }),
+    ],
+    { standaloneInstrument: TPW_IPFP },
   ),
 
   /* --- Tablet Hardness — measured at the press, recorded on paper --------- */

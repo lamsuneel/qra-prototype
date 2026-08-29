@@ -401,6 +401,34 @@ const BALANCE_FP: StandaloneInstrument = {
   auditTrail: BALANCE_FP_AUDIT,
 };
 
+const TPW_FP_AUDIT = `TPW - TABLET PROCESSING WORKSTATION AUDIT TRAIL
+Instrument      : TPW-001 (Tablet Processing Workstation)
+Software        : TPW 5.3
+Report exported : 31-Jul-2026 09:20:14
+Exported by     : P.SHARMA (Analyst)
+--------------------------------------------------------------
+30-Jul-2026 07:40:11  DAILY CHECK   Hardness reference 80 N / reading 80.2 N
+30-Jul-2026 07:44:02  DAILY CHECK   Friability drum 25 rpm verified
+30-Jul-2026 08:05:20  LOGIN         P.SHARMA
+30-Jul-2026 08:10:44  RUN #001      Hardness, 10 tablets
+30-Jul-2026 08:26:18  RUN #002      Friability, 20 tablets, 100 revolutions
+30-Jul-2026 08:41:55  RUN #003      Disintegration, 6 tablets
+30-Jul-2026 09:02:30  LOGOUT        P.SHARMA
+30-Jul-2026 09:02:41  NO DELETIONS  No runs deleted or overwritten
+--------------------------------------------------------------
+END OF AUDIT TRAIL`;
+
+const TPW_FP: StandaloneInstrument = {
+  name: "TPW",
+  version: "5.3",
+  source: LIMS,
+  analyst: "Priya Sharma",
+  loginAt: "30-Jul-2026 08:05",
+  logoutAt: "30-Jul-2026 09:02",
+  pdfFilename: "TPW_TPW001_07FP260122_30Jul2026.pdf",
+  auditTrail: TPW_FP_AUDIT,
+};
+
 /* -------------------------------------------------------------------------- */
 /* Test parameters                                                            */
 /* -------------------------------------------------------------------------- */
@@ -761,6 +789,39 @@ const batchBSections: Section[] = [
       expectedSource: "SOP-INST-004",
     }),
   ]),
+
+  /* The workstation records the tablet physical tests and keeps its own
+     audit trail, so it reads as a section rather than a calibration row. */
+  section(
+    "disso",
+    "Tablet Processing Workstation",
+    5,
+    [
+      compliant({
+        label: "Tablet Processing Workstation TPW-001",
+        reference: "Cal. due 26-Oct-2026",
+        statusText: "Calibrated",
+        expected: "Calibration current and within tolerance at date of use — SOP-INST-004",
+        actual:
+          "TPW-001 — calibrated 26-Apr-2026, due 26-Oct-2026, daily check 80.2 N against an 80 N hardness reference",
+        expectedSource: "SOP-INST-004",
+        source: LIMS,
+        serialContinuity: { range: "Run #001 – #003" },
+        details: [
+          { label: "Instrument ID", value: "TPW-001" },
+          { label: "Make and model", value: "Tablet Processing Workstation" },
+          { label: "Software", value: "TPW 5.3" },
+          { label: "Records", value: "Tablet hardness, friability and disintegration" },
+          { label: "Calibration status", value: "Calibrated — within interval" },
+          { label: "Last calibrated", value: "26-Apr-2026" },
+          { label: "Calibration due", value: "26-Oct-2026" },
+          { label: "Daily check", value: "80.2 N against an 80 N hardness reference, tolerance ± 2 N" },
+          { label: "Record held in", value: "Caliber LIMS" },
+        ],
+      }),
+    ],
+    { standaloneInstrument: TPW_FP },
+  ),
 
   /*
    * LEVEL A — the bath check at this site is written into the line logbook.
