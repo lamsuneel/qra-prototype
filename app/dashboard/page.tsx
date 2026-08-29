@@ -50,14 +50,20 @@ export default function DashboardPage() {
             <DomainCard key={summary.domain} summary={summary} />
           ))}
 
-          {/* Sixth card, after Stability. Display only — microbiology
-              parameters are reviewed today under the Finished Product and
-              Stability AR numbers. */}
+          {/*
+            The review modules QRA does not cover yet. Display only — no
+            route, no queue, and deliberately not Domains, so none of them
+            reaches the batch lists, the search index or the management
+            breakdown as an empty shell.
+          */}
           <ComingSoonCard
             name="Microbiology"
             abbreviation="MB"
             note="Parameters reviewed under FP and Stability AR numbers"
           />
+          <ComingSoonCard name="Hold Study" abbreviation="HS" />
+          <ComingSoonCard name="Semi-Finished Product" abbreviation="SFP" />
+          <ComingSoonCard name="Protocol for RA Submission" abbreviation="RA" />
         </div>
 
         <section className="border-t border-slate-200 pt-5">

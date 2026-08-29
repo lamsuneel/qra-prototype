@@ -16,7 +16,8 @@ export function ComingSoonCard({
 }: {
   name: string;
   abbreviation: string;
-  note: string;
+  /** Only where there is something true to say about it. */
+  note?: string;
 }) {
   return (
     <div
@@ -50,7 +51,7 @@ export function ComingSoonCard({
       </div>
 
       <div className="border-t border-slate-200/80 pt-3 text-[11px] leading-relaxed text-slate-400">
-        {note}
+        {note ?? "Not yet available for review in QRA"}
       </div>
     </div>
   );
