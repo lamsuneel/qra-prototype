@@ -45,6 +45,9 @@ export type SlaStatus = "green" | "amber" | "red";
 /** Source systems a value can be read from. */
 export type SourceSystem =
   | "Caliber LIMS"
+  /* SST values are keyed into LIMS by the analyst at this site — there are no
+     custom fields in Empower here — so they are not instrument-sourced. */
+  | "Caliber LIMS — Manual Entry"
   | "Waters Empower"
   | "Tiamo 2.4"
   | "MassLynx"

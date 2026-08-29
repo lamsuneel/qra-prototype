@@ -38,7 +38,11 @@ export const flagType = (item: CheckItem): string => {
 /** Where the evidence physically sits, named on the collapsed row. */
 export const evidenceKind = (item: CheckItem): string => {
   if (item.source === "Paper Logbook") return "Logbook";
-  if (item.source === "Caliber LIMS" || item.source === "Test method configuration") {
+  if (
+    item.source === "Caliber LIMS" ||
+    item.source === "Caliber LIMS — Manual Entry" ||
+    item.source === "Test method configuration"
+  ) {
     return "Worksheet";
   }
   return "Audit Trail";

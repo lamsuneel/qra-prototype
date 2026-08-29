@@ -80,6 +80,12 @@ export default function ReviewWorkspacePage() {
     (item) => item.usageSource && item.potencySource,
   );
 
+  /* Derived like the standards note: it appears wherever a manually posted
+     value does, and cannot fall out of step with one. */
+  const manualEntry = section.items.some(
+    (item) => item.source === "Caliber LIMS — Manual Entry",
+  );
+
   const openId =
     opened && opened.section === section.id ? opened.item : (flagged[0]?.id ?? null);
 
@@ -144,6 +150,13 @@ export default function ReviewWorkspacePage() {
                 instrument={section.standaloneInstrument}
                 onOpenPdf={pdf.openPdf}
               />
+            ) : null}
+
+            {manualEntry ? (
+              <div className="mb-4 rounded-md border border-navy-accent/30 bg-blue-50 px-4 py-2.5 text-xs leading-relaxed text-navy">
+                SST values entered manually into Caliber LIMS by analyst. Source: LIMS
+                worksheet.
+              </div>
             ) : null}
 
             {twoModuleStandards ? (

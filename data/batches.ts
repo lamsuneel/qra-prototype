@@ -338,7 +338,7 @@ const chromatographyCompliant = (systemId: string) => [
     actual: "1.42",
     expectedSource: "SOP-HPLC-001",
     statusText: "Within limit",
-    source: EMPOWER,
+    source: "Caliber LIMS — Manual Entry",
   }),
   compliant({
     label: "System suitability — Plate Count",
@@ -346,7 +346,7 @@ const chromatographyCompliant = (systemId: string) => [
     actual: "4850",
     expectedSource: "SOP-HPLC-001",
     statusText: "Within limit",
-    source: EMPOWER,
+    source: "Caliber LIMS — Manual Entry",
   }),
   compliant({
     label: "System suitability — Resolution",
@@ -354,7 +354,7 @@ const chromatographyCompliant = (systemId: string) => [
     actual: "3.20",
     expectedSource: "SOP-HPLC-001",
     statusText: "Within limit",
-    source: EMPOWER,
+    source: "Caliber LIMS — Manual Entry",
   }),
 ];
 

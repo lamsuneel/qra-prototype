@@ -386,7 +386,7 @@ const sections: Section[] = [
       expected: "Tailing NMT 2.0, plates NLT 2000, RSD NMT 2.0 % — STP-RM-ASSAY-001",
       actual: "Tailing 1.18, plates 6420, replicate RSD 0.42 %",
       expectedSource: "STP-RM-ASSAY-001",
-      source: "Waters Empower",
+      source: "Caliber LIMS — Manual Entry",
     }),
     compliant({
       prefix: P,
