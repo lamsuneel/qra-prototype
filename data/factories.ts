@@ -29,6 +29,7 @@ export interface CompliantSpec {
   sopReference?: string;
   /** Set where the result cannot be used at all — a PNC number is required. */
   severity?: "HARD_INVALID";
+  acceptability?: { id: string; found: string; condition: string };
   exceptionType?: string;
   reference?: string;
   statusText?: string;
@@ -65,6 +66,7 @@ export const compliant = (spec: CompliantSpec): CheckItem => ({
   flagId: spec.flagId,
   sopReference: spec.sopReference,
   severity: spec.severity,
+  acceptability: spec.acceptability,
   exceptionType: spec.exceptionType,
   reference: spec.reference,
   statusText: spec.statusText ?? "Active",
@@ -100,6 +102,7 @@ export interface FlaggedSpec {
   sopReference?: string;
   /** Set where the result cannot be used at all — a PNC number is required. */
   severity?: "HARD_INVALID";
+  acceptability?: { id: string; found: string; condition: string };
   exceptionType?: string;
   reference?: string;
   expected: string;
@@ -127,6 +130,7 @@ export const flagged = (spec: FlaggedSpec): CheckItem => ({
   flagId: spec.flagId,
   sopReference: spec.sopReference,
   severity: spec.severity,
+  acceptability: spec.acceptability,
   exceptionType: spec.exceptionType,
   reference: spec.reference,
   expected: spec.expected,

@@ -9,6 +9,7 @@ import type {
   StandaloneInstrument,
   TestParameter,
 } from "@/types";
+import { SOP, acceptabilityRule } from "./rules";
 
 /**
  * Finished Product review data.
@@ -40,6 +41,7 @@ interface CompliantSpec {
   sopReference?: string;
   /** Set where the result cannot be used at all — a PNC number is required. */
   severity?: "HARD_INVALID";
+  acceptability?: { id: string; found: string; condition: string };
   exceptionType?: string;
   reference?: string;
   statusText?: string;
@@ -75,6 +77,7 @@ const compliant = (spec: CompliantSpec): CheckItem => ({
   flagId: spec.flagId,
   sopReference: spec.sopReference,
   severity: spec.severity,
+  acceptability: spec.acceptability,
   exceptionType: spec.exceptionType,
   reference: spec.reference,
   statusText: spec.statusText ?? "Active",
@@ -108,6 +111,7 @@ interface FlaggedSpec {
   sopReference?: string;
   /** Set where the result cannot be used at all — a PNC number is required. */
   severity?: "HARD_INVALID";
+  acceptability?: { id: string; found: string; condition: string };
   exceptionType?: string;
   reference?: string;
   expected: string;
@@ -134,6 +138,7 @@ const flagged = (spec: FlaggedSpec): CheckItem => ({
   flagId: spec.flagId,
   sopReference: spec.sopReference,
   severity: spec.severity,
+  acceptability: spec.acceptability,
   exceptionType: spec.exceptionType,
   reference: spec.reference,
   expected: spec.expected,
@@ -973,6 +978,49 @@ const batchBSections: Section[] = [
           "Confirm the second determination is justified and documented. The audit trail records an electrode conditioning error before Determination 2 — verify this satisfies SOP-INST-004 §4.3.",
         source: "Tiamo 2.4",
       }),
+      /*
+       * PASS-TIA-01. The trail records the titration stopping and starting
+       * again, which is what the method asks for when solution is added
+       * mid-run — and also what it records when somebody interfered. QRA
+       * cannot read the method, so the reviewer says which it was.
+       */
+      compliant({
+        flagId: "PASS-TIA-01",
+        sopReference: SOP.TIAMO,
+        acceptability: acceptabilityRule("PASS-TIA-01"),
+        label: "Determination interrupted and continued",
+        reference: "Determination #001",
+        statusText: "Acceptable if condition met",
+        expected: "Interruption covered by the method — PASS-TIA-01",
+        actual:
+          "Determination interrupted 08:46:10, continued 08:47:02, finished 08:52:04",
+        expectedSource: SOP.TIAMO,
+        comparison:
+          "The interrupted / continued / finished sequence is complete; whether it was called for is a question for the method",
+        source: "Tiamo 2.4",
+      }),
+
+      /*
+       * PASS-TIA-03. A live edit before the titration starts is a correction
+       * with a REQUEST behind it, or it is a value being moved. The old and
+       * the new are both on the trail; someone has to check them.
+       */
+      compliant({
+        flagId: "PASS-TIA-03",
+        sopReference: SOP.TIAMO,
+        acceptability: acceptabilityRule("PASS-TIA-03"),
+        label: "Sample data live modified before titration start",
+        reference: "REQUEST 2026-0774",
+        statusText: "Acceptable if condition met",
+        expected: "Old and new values verified against the worksheet — PASS-TIA-03",
+        actual:
+          "Sample weight modified 08:43:55, before determination start 08:44:02 — old 24.6 mg, new 24.8 mg, REQUEST 2026-0774",
+        expectedSource: SOP.TIAMO,
+        comparison:
+          "The modification carries a REQUEST and precedes the determination; the two values still have to be read against the weight slip",
+        source: "Tiamo 2.4",
+      }),
+
       /* TIA-F01. Checked and clean: the cell had finished conditioning
          before the determination began, so the titre reported is the
          sample's own. */

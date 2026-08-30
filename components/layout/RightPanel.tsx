@@ -2,11 +2,17 @@
 
 import { useReview } from "@/context/ReviewContext";
 import { flaggedItemsInBatch, orderedSections, sourcesUsedIn } from "@/data";
-import { requiresNote, requiresPnc, type Batch } from "@/types";
+import {
+  requiresConfirmation,
+  requiresNote,
+  requiresPnc,
+  type Batch,
+} from "@/types";
 import { SourceBadge } from "@/components/review/Badges";
 
 export function RightPanel({ batch }: { batch: Batch }) {
-  const { reviewedCount, totalSections, isNoted, hasPnc } = useReview();
+  const { reviewedCount, totalSections, isNoted, hasPnc, isConfirmed } =
+    useReview();
 
   const reviewed = reviewedCount(batch.arNumber);
   const total = totalSections(batch.arNumber);
@@ -17,7 +23,11 @@ export function RightPanel({ batch }: { batch: Batch }) {
   const unnoted = orderedSections(batch)
     .flatMap((section) => section.items)
     .filter((item) =>
-      requiresPnc(item) ? !hasPnc(item.id) : requiresNote(item) && !isNoted(item.id),
+      requiresPnc(item)
+        ? !hasPnc(item.id)
+        : requiresConfirmation(item)
+          ? !isConfirmed(item.id)
+          : requiresNote(item) && !isNoted(item.id),
     ).length;
 
   return (

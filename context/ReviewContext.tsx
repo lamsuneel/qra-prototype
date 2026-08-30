@@ -20,7 +20,12 @@ import {
 
 import { ALL_BATCHES, getBatch, orderedSections } from "@/data";
 import { getProfile } from "@/data/profiles";
-import { isValidPnc, requiresNote, requiresPnc } from "@/types";
+import {
+  isValidPnc,
+  requiresConfirmation,
+  requiresNote,
+  requiresPnc,
+} from "@/types";
 import type { BatchStatus, Profile, Section, SectionStatus } from "@/types";
 
 interface ReviewContextValue {
@@ -39,6 +44,10 @@ interface ReviewContextValue {
   pncFor: (itemId: string) => string;
   setPnc: (itemId: string, pnc: string) => void;
   hasPnc: (itemId: string) => boolean;
+
+  /* Acceptability conditions the reviewer has confirmed — by CheckItem id */
+  isConfirmed: (itemId: string) => boolean;
+  setConfirmed: (itemId: string, confirmed: boolean) => void;
 
   /* Section review status — keyed by Section id */
   sectionStatus: (sectionId: string) => SectionStatus;
@@ -91,6 +100,7 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>(seedNotes);
   const [pncs, setPncs] = useState<Record<string, string>>({});
+  const [confirmed, setConfirmedState] = useState<Record<string, boolean>>({});
   const [reviewed, setReviewed] =
     useState<Record<string, SectionStatus>>(seedSectionStatuses);
   const [statuses, setStatuses] =
@@ -155,6 +165,19 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
   );
 
   /* ---------------------------------------------------------------- */
+  /* Acceptability conditions                                         */
+  /* ---------------------------------------------------------------- */
+
+  const isConfirmed = useCallback(
+    (itemId: string) => confirmed[itemId] === true,
+    [confirmed],
+  );
+
+  const setConfirmed = useCallback((itemId: string, value: boolean) => {
+    setConfirmedState((current) => ({ ...current, [itemId]: value }));
+  }, []);
+
+  /* ---------------------------------------------------------------- */
   /* Sections                                                         */
   /* ---------------------------------------------------------------- */
 
@@ -180,9 +203,14 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
         .filter(requiresPnc)
         .every((item) => isValidPnc(pncs[item.id] ?? ""));
 
-      return noted && numbered;
+      /* An acceptability rule waits on the condition being confirmed. */
+      const conditionsMet = section.items
+        .filter(requiresConfirmation)
+        .every((item) => confirmed[item.id] === true);
+
+      return noted && numbered && conditionsMet;
     },
-    [notes, pncs],
+    [notes, pncs, confirmed],
   );
 
   const markSectionReviewed = useCallback((sectionId: string) => {
@@ -263,12 +291,15 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
       clearProfile,
       notes,
       pncs,
+      confirmed,
       noteFor,
       setNote,
       isNoted,
       pncFor,
       setPnc,
       hasPnc,
+      isConfirmed,
+      setConfirmed,
       sectionStatus,
       markSectionReviewed,
       canMarkReviewed,
@@ -287,12 +318,15 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
       clearProfile,
       notes,
       pncs,
+      confirmed,
       noteFor,
       setNote,
       isNoted,
       pncFor,
       setPnc,
       hasPnc,
+      isConfirmed,
+      setConfirmed,
       sectionStatus,
       markSectionReviewed,
       canMarkReviewed,

@@ -35,6 +35,14 @@ export type SectionStatus = "NOT_STARTED" | "IN_PROGRESS" | "REVIEWED";
  * whose check depends on a prescribed quantity cannot be shown as compliant
  * until both the prescribed and the actual quantity are present to compare.
  *
+ * CONDITIONAL_PASS is the opposite case to NEEDS_VERIFICATION. There, QRA
+ * has a rule but is missing a figure. Here it has the figure and the rule
+ * both, and the rule says the entry is acceptable provided something else
+ * holds that only a person can confirm — a titration interrupted and
+ * continued is correct if the method calls for adding solution mid-run. QRA
+ * cannot read the method, so it says what it found, states the condition,
+ * and waits to be told.
+ *
  * HARD_INVALID sits above FLAGGED. A flagged result is a real result that
  * needs explaining; a hard-invalid one is not a result at all — a titration
  * started with the conditioning still running has consumed titre the reading
@@ -43,6 +51,7 @@ export type SectionStatus = "NOT_STARTED" | "IN_PROGRESS" | "REVIEWED";
  */
 export type ItemResult =
   | "COMPLIANT"
+  | "CONDITIONAL_PASS"
   | "NEEDS_VERIFICATION"
   | "FLAGGED"
   | "HARD_INVALID";
@@ -200,6 +209,20 @@ export interface CheckItem {
    * do.
    */
   severity?: "HARD_INVALID";
+
+  /**
+   * An entry the rule set accepts provided a stated condition holds. The
+   * reviewer confirms the condition; nothing is written, because there is
+   * nothing to describe — either the method says so or it does not.
+   */
+  acceptability?: {
+    /** The rule, e.g. "PASS-TIA-01". */
+    id: string;
+    /** What the audit trail actually recorded. */
+    found: string;
+    /** The condition that makes it acceptable. */
+    condition: string;
+  };
   /**
    * What kind of exception this is, for the heading of a flagged entry.
    * Stated where it matters rather than inferred from the wording.
@@ -475,6 +498,11 @@ export const resultFor = (item: CheckItem): ItemResult => {
 
   if (item.result === "FLAGGED") return "FLAGGED";
 
+  /* An acceptability rule holds the entry open until the condition it names
+     is confirmed. Confirmation is session state, so the row resolves in the
+     component rather than here. */
+  if (item.acceptability) return "CONDITIONAL_PASS";
+
   /* An inactivation that has not been authorised is an open question, so the
      entry is flagged whatever the data says. */
   if (item.inactivationStatus === "Pending Approval") return "FLAGGED";
@@ -512,6 +540,10 @@ export const requiresNote = (item: CheckItem): boolean => {
   const result = resultFor(item);
   return result === "FLAGGED" || result === "NEEDS_VERIFICATION";
 };
+
+/** An entry waiting on the reviewer to confirm an acceptability condition. */
+export const requiresConfirmation = (item: CheckItem): boolean =>
+  resultFor(item) === "CONDITIONAL_PASS";
 
 /** MATCH, WITHIN TOLERANCE or MISMATCH, where both quantities are present. */
 export const quantityComparison = (item: CheckItem): string | null => {

@@ -13,6 +13,7 @@ import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { RightPanel } from "@/components/layout/RightPanel";
 import { BottomNavBar } from "@/components/layout/BottomNavBar";
 import { CompliantRow } from "@/components/review/CompliantRow";
+import { ConditionalPassRow } from "@/components/review/ConditionalPassRow";
 import { FlaggedCard } from "@/components/review/FlaggedCard";
 import {
   PaperLogbookSection,
@@ -73,6 +74,9 @@ export default function ReviewWorkspacePage() {
     ...invalid,
     ...section.items.filter((item) => resultFor(item) === "FLAGGED"),
   ];
+  const conditional = section.items.filter(
+    (item) => resultFor(item) === "CONDITIONAL_PASS",
+  );
   const unverified = section.items.filter(
     (item) => resultFor(item) === "NEEDS_VERIFICATION",
   );
@@ -190,6 +194,26 @@ export default function ReviewWorkspacePage() {
                 onToggle={() => toggle(item.id)}
               />
             ))}
+
+            {conditional.length > 0 ? (
+              <>
+                <div className="mb-2 border-b border-condition-text/25 pb-1.5 text-[10px] font-semibold tracking-wider text-condition-text uppercase">
+                  {conditional.length}{" "}
+                  {conditional.length === 1 ? "entry is" : "entries are"} acceptable
+                  once you confirm the condition
+                </div>
+                <div className="mb-5 flex flex-col">
+                  {conditional.map((item) => (
+                    <ConditionalPassRow
+                      key={item.id}
+                      item={item}
+                      expanded={openId === item.id}
+                      onToggle={() => toggle(item.id)}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : null}
 
             {unverified.length > 0 ? (
               <>

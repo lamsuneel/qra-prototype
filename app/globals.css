@@ -16,6 +16,9 @@
   --color-invalid-bg: #FFF0F0;
   --color-flagged-text: #C00000;
   --color-flagged-bg: #FCE4D6;
+  /* A condition to confirm, distinct from a value QRA could not fetch. */
+  --color-condition-text: #E67E22;
+  --color-condition-bg: #FFFBF0;
   --color-warn-text: #C55A11;
   --color-warn-bg: #FFF2CC;
   --color-source-text: #595959;
