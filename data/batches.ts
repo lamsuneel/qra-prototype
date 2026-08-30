@@ -52,6 +52,8 @@ const sopFor = (spec: {
   label: string;
   source?: SourceSystem;
   sopReference?: string;
+  /** What QRA checked, in its own words, where the derived sentence is not enough. */
+  checkDescription?: string;
 }): string => {
   if (spec.sopReference) return spec.sopReference;
 
@@ -91,6 +93,8 @@ interface CompliantSpec {
   flagId?: string;
   /** The document the check comes from. */
   sopReference?: string;
+  /** What QRA checked, in its own words, where the derived sentence is not enough. */
+  checkDescription?: string;
   /** Set where the result cannot be used at all — a PNC number is required. */
   severity?: "HARD_INVALID";
   acceptability?: { id: string; found: string; condition: string };
@@ -133,6 +137,7 @@ const compliant = (spec: CompliantSpec): CheckItem => ({
   subLabel: spec.subLabel,
   flagId: spec.flagId,
   sopReference: sopFor(spec),
+  checkDescription: spec.checkDescription,
   severity: spec.severity,
   acceptability: spec.acceptability,
   borderLimit: spec.borderLimit,
@@ -172,6 +177,8 @@ interface FlaggedSpec {
   flagId?: string;
   /** The document the check comes from. */
   sopReference?: string;
+  /** What QRA checked, in its own words, where the derived sentence is not enough. */
+  checkDescription?: string;
   /** Set where the result cannot be used at all — a PNC number is required. */
   severity?: "HARD_INVALID";
   acceptability?: { id: string; found: string; condition: string };
@@ -205,6 +212,7 @@ const flagged = (spec: FlaggedSpec): CheckItem => ({
   subLabel: spec.subLabel,
   flagId: spec.flagId,
   sopReference: sopFor(spec),
+  checkDescription: spec.checkDescription,
   severity: spec.severity,
   acceptability: spec.acceptability,
   borderLimit: spec.borderLimit,

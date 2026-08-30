@@ -666,6 +666,37 @@ const sections: Section[] = [
     [
       compliant({
         prefix: P,
+        flagId: "TIA-F01",
+        sopReference: "APL-CP-F-QCCI-GEN-0013 TIA-F01",
+        label: "Conditioning state at determination start",
+        reference: "COND BUSY not detected",
+        statusText: "Clean start",
+        checkDescription:
+          "QRA read the Tiamo audit trail for a determination started with COND BUSY — a prohibited entry, because conditioning still running consumes titre the reading does not account for.",
+        expected: "Not present",
+        actual: "Not present — determination started clean",
+        expectedSource: "APL-CP-F-QCCI-GEN-0013",
+        source: "Tiamo 2.4",
+        comparison:
+          "No COND BUSY entry between conditioning stopped and determination start",
+      }),
+      compliant({
+        prefix: P,
+        flagId: "TIA-F02",
+        sopReference: "APL-CP-F-QCCI-GEN-0013 TIA-F02",
+        label: "Determination version",
+        reference: "Version 1",
+        statusText: "Original",
+        checkDescription:
+          "QRA read the determination version in Tiamo. Anything above 1 means the run was processed a second time, which needs a PNC behind it.",
+        expected: "Version 1 (original)",
+        actual: "Version 1 — original determination",
+        expectedSource: "APL-CP-F-QCCI-GEN-0013",
+        source: "Tiamo 2.4",
+        comparison: "Determination version read against the original-run requirement",
+      }),
+      compliant({
+        prefix: P,
         label: "Water content by Karl Fischer",
         reference: "Duplicate determinations",
         statusText: "Within limits",
