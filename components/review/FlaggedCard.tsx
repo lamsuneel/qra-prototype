@@ -174,6 +174,11 @@ export function FlaggedCard({
             <p className="text-[13px] leading-relaxed text-slate-700">
               {item.flagReason}
             </p>
+            {item.flagId ? (
+              <p className="mt-1 text-[11px] text-source-text">
+                {item.flagId} · Source: {item.sopReference}
+              </p>
+            ) : null}
           </div>
 
           {/* Level 4 — the instruction, amber so it reads apart from the finding. */}

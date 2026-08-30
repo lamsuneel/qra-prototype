@@ -1,5 +1,11 @@
 import { daysUntil } from "@/data/clock";
-import type { BatchStatus, SlaStatus, SourceSystem } from "@/types";
+import type {
+  BatchStatus,
+  InactivationStatus,
+  LimsStatus,
+  SlaStatus,
+  SourceSystem,
+} from "@/types";
 import { BATCH_STATUS_LABELS } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -17,11 +23,13 @@ export function SourceBadge({ source }: { source: SourceSystem }) {
  * the site's own term for the LIMS inactivation workflow — it describes that
  * record, never the disposition of a review.
  */
-export function InactivationBadge({
-  status,
-}: {
-  status: "Approved" | "Pending Approval";
-}) {
+const INACTIVATION_LABELS: Record<InactivationStatus, string> = {
+  Initiated: "Inactivation Initiated — Pending Approval",
+  "Pending Second Approval": "Pending Second Approval",
+  Approved: "Inactivation Approved (×2)",
+};
+
+export function InactivationBadge({ status }: { status: InactivationStatus }) {
   const authorised = status === "Approved";
 
   return (
@@ -33,7 +41,7 @@ export function InactivationBadge({
           : "bg-warn-bg text-warn-text",
       )}
     >
-      Inactivation: {status}
+      {INACTIVATION_LABELS[status]}
     </span>
   );
 }
@@ -153,6 +161,42 @@ export function ExceptionCountPill({ count }: { count: number }) {
       )}
     >
       {count}
+    </span>
+  );
+}
+
+/**
+ * How far the batch has moved through LIMS. Grey while the lab still has it,
+ * blue once review has started, orange once it is with QA, green when the
+ * certificate exists.
+ */
+const LIMS_TONES: Record<LimsStatus, string> = {
+  "Under Test": "bg-source-bg text-source-text",
+  "Print Taken": "bg-source-bg text-source-text",
+  "Under QC Review": "bg-blue-50 text-navy-mid",
+  "Sample In-Charge Review": "bg-blue-50 text-navy-mid",
+  "Pending QA Review": "bg-warn-bg text-warn-text",
+  "Manager Approval": "bg-warn-bg text-warn-text",
+  "COA Generated": "bg-compliant-bg text-compliant-text",
+};
+
+export function LimsStatusBadge({
+  status,
+  prints,
+}: {
+  status: LimsStatus;
+  /** Only "Print Taken" carries a count, and only when there is one. */
+  prints?: number;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center rounded-full px-2 py-[2px] text-[10px] font-medium",
+        LIMS_TONES[status],
+      )}
+    >
+      {status}
+      {status === "Print Taken" && prints ? ` · ${prints}` : null}
     </span>
   );
 }

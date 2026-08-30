@@ -3,6 +3,7 @@ import type {
   Batch,
   CheckItem,
   DetailField,
+  InactivationStatus,
   Section,
   SerialContinuity,
   SourceSystem,
@@ -30,6 +31,46 @@ const EMPOWER: SourceSystem = "Waters Empower";
 /* -------------------------------------------------------------------------- */
 
 let seq = 0;
+/**
+ * The document a check traces back to.
+ *
+ * Derived rather than written on every entry, so a new entry cannot be added
+ * without one. An entry that needs a different reference states it and that
+ * wins; everything else is answered by what it reads and where it read it.
+ */
+const sopFor = (spec: {
+  label: string;
+  source?: SourceSystem;
+  sopReference?: string;
+}): string => {
+  if (spec.sopReference) return spec.sopReference;
+
+  if (spec.source === "Waters Empower") return SOP.EMPOWER;
+  if (spec.source === "Tiamo 2.4") return SOP.TIAMO;
+  if (spec.source === "MassLynx") return SOP.NON_CDS;
+
+  const label = spec.label.toLowerCase();
+
+  /* Instruments before chemicals: a balance used to weigh a standard is an
+     instrument entry, not a standard one. */
+  if (
+    /calibrat|instrument|balance|titrator|spectrophotomet|sonicator|workstation|verifier|analyser|analyzer|chromatograph|column|system|coulometer|chamber/.test(
+      label,
+    )
+  ) {
+    return SOP.INSTRUMENTS;
+  }
+  if (
+    /standard|chemical|reagent|buffer|acid|methanol|acetonitrile|phosphate|water for|solution|lot /.test(
+      label,
+    )
+  ) {
+    return SOP.CHEMICALS;
+  }
+
+  return SOP.LIMS;
+};
+
 const nextId = (prefix: string) => `${prefix}-${(seq += 1)}`;
 
 interface CompliantSpec {
@@ -57,7 +98,11 @@ interface CompliantSpec {
   prescribedQty?: string;
   actualQty?: string;
   quantityComparison?: "MATCH" | "WITHIN TOLERANCE" | "MISMATCH";
-  inactivationStatus?: "Approved" | "Pending Approval";
+  inactivationStatus?: InactivationStatus;
+  inactivationInitiatedBy?: string;
+  inactivationInitiatedDate?: string;
+  inactivationApprovedBy?: string;
+  inactivationReason?: string;
   inactivationApprovalDate?: string;
   /**
    * Present where a rule may flag an entry that the data itself records as
@@ -75,7 +120,7 @@ const compliant = (spec: CompliantSpec): CheckItem => ({
   label: spec.label,
   subLabel: spec.subLabel,
   flagId: spec.flagId,
-  sopReference: spec.sopReference,
+  sopReference: sopFor(spec),
   severity: spec.severity,
   acceptability: spec.acceptability,
   exceptionType: spec.exceptionType,
@@ -94,6 +139,10 @@ const compliant = (spec: CompliantSpec): CheckItem => ({
   actualQty: spec.actualQty,
   quantityComparison: spec.quantityComparison,
   inactivationStatus: spec.inactivationStatus,
+  inactivationInitiatedBy: spec.inactivationInitiatedBy,
+  inactivationInitiatedDate: spec.inactivationInitiatedDate,
+  inactivationApprovedBy: spec.inactivationApprovedBy,
+  inactivationReason: spec.inactivationReason,
   inactivationApprovalDate: spec.inactivationApprovalDate,
   auditTrailSequence: spec.auditTrailSequence,
   serialContinuity: spec.serialContinuity,
@@ -119,7 +168,11 @@ interface FlaggedSpec {
   expectedSource: string;
   usageSource?: string;
   potencySource?: string;
-  inactivationStatus?: "Approved" | "Pending Approval";
+  inactivationStatus?: InactivationStatus;
+  inactivationInitiatedBy?: string;
+  inactivationInitiatedDate?: string;
+  inactivationApprovedBy?: string;
+  inactivationReason?: string;
   inactivationApprovalDate?: string;
   comparison: string;
   flagReason: string;
@@ -136,7 +189,7 @@ const flagged = (spec: FlaggedSpec): CheckItem => ({
   label: spec.label,
   subLabel: spec.subLabel,
   flagId: spec.flagId,
-  sopReference: spec.sopReference,
+  sopReference: sopFor(spec),
   severity: spec.severity,
   acceptability: spec.acceptability,
   exceptionType: spec.exceptionType,
@@ -155,6 +208,10 @@ const flagged = (spec: FlaggedSpec): CheckItem => ({
   serialContinuity: spec.serialContinuity,
   details: spec.details,
   inactivationStatus: spec.inactivationStatus,
+  inactivationInitiatedBy: spec.inactivationInitiatedBy,
+  inactivationInitiatedDate: spec.inactivationInitiatedDate,
+  inactivationApprovedBy: spec.inactivationApprovedBy,
+  inactivationReason: spec.inactivationReason,
   inactivationApprovalDate: spec.inactivationApprovalDate,
 });
 
@@ -600,8 +657,11 @@ const batchBSections: Section[] = [
       flagReason:
         "An inactivated chemical entry was used in the analysis. Inactivated entries are withdrawn from use and should not appear in the usage record.",
       flagAction:
-        "Verify that inactivated entry AC-7701 has documented justification in LIMS before marking the Chemicals section as Reviewed. Check analyst comments and supervisor sign-off in the audit trail.",
-      inactivationStatus: "Pending Approval",
+        "Inactivation initiated. Second QC Section In-Charge approval required before this entry is valid. Verify the justification recorded against AC-7701 in LIMS. Both approvals required per FU7-QA-GEN-080 + APL-GP-GEN-0023.",
+      inactivationStatus: "Initiated",
+      inactivationReason: "Container seal integrity not assured",
+      inactivationInitiatedBy: "S. Deshmukh, QC Section In-Charge",
+      inactivationInitiatedDate: "12-Jul-2026",
     }),
     // LEVEL D — an inactivation that was authorised, for contrast with AC-7701.
     compliant({
@@ -739,6 +799,30 @@ const batchBSections: Section[] = [
       expected: "Active entry, within expiry — SOP-CHEM-003",
       actual: "Water for HPLC — Lot WH-2024-1102 — active, expiry 31-Dec-2026",
       expectedSource: "SOP-CHEM-003",
+    }),
+    /* An inactivation with both signatures against it, for contrast with the
+       half-recorded one in Assay. */
+    compliant({
+      label: "Sodium lauryl sulphate",
+      reference: "Lot SLS-2024-0310",
+      statusText: "Inactivated",
+      requiresQuantityCheck: true,
+      prescribedQty: "10.0 g ± 2%",
+      actualQty: "10.02 g",
+      quantityComparison: "WITHIN TOLERANCE",
+      expected:
+        "Inactivation authorised by two QC Section In-Charges — SOP-CHEM-003 §7",
+      actual:
+        "Sodium lauryl sulphate — Lot SLS-2024-0310 — inactivated 22-Jul-2026, both approvals recorded",
+      expectedSource: "SOP-CHEM-003 §7",
+      inactivationStatus: "Approved",
+      inactivationReason: "Remaining quantity below the minimum issue size",
+      inactivationInitiatedBy: "S. Deshmukh, QC Section In-Charge",
+      inactivationInitiatedDate: "22-Jul-2026",
+      inactivationApprovedBy: "K. Nair, QC Section In-Charge",
+      inactivationApprovalDate: "23-Jul-2026",
+      comparison:
+        "Both QC Section In-Charge approvals are recorded against the inactivation, and the quantity used precedes it",
     }),
   ]),
   section("disso", "Standards", 2, [
@@ -1207,6 +1291,7 @@ const batchBSections: Section[] = [
 const batchB: Batch = {
   id: "07-FP-26-0122",
   arNumber: "07-FP-26-0122",
+  limsStatus: "Pending QA Review",
   product: "Amoxicillin 250mg Tablet",
   batchNumber: "AMX-2026-0341",
   domain: "FINISHED_PRODUCT",
@@ -1308,6 +1393,7 @@ const batchASections: Section[] = [
 const batchA: Batch = {
   id: "07-FP-26-0121",
   arNumber: "07-FP-26-0121",
+  limsStatus: "Under QC Review",
   product: "Ciprofloxacin 500mg Tablet",
   batchNumber: "CIP-2026-0198",
   domain: "FINISHED_PRODUCT",
@@ -1329,6 +1415,7 @@ const batchA: Batch = {
 const batchC: Batch = {
   id: "07-FP-26-0120",
   arNumber: "07-FP-26-0120",
+  limsStatus: "Manager Approval",
   product: "Metformin 500mg Tablet",
   batchNumber: "MET-2026-0452",
   domain: "FINISHED_PRODUCT",

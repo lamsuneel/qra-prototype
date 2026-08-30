@@ -28,6 +28,21 @@ export type BatchStatus =
   | "REVIEW_AUTHORISED"
   | "RETURNED_TO_REVIEWER";
 
+export type InactivationStatus =
+  | "Initiated"
+  | "Pending Second Approval"
+  | "Approved";
+
+/** The seven stages a batch moves through in LIMS. */
+export type LimsStatus =
+  | "Under Test"
+  | "Print Taken"
+  | "Under QC Review"
+  | "Sample In-Charge Review"
+  | "Pending QA Review"
+  | "Manager Approval"
+  | "COA Generated";
+
 export type SectionStatus = "NOT_STARTED" | "IN_PROGRESS" | "REVIEWED";
 
 /**
@@ -277,7 +292,17 @@ export interface CheckItem {
    * the site's own terms for the LIMS inactivation workflow and describe that
    * record, never the disposition of a review.
    */
-  inactivationStatus?: "Approved" | "Pending Approval";
+  /**
+   * Taking a chemical out of service needs two QC Section In-Charges, so the
+   * record has three states, not two. Anything short of both signatures is a
+   * finding: the entry was used while its withdrawal was still half-recorded.
+   */
+  inactivationStatus?: InactivationStatus;
+  /** Who started it, and who countersigned — the second may not exist yet. */
+  inactivationInitiatedBy?: string;
+  inactivationInitiatedDate?: string;
+  inactivationApprovedBy?: string;
+  inactivationReason?: string;
   /** When the inactivation was authorised, or absent while it is not. */
   inactivationApprovalDate?: string;
   /** Stated where the comparison is not a plain equality. */
@@ -371,6 +396,10 @@ export interface Batch {
   slaStatus: SlaStatus;
   slaLabel: string;
   status: BatchStatus;
+  /** Where the batch has got to in LIMS, independent of QRA's own review. */
+  limsStatus: LimsStatus;
+  /** Only meaningful at "Print Taken". */
+  limsPrints?: number;
   assignedTo: string | null;
   analyst: string;
   lastActivity: string;
@@ -503,9 +532,14 @@ export const resultFor = (item: CheckItem): ItemResult => {
      component rather than here. */
   if (item.acceptability) return "CONDITIONAL_PASS";
 
-  /* An inactivation that has not been authorised is an open question, so the
+  /* An inactivation short of both signatures is an open question, so the
      entry is flagged whatever the data says. */
-  if (item.inactivationStatus === "Pending Approval") return "FLAGGED";
+  if (
+    item.inactivationStatus === "Initiated" ||
+    item.inactivationStatus === "Pending Second Approval"
+  ) {
+    return "FLAGGED";
+  }
 
   /* A broken audit trail is a finding on its own, however the run read. */
   if (item.auditTrailSequence?.some((entry) => entry.status !== "ok"))

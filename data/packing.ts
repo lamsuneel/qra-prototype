@@ -374,6 +374,7 @@ export const PACKING_MATERIAL_BATCHES: Batch[] = [
   {
     id: "07-PM-26-8823",
     arNumber: "07-PM-26-8823",
+  limsStatus: "Pending QA Review",
     product: "HDPE Bottle 60ml",
     batchNumber: "HDPE-2026-1147",
     domain: "PACKING_MATERIAL",

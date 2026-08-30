@@ -262,13 +262,16 @@ const sections: Section[] = [
         "Triethylamine HPLC grade — Lot TEA-2025-04 — inactivated 03-Aug-2026, authorisation not recorded",
       expectedSource: "SOP-CHEM-003 §7",
       source: "Caliber LIMS",
-      inactivationStatus: "Pending Approval",
+      inactivationStatus: "Pending Second Approval",
+      inactivationReason: "Recorded as decanted to a secondary container",
+      inactivationInitiatedBy: "M. Rao, QC Section In-Charge",
+      inactivationInitiatedDate: "03-Aug-2026",
       comparison:
         "The entry is inactivated in LIMS but carries no authorisation record against the inactivation",
       flagReason:
         "Lot TEA-2025-04 was inactivated on 03-Aug-2026 but the inactivation has not been authorised. Until it is, there is no record of who withdrew the reagent from service or why, and the entry was still available to the analysis.",
       flagAction:
-        "Obtain the supervisor authorisation for the inactivation of TEA-2025-04 and record the approval date in LIMS. Confirm whether the reagent was used after it was inactivated.",
+        "Second QC Section In-Charge approval required. Do not release until both approvals recorded. Confirm whether the reagent was used after it was inactivated. Both approvals required per FU7-QA-GEN-080 + APL-GP-GEN-0023.",
       details: [
         { label: "Lot number", value: "TEA-2025-04" },
         { label: "Manufacturer", value: "Spectrochem" },
@@ -583,6 +586,7 @@ export const RAW_MATERIAL_BATCHES: Batch[] = [
   {
     id: "07-RM-26-4417",
     arNumber: "07-RM-26-4417",
+  limsStatus: "Under QC Review",
     product: "Amoxicillin Trihydrate API",
     batchNumber: "AMXAPI-2026-0088",
     domain: "RAW_MATERIAL",

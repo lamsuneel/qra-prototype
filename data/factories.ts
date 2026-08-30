@@ -2,12 +2,14 @@ import type {
   AuditTrailStep,
   CheckItem,
   DetailField,
+  InactivationStatus,
   SerialContinuity,
   EvidenceTable,
   Section,
   SectionStatus,
   SourceSystem,
 } from "@/types";
+import { SOP } from "./rules";
 
 /**
  * Item and section factories shared by the four non-Finished-Product domains.
@@ -17,6 +19,46 @@ import type {
  */
 
 let counter = 0;
+/**
+ * The document a check traces back to.
+ *
+ * Derived rather than written on every entry, so a new entry cannot be added
+ * without one. An entry that needs a different reference states it and that
+ * wins; everything else is answered by what it reads and where it read it.
+ */
+const sopFor = (spec: {
+  label: string;
+  source?: SourceSystem;
+  sopReference?: string;
+}): string => {
+  if (spec.sopReference) return spec.sopReference;
+
+  if (spec.source === "Waters Empower") return SOP.EMPOWER;
+  if (spec.source === "Tiamo 2.4") return SOP.TIAMO;
+  if (spec.source === "MassLynx") return SOP.NON_CDS;
+
+  const label = spec.label.toLowerCase();
+
+  /* Instruments before chemicals: a balance used to weigh a standard is an
+     instrument entry, not a standard one. */
+  if (
+    /calibrat|instrument|balance|titrator|spectrophotomet|sonicator|workstation|verifier|analyser|analyzer|chromatograph|column|system|coulometer|chamber/.test(
+      label,
+    )
+  ) {
+    return SOP.INSTRUMENTS;
+  }
+  if (
+    /standard|chemical|reagent|buffer|acid|methanol|acetonitrile|phosphate|water for|solution|lot /.test(
+      label,
+    )
+  ) {
+    return SOP.CHEMICALS;
+  }
+
+  return SOP.LIMS;
+};
+
 const nextId = (prefix: string) => `${prefix}-${(counter += 1)}`;
 
 export interface CompliantSpec {
@@ -46,7 +88,11 @@ export interface CompliantSpec {
   prescribedQty?: string;
   actualQty?: string;
   quantityComparison?: "MATCH" | "WITHIN TOLERANCE" | "MISMATCH";
-  inactivationStatus?: "Approved" | "Pending Approval";
+  inactivationStatus?: InactivationStatus;
+  inactivationInitiatedBy?: string;
+  inactivationInitiatedDate?: string;
+  inactivationApprovedBy?: string;
+  inactivationReason?: string;
   inactivationApprovalDate?: string;
   /**
    * Present where a rule may flag an entry that the data itself records as
@@ -64,7 +110,7 @@ export const compliant = (spec: CompliantSpec): CheckItem => ({
   label: spec.label,
   subLabel: spec.subLabel,
   flagId: spec.flagId,
-  sopReference: spec.sopReference,
+  sopReference: sopFor(spec),
   severity: spec.severity,
   acceptability: spec.acceptability,
   exceptionType: spec.exceptionType,
@@ -84,6 +130,10 @@ export const compliant = (spec: CompliantSpec): CheckItem => ({
   actualQty: spec.actualQty,
   quantityComparison: spec.quantityComparison,
   inactivationStatus: spec.inactivationStatus,
+  inactivationInitiatedBy: spec.inactivationInitiatedBy,
+  inactivationInitiatedDate: spec.inactivationInitiatedDate,
+  inactivationApprovedBy: spec.inactivationApprovedBy,
+  inactivationReason: spec.inactivationReason,
   inactivationApprovalDate: spec.inactivationApprovalDate,
   auditTrailSequence: spec.auditTrailSequence,
   serialContinuity: spec.serialContinuity,
@@ -110,7 +160,11 @@ export interface FlaggedSpec {
   expectedSource: string;
   usageSource?: string;
   potencySource?: string;
-  inactivationStatus?: "Approved" | "Pending Approval";
+  inactivationStatus?: InactivationStatus;
+  inactivationInitiatedBy?: string;
+  inactivationInitiatedDate?: string;
+  inactivationApprovedBy?: string;
+  inactivationReason?: string;
   inactivationApprovalDate?: string;
   comparison: string;
   flagReason: string;
@@ -128,7 +182,7 @@ export const flagged = (spec: FlaggedSpec): CheckItem => ({
   label: spec.label,
   subLabel: spec.subLabel,
   flagId: spec.flagId,
-  sopReference: spec.sopReference,
+  sopReference: sopFor(spec),
   severity: spec.severity,
   acceptability: spec.acceptability,
   exceptionType: spec.exceptionType,

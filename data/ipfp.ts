@@ -512,6 +512,7 @@ export const IPFP_BATCHES: Batch[] = [
   {
     id: "07-IPFP-26-0122",
     arNumber: "07-IPFP-26-0122",
+  limsStatus: "Under Test",
     product: "Amoxicillin 250mg — Compression Stage",
     batchNumber: "AMX-2026-0341-C03",
     domain: "IPFP",

@@ -615,6 +615,7 @@ export const STABILITY_BATCHES: Batch[] = [
   {
     id: "07-ST-26-0089",
     arNumber: "07-ST-26-0089",
+  limsStatus: "Sample In-Charge Review",
     product: "Amoxicillin 250mg — 6-Month Accelerated",
     batchNumber: "AMX-2026-0288",
     domain: "STABILITY",

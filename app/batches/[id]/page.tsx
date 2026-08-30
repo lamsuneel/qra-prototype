@@ -18,6 +18,7 @@ import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import {
   BatchStatusBadge,
   ExceptionCountPill,
+  LimsStatusBadge,
   SLABadge,
 } from "@/components/review/Badges";
 import { cn } from "@/lib/utils";
@@ -171,7 +172,17 @@ export default function BatchListPage() {
                     <td className="px-4 py-3 text-[13px] font-semibold text-navy-mid">
                       {batch.arNumber}
                     </td>
-                    <td className="px-4 py-3 text-[13px] text-slate-900">{batch.product}</td>
+                    <td className="px-4 py-3 text-[13px] text-slate-900">
+                      {batch.product}
+                      {/* Where LIMS has got to, which is not the same question
+                          as how far QRA's own review has got. */}
+                      <div className="mt-1">
+                        <LimsStatusBadge
+                          status={batch.limsStatus}
+                          prints={batch.limsPrints}
+                        />
+                      </div>
+                    </td>
                     <td className="px-4 py-3 font-mono text-xs text-source-text">
                       {batch.batchNumber}
                     </td>

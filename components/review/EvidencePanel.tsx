@@ -203,6 +203,38 @@ export function EvidencePanel({
 
       {item.inactivationStatus ? (
         <dl className="mt-3 grid grid-cols-[minmax(180px,220px)_1fr] gap-x-4 gap-y-[3px] border-t border-slate-200/70 pt-3 text-[12px]">
+          <dt className="text-slate-400">Inactivation reason</dt>
+          <dd className="text-slate-700">
+            {item.inactivationReason ?? "Not recorded"}
+          </dd>
+
+          <dt className="text-slate-400">Initiated by</dt>
+          <dd className="text-slate-700">
+            {item.inactivationInitiatedBy ?? "Not recorded"}
+            {item.inactivationInitiatedDate
+              ? ` · ${item.inactivationInitiatedDate}`
+              : null}
+          </dd>
+
+          {/* The second signature is the whole point: one In-Charge starting a
+              withdrawal is not a withdrawal. */}
+          <dt className="text-slate-400">Approved by</dt>
+          <dd
+            className={
+              item.inactivationApprovedBy
+                ? "text-slate-700"
+                : "font-medium text-warn-text"
+            }
+          >
+            {item.inactivationApprovedBy
+              ? `${item.inactivationApprovedBy}${
+                  item.inactivationApprovalDate
+                    ? ` · ${item.inactivationApprovalDate}`
+                    : ""
+                }`
+              : "Pending"}
+          </dd>
+
           <dt className="text-slate-400">Inactivation status</dt>
           <dd
             className={
@@ -214,14 +246,8 @@ export function EvidencePanel({
             {item.inactivationStatus}
           </dd>
 
-          <dt className="text-slate-400">Inactivation approval date</dt>
-          <dd
-            className={
-              item.inactivationApprovalDate ? "text-slate-700" : "text-warn-text"
-            }
-          >
-            {item.inactivationApprovalDate ?? "Pending"}
-          </dd>
+          <dt className="text-slate-400">Both approvals required per</dt>
+          <dd className="text-slate-700">FU7-QA-GEN-080 + APL-GP-GEN-0023</dd>
         </dl>
       ) : null}
 
@@ -289,6 +315,19 @@ export function EvidencePanel({
           </Field>
         </dl>
       )}
+
+      {/*
+        Present on every entry, prominent on none. An automated check the
+        reviewer cannot trace to a named document is a check they have to
+        take on trust, and this app is built on not asking them to.
+      */}
+      {item.sopReference ? (
+        <div className="mt-2.5 border-t border-slate-200/70 pt-2 text-[11px] text-slate-400">
+          <span className="font-medium">Regulatory source: </span>
+          {item.sopReference}
+          {item.flagId ? <span> · {item.flagId}</span> : null}
+        </div>
+      ) : null}
 
       {flagged || invalid ? (
         children
