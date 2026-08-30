@@ -11,6 +11,9 @@
   --color-navy-accent: #4472C4;
   --color-compliant-text: #375623;
   --color-compliant-bg: #E2EFDA;
+  /* Darker than a flag: the result itself is unusable. */
+  --color-invalid-text: #7B0000;
+  --color-invalid-bg: #FFF0F0;
   --color-flagged-text: #C00000;
   --color-flagged-bg: #FCE4D6;
   --color-warn-text: #C55A11;

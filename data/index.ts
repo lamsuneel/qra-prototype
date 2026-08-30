@@ -6,6 +6,7 @@ import { STABILITY_BATCHES } from "./stability";
 import {
   DOMAINS,
   type Batch,
+  type CheckItem,
   type SourceSystem,
   resultFor,
   type Domain,
@@ -70,11 +71,15 @@ export const getBatch = (id: string): Batch | undefined =>
 export const batchesForDomain = (domain: Domain): Batch[] =>
   ALL_BATCHES.filter((batch) => batch.domain === domain);
 
+/** Flagged, or worse. An unusable result counts as an exception too. */
+export const isException = (item: CheckItem): boolean => {
+  const result = resultFor(item);
+  return result === "FLAGGED" || result === "HARD_INVALID";
+};
+
 export const flaggedItemsInBatch = (batch: Batch): number =>
   batch.sections.reduce(
-    (total, section) =>
-      total +
-      section.items.filter((item) => resultFor(item) === "FLAGGED").length,
+    (total, section) => total + section.items.filter(isException).length,
     0,
   );
 
@@ -92,7 +97,7 @@ export const exceptionContributors = (
 ): { section: string; item: string }[] =>
   sectionsForParameter(batch, parameterId).flatMap((section) =>
     section.items
-      .filter((item) => resultFor(item) === "FLAGGED")
+      .filter(isException)
       .map((item) => ({ section: section.name, item: item.label })),
   );
 

@@ -2,11 +2,11 @@
 
 import { useReview } from "@/context/ReviewContext";
 import { flaggedItemsInBatch, orderedSections, sourcesUsedIn } from "@/data";
-import { requiresNote, type Batch } from "@/types";
+import { requiresNote, requiresPnc, type Batch } from "@/types";
 import { SourceBadge } from "@/components/review/Badges";
 
 export function RightPanel({ batch }: { batch: Batch }) {
-  const { reviewedCount, totalSections, isNoted } = useReview();
+  const { reviewedCount, totalSections, isNoted, hasPnc } = useReview();
 
   const reviewed = reviewedCount(batch.arNumber);
   const total = totalSections(batch.arNumber);
@@ -16,7 +16,9 @@ export function RightPanel({ batch }: { batch: Batch }) {
      and entries QRA could not conclude both wait on a note. */
   const unnoted = orderedSections(batch)
     .flatMap((section) => section.items)
-    .filter((item) => requiresNote(item) && !isNoted(item.id)).length;
+    .filter((item) =>
+      requiresPnc(item) ? !hasPnc(item.id) : requiresNote(item) && !isNoted(item.id),
+    ).length;
 
   return (
     <aside className="hidden w-44 shrink-0 overflow-y-auto border-l border-slate-200 bg-white px-3.5 py-4 xl:block">

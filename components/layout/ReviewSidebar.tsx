@@ -5,12 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   exceptionContributors,
+  isException,
   orderedSections,
   sectionSlug,
   sectionsForParameter,
 } from "@/data";
 import { useReview } from "@/context/ReviewContext";
-import { resultFor, type Batch } from "@/types";
+import type { Batch } from "@/types";
 import { cn } from "@/lib/utils";
 import { ExceptionCountPill } from "@/components/review/Badges";
 
@@ -66,10 +67,7 @@ export function ReviewSidebar({
         {batch.parameters.map((parameter) => {
           const sections = sectionsForParameter(batch, parameter.id);
           const flags = sections.reduce(
-            (total, section) =>
-              total +
-              section.items.filter((item) => resultFor(item) === "FLAGGED")
-                .length,
+            (total, section) => total + section.items.filter(isException).length,
             0,
           );
           const active = parameter.id === parameterId;
@@ -115,9 +113,7 @@ export function ReviewSidebar({
           Sections
         </div>
         {sectionsForParameter(batch, parameterId).map((section) => {
-          const flags = section.items.filter(
-            (item) => resultFor(item) === "FLAGGED",
-          ).length;
+          const flags = section.items.filter(isException).length;
           const reviewed = sectionStatus(section.id) === "REVIEWED";
           const active = section.id === sectionId;
           const pulse = fromSearch && section.id === firstIncomplete;

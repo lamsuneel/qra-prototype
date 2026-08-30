@@ -65,9 +65,14 @@ export default function ReviewWorkspacePage() {
 
   if (!section || !parameter) return null;
 
-  /* Action first: flagged, then anything QRA could not conclude, then the
-     entries that need nothing from the reviewer. */
-  const flagged = section.items.filter((item) => resultFor(item) === "FLAGGED");
+  /* Action first, worst first: a result that cannot be used at all, then the
+     flags, then anything QRA could not conclude, then the entries that need
+     nothing from the reviewer. */
+  const invalid = section.items.filter((item) => resultFor(item) === "HARD_INVALID");
+  const flagged = [
+    ...invalid,
+    ...section.items.filter((item) => resultFor(item) === "FLAGGED"),
+  ];
   const unverified = section.items.filter(
     (item) => resultFor(item) === "NEEDS_VERIFICATION",
   );

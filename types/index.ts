@@ -34,8 +34,18 @@ export type SectionStatus = "NOT_STARTED" | "IN_PROGRESS" | "REVIEWED";
  * NEEDS_VERIFICATION is never written in the data. It is derived: an entry
  * whose check depends on a prescribed quantity cannot be shown as compliant
  * until both the prescribed and the actual quantity are present to compare.
+ *
+ * HARD_INVALID sits above FLAGGED. A flagged result is a real result that
+ * needs explaining; a hard-invalid one is not a result at all — a titration
+ * started with the conditioning still running has consumed titre the reading
+ * does not account for. No observation makes it usable, so the reviewer
+ * records a PNC number instead of a note and the analysis is repeated.
  */
-export type ItemResult = "COMPLIANT" | "NEEDS_VERIFICATION" | "FLAGGED";
+export type ItemResult =
+  | "COMPLIANT"
+  | "NEEDS_VERIFICATION"
+  | "FLAGGED"
+  | "HARD_INVALID";
 
 /** Approver is the customer own term for the role and is kept as-is. */
 export type UserRole = "REVIEWER" | "APPROVER" | "CQO";
@@ -173,6 +183,23 @@ export interface CheckItem {
   label: string;
   /** A second line under the label, saying what the finding requires. */
   subLabel?: string;
+  /**
+   * The rule this entry answers to, e.g. "TIA-F01" or "EMP-F09". Named on
+   * the finding so a reviewer can take it straight to the SOP.
+   */
+  flagId?: string;
+  /**
+   * The document the check comes from, e.g. "APL-CP-F-QCCI-GEN-0013". Every
+   * entry carries one — an automated check the reviewer cannot trace back to
+   * a named document is a check they have to take on trust.
+   */
+  sopReference?: string;
+  /**
+   * Set where the result is not usable at all. The reviewer records a PNC
+   * number rather than an observation, and the section stays shut until they
+   * do.
+   */
+  severity?: "HARD_INVALID";
   /**
    * What kind of exception this is, for the heading of a flagged entry.
    * Stated where it matters rather than inferred from the wording.
@@ -441,6 +468,11 @@ export interface ConfiguredRule {
  * the worksheet instead.
  */
 export const resultFor = (item: CheckItem): ItemResult => {
+  /* Stated on the entry, and above everything else: a result that is not a
+     result cannot be talked down to a flag. */
+  if (item.severity === "HARD_INVALID") return "HARD_INVALID";
+  if (item.result === "HARD_INVALID") return "HARD_INVALID";
+
   if (item.result === "FLAGGED") return "FLAGGED";
 
   /* An inactivation that has not been authorised is an open question, so the
@@ -466,8 +498,20 @@ export const resultFor = (item: CheckItem): ItemResult => {
  * reviewer has to do it against the worksheet. Compliant entries ask for
  * nothing.
  */
-export const requiresNote = (item: CheckItem): boolean =>
-  resultFor(item) !== "COMPLIANT";
+/** The PNC series raised for an unusable result — APL-GP-GEN-0023. */
+export const PNC_PATTERN = /^PNC-\d{4}-\d{3,4}$/i;
+
+export const isValidPnc = (value: string): boolean =>
+  PNC_PATTERN.test(value.trim());
+
+/** An entry whose result cannot be used, whatever the reviewer writes. */
+export const requiresPnc = (item: CheckItem): boolean =>
+  resultFor(item) === "HARD_INVALID";
+
+export const requiresNote = (item: CheckItem): boolean => {
+  const result = resultFor(item);
+  return result === "FLAGGED" || result === "NEEDS_VERIFICATION";
+};
 
 /** MATCH, WITHIN TOLERANCE or MISMATCH, where both quantities are present. */
 export const quantityComparison = (item: CheckItem): string | null => {

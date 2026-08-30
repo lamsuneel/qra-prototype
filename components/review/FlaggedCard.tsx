@@ -1,6 +1,7 @@
 "use client";
 
 import type { CheckItem } from "@/types";
+import { resultFor } from "@/types";
 import { useReview } from "@/context/ReviewContext";
 import { cn } from "@/lib/utils";
 import { CalibrationBadge, InactivationBadge, SourceBadge } from "./Badges";
@@ -10,6 +11,7 @@ import {
   expectationFor,
   readingFor,
 } from "./EvidencePanel";
+import { PncInput } from "./PncInput";
 import { ReviewerNote } from "./ReviewerNote";
 
 /**
@@ -58,19 +60,28 @@ export function FlaggedCard({
   onToggle: () => void;
 }) {
   const calibration = item.reference?.match(CAL_DUE)?.[1];
-  const { isNoted } = useReview();
-  const confirmed = isNoted(item.id);
+  const { isNoted, hasPnc } = useReview();
+
+  /* An unusable result is answered with a PNC number, not an observation. */
+  const invalid = resultFor(item) === "HARD_INVALID";
+  const confirmed = invalid ? hasPnc(item.id) : isNoted(item.id);
 
   return (
     <div
       className={cn(
-        "mb-4 rounded-[7px] border border-l-4 border-flagged-text/40 border-l-flagged-text bg-[#FEF2F2] px-4 py-3.5",
+        "mb-4 rounded-[7px] border border-l-4 px-4 py-3.5",
+        invalid
+          ? "border-invalid-text/40 border-l-invalid-text bg-invalid-bg"
+          : "border-flagged-text/40 border-l-flagged-text bg-[#FEF2F2]",
       )}
     >
       <div className="flex flex-wrap items-start gap-x-3 gap-y-1">
         <span
           aria-hidden="true"
-          className="mt-[1px] shrink-0 text-[13px] font-bold text-flagged-text"
+          className={cn(
+            "mt-[1px] shrink-0 text-[13px] font-bold",
+            invalid ? "text-invalid-text" : "text-flagged-text",
+          )}
         >
           !
         </span>
@@ -79,8 +90,13 @@ export function FlaggedCard({
           {/* The expanded panel leads with its own heading, so the card header
               only announces the flag while collapsed. */}
           {expanded ? null : (
-            <div className="text-[13px] font-semibold text-flagged-text">
-              FLAGGED — Action Required
+            <div
+              className={cn(
+                "text-[13px] font-semibold",
+                invalid ? "text-invalid-text" : "text-flagged-text",
+              )}
+            >
+              {invalid ? "RESULT INVALID" : "FLAGGED — Action Required"}
             </div>
           )}
           <div
@@ -115,7 +131,7 @@ export function FlaggedCard({
             ) : null}
             {confirmed ? (
               <span className="rounded bg-compliant-bg px-2 py-[2px] text-[10px] font-medium text-compliant-text">
-                Observation recorded
+                {invalid ? "PNC recorded" : "Observation recorded"}
               </span>
             ) : null}
           </div>
@@ -130,7 +146,10 @@ export function FlaggedCard({
           type="button"
           onClick={onToggle}
           aria-expanded={expanded}
-          className="shrink-0 cursor-pointer text-[11px] font-medium text-flagged-text transition-colors duration-150 hover:underline"
+          className={cn(
+            "shrink-0 cursor-pointer text-[11px] font-medium transition-colors duration-150 hover:underline",
+            invalid ? "text-invalid-text" : "text-flagged-text",
+          )}
         >
           {expanded ? "Hide evidence ▲" : "View evidence ▼"}
         </button>
@@ -138,9 +157,19 @@ export function FlaggedCard({
 
       {expanded ? (
         <EvidencePanel item={item}>
-          <div className="mt-3 border-t border-flagged-text/20 pt-3">
-            <div className="mb-1 text-[10px] font-semibold tracking-wider text-flagged-text uppercase">
-              Why flagged
+          <div
+            className={cn(
+              "mt-3 border-t pt-3",
+              invalid ? "border-invalid-text/20" : "border-flagged-text/20",
+            )}
+          >
+            <div
+              className={cn(
+                "mb-1 text-[10px] font-semibold tracking-wider uppercase",
+                invalid ? "text-invalid-text" : "text-flagged-text",
+              )}
+            >
+              {invalid ? "Why invalid" : "Why flagged"}
             </div>
             <p className="text-[13px] leading-relaxed text-slate-700">
               {item.flagReason}
@@ -158,13 +187,17 @@ export function FlaggedCard({
           </div>
 
           <div className="mt-3.5">
-            <ReviewerNote
-              itemId={item.id}
-              tone="flagged"
-              heading="Reviewer observation"
-              placeholder={notePlaceholder(item)}
-              templates={TEMPLATES}
-            />
+            {invalid ? (
+              <PncInput itemId={item.id} />
+            ) : (
+              <ReviewerNote
+                itemId={item.id}
+                tone="flagged"
+                heading="Reviewer observation"
+                placeholder={notePlaceholder(item)}
+                templates={TEMPLATES}
+              />
+            )}
           </div>
         </EvidencePanel>
       ) : null}

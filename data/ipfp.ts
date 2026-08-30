@@ -144,6 +144,8 @@ const TPW_IPFP: StandaloneInstrument = {
   auditTrail: TPW_IPFP_AUDIT,
 };
 
+const TIAMO_SOP = "APL-CP-F-QCCI-GEN-0013";
+
 /* -------------------------------------------------------------------------- */
 /* Sections                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -355,6 +357,32 @@ const sections: Section[] = [
             { cells: ["Mean", "—", "2.1 % w/w", "NMT 3.0 %"] },
           ],
         },
+      }),
+      /*
+       * TIA-F01. The titration began while conditioning was still running, so
+       * it consumed titre the reading does not account for. That is not a
+       * result to be explained — it is not a result, and no observation makes
+       * it one. The analysis is repeated and a PNC carries the record.
+       */
+      flagged({
+        prefix: P,
+        severity: "HARD_INVALID",
+        flagId: "TIA-F01",
+        sopReference: TIAMO_SOP,
+        label: "Determination started with COND BUSY",
+        subLabel: "Result is not usable — analysis must be repeated",
+        exceptionType: "Result Invalid",
+        reference: "Determination #004",
+        expected: "Conditioning complete before the determination starts",
+        actual: "Determination #004 started at 14:41:08 with COND BUSY active",
+        expectedSource: TIAMO_SOP,
+        comparison:
+          "The Tiamo audit trail records COND BUSY at the moment the determination started",
+        flagReason:
+          "TIA-F01 — the determination began while the cell was still conditioning. Additional titre was consumed by the conditioning, so the value reported is not the water content of the sample. Source: " + TIAMO_SOP + ".",
+        flagAction:
+          "Raise PNC per APL-GP-GEN-0023. Analysis must be repeated. Source: " + TIAMO_SOP + ".",
+        source: "Tiamo 2.4",
       }),
       compliant({
         prefix: P,

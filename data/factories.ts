@@ -23,6 +23,12 @@ export interface CompliantSpec {
   prefix: string;
   label: string;
   subLabel?: string;
+  /** The rule this entry answers to, e.g. "TIA-F01". */
+  flagId?: string;
+  /** The document the check comes from. */
+  sopReference?: string;
+  /** Set where the result cannot be used at all — a PNC number is required. */
+  severity?: "HARD_INVALID";
   exceptionType?: string;
   reference?: string;
   statusText?: string;
@@ -56,6 +62,9 @@ export const compliant = (spec: CompliantSpec): CheckItem => ({
   id: nextId(spec.prefix),
   label: spec.label,
   subLabel: spec.subLabel,
+  flagId: spec.flagId,
+  sopReference: spec.sopReference,
+  severity: spec.severity,
   exceptionType: spec.exceptionType,
   reference: spec.reference,
   statusText: spec.statusText ?? "Active",
@@ -85,6 +94,12 @@ export interface FlaggedSpec {
   prefix: string;
   label: string;
   subLabel?: string;
+  /** The rule this entry answers to, e.g. "TIA-F01". */
+  flagId?: string;
+  /** The document the check comes from. */
+  sopReference?: string;
+  /** Set where the result cannot be used at all — a PNC number is required. */
+  severity?: "HARD_INVALID";
   exceptionType?: string;
   reference?: string;
   expected: string;
@@ -109,6 +124,9 @@ export const flagged = (spec: FlaggedSpec): CheckItem => ({
   id: nextId(spec.prefix),
   label: spec.label,
   subLabel: spec.subLabel,
+  flagId: spec.flagId,
+  sopReference: spec.sopReference,
+  severity: spec.severity,
   exceptionType: spec.exceptionType,
   reference: spec.reference,
   expected: spec.expected,

@@ -4,7 +4,13 @@ import { useRouter } from "next/navigation";
 
 import { orderedSections, sectionSlug } from "@/data";
 import { useReview } from "@/context/ReviewContext";
-import { requiresNote, resultFor, type Batch, type Section } from "@/types";
+import {
+  requiresNote,
+  requiresPnc,
+  resultFor,
+  type Batch,
+  type Section,
+} from "@/types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -19,7 +25,7 @@ export function BottomNavBar({
   section: Section;
 }) {
   const router = useRouter();
-  const { sectionStatus, markSectionReviewed, canMarkReviewed, isNoted } =
+  const { sectionStatus, markSectionReviewed, canMarkReviewed, isNoted, hasPnc } =
     useReview();
 
   const all = orderedSections(batch);
@@ -32,18 +38,24 @@ export function BottomNavBar({
 
   /* Name the entry that is actually blocking, not "flagged items". The two
      kinds block for opposite reasons, so the message says which. */
-  const awaiting = section.items.filter(requiresNote);
-  const outstanding = awaiting.filter((item) => !isNoted(item.id));
+  const awaiting = section.items.filter(
+    (item) => requiresNote(item) || requiresPnc(item),
+  );
+  const outstanding = awaiting.filter((item) =>
+    requiresPnc(item) ? !hasPnc(item.id) : !isNoted(item.id),
+  );
   const blocker = outstanding[0];
-  const blockerFlagged = blocker ? resultFor(blocker) === "FLAGGED" : false;
+  const blockerResult = blocker ? resultFor(blocker) : null;
   const blockingMessage = blocker
-    ? awaiting.length > 1
-      ? `${outstanding.length} of ${awaiting.length} entries still ${
-          outstanding.length === 1 ? "needs" : "need"
-        } your note — ${blocker.label}.`
-      : blockerFlagged
-        ? `Open the flagged entry “${blocker.label}” and add your observation note to continue.`
-        : `Confirm your worksheet verification of “${blocker.label}” to continue.`
+    ? blockerResult === "HARD_INVALID"
+      ? `“${blocker.label}” is not a usable result — enter the PNC number raised for it to continue.`
+      : awaiting.length > 1
+        ? `${outstanding.length} of ${awaiting.length} entries still ${
+            outstanding.length === 1 ? "needs" : "need"
+          } your note — ${blocker.label}.`
+        : blockerResult === "FLAGGED"
+          ? `Open the flagged entry “${blocker.label}” and add your observation note to continue.`
+          : `Confirm your worksheet verification of “${blocker.label}” to continue.`
     : null;
 
   const goTo = (target: Section) =>

@@ -34,6 +34,12 @@ const nextId = (prefix: string) => `${prefix}-${(seq += 1)}`;
 interface CompliantSpec {
   label: string;
   subLabel?: string;
+  /** The rule this entry answers to, e.g. "TIA-F01". */
+  flagId?: string;
+  /** The document the check comes from. */
+  sopReference?: string;
+  /** Set where the result cannot be used at all — a PNC number is required. */
+  severity?: "HARD_INVALID";
   exceptionType?: string;
   reference?: string;
   statusText?: string;
@@ -66,6 +72,9 @@ const compliant = (spec: CompliantSpec): CheckItem => ({
   id: nextId("item"),
   label: spec.label,
   subLabel: spec.subLabel,
+  flagId: spec.flagId,
+  sopReference: spec.sopReference,
+  severity: spec.severity,
   exceptionType: spec.exceptionType,
   reference: spec.reference,
   statusText: spec.statusText ?? "Active",
@@ -93,6 +102,12 @@ const compliant = (spec: CompliantSpec): CheckItem => ({
 interface FlaggedSpec {
   label: string;
   subLabel?: string;
+  /** The rule this entry answers to, e.g. "TIA-F01". */
+  flagId?: string;
+  /** The document the check comes from. */
+  sopReference?: string;
+  /** Set where the result cannot be used at all — a PNC number is required. */
+  severity?: "HARD_INVALID";
   exceptionType?: string;
   reference?: string;
   expected: string;
@@ -116,6 +131,9 @@ const flagged = (spec: FlaggedSpec): CheckItem => ({
   id: nextId("item"),
   label: spec.label,
   subLabel: spec.subLabel,
+  flagId: spec.flagId,
+  sopReference: spec.sopReference,
+  severity: spec.severity,
   exceptionType: spec.exceptionType,
   reference: spec.reference,
   expected: spec.expected,
@@ -953,6 +971,21 @@ const batchBSections: Section[] = [
           "A second determination was performed. STP-AMX-KF-001 permits one determination unless an instrument error is documented in the audit trail.",
         flagAction:
           "Confirm the second determination is justified and documented. The audit trail records an electrode conditioning error before Determination 2 — verify this satisfies SOP-INST-004 §4.3.",
+        source: "Tiamo 2.4",
+      }),
+      /* TIA-F01. Checked and clean: the cell had finished conditioning
+         before the determination began, so the titre reported is the
+         sample's own. */
+      compliant({
+        flagId: "TIA-F01",
+        sopReference: "APL-CP-F-QCCI-GEN-0013",
+        label: "Conditioning state at determination start",
+        reference: "COND BUSY not detected",
+        statusText: "Clean start",
+        expected: "Conditioning complete before the determination starts",
+        actual: "Determination #001 started at 08:44:02 with conditioning complete",
+        expectedSource: "APL-CP-F-QCCI-GEN-0013",
+        comparison: "No COND BUSY entry between conditioning stopped and determination start",
         source: "Tiamo 2.4",
       }),
       compliant({

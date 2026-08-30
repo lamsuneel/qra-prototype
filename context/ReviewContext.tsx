@@ -20,7 +20,7 @@ import {
 
 import { ALL_BATCHES, getBatch, orderedSections } from "@/data";
 import { getProfile } from "@/data/profiles";
-import { requiresNote } from "@/types";
+import { isValidPnc, requiresNote, requiresPnc } from "@/types";
 import type { BatchStatus, Profile, Section, SectionStatus } from "@/types";
 
 interface ReviewContextValue {
@@ -34,6 +34,11 @@ interface ReviewContextValue {
   noteFor: (itemId: string) => string;
   setNote: (itemId: string, note: string) => void;
   isNoted: (itemId: string) => boolean;
+
+  /* PNC numbers — keyed by CheckItem id, for results that are not usable */
+  pncFor: (itemId: string) => string;
+  setPnc: (itemId: string, pnc: string) => void;
+  hasPnc: (itemId: string) => boolean;
 
   /* Section review status — keyed by Section id */
   sectionStatus: (sectionId: string) => SectionStatus;
@@ -85,6 +90,7 @@ const seedSectionStatuses = (): Record<string, SectionStatus> =>
 export function ReviewProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>(seedNotes);
+  const [pncs, setPncs] = useState<Record<string, string>>({});
   const [reviewed, setReviewed] =
     useState<Record<string, SectionStatus>>(seedSectionStatuses);
   const [statuses, setStatuses] =
@@ -129,6 +135,26 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
   );
 
   /* ---------------------------------------------------------------- */
+  /* PNC numbers                                                      */
+  /* ---------------------------------------------------------------- */
+
+  const pncFor = useCallback((itemId: string) => pncs[itemId] ?? "", [pncs]);
+
+  const setPnc = useCallback((itemId: string, pnc: string) => {
+    setPncs((current) => ({ ...current, [itemId]: pnc.trim() }));
+  }, []);
+
+  /**
+   * Only a well-formed PNC counts. An unusable result is closed out by
+   * raising one in the site's own system, so a placeholder in this field
+   * would be a worse record than an empty one.
+   */
+  const hasPnc = useCallback(
+    (itemId: string) => isValidPnc(pncs[itemId] ?? ""),
+    [pncs],
+  );
+
+  /* ---------------------------------------------------------------- */
   /* Sections                                                         */
   /* ---------------------------------------------------------------- */
 
@@ -138,17 +164,25 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
   );
 
   /**
-   * A section unlocks once every entry that is not compliant carries a note —
-   * flagged entries and entries QRA could not conclude alike. Sections where
-   * everything came back compliant unlock immediately: there is nothing for
-   * the reviewer to confirm.
+   * A section unlocks once everything outstanding in it has been answered:
+   * every flagged entry and every entry QRA could not conclude carries an
+   * observation, and every unusable result carries a PNC number. Sections
+   * where everything came back compliant unlock immediately.
    */
   const canMarkReviewed = useCallback(
-    (section: Section) =>
-      section.items
+    (section: Section) => {
+      const noted = section.items
         .filter(requiresNote)
-        .every((item) => (notes[item.id] ?? "").trim().length > 0),
-    [notes],
+        .every((item) => (notes[item.id] ?? "").trim().length > 0);
+
+      /* An unusable result waits on a PNC number, not an observation. */
+      const numbered = section.items
+        .filter(requiresPnc)
+        .every((item) => isValidPnc(pncs[item.id] ?? ""));
+
+      return noted && numbered;
+    },
+    [notes, pncs],
   );
 
   const markSectionReviewed = useCallback((sectionId: string) => {
@@ -228,9 +262,13 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
       selectProfile,
       clearProfile,
       notes,
+      pncs,
       noteFor,
       setNote,
       isNoted,
+      pncFor,
+      setPnc,
+      hasPnc,
       sectionStatus,
       markSectionReviewed,
       canMarkReviewed,
@@ -248,9 +286,13 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
       selectProfile,
       clearProfile,
       notes,
+      pncs,
       noteFor,
       setNote,
       isNoted,
+      pncFor,
+      setPnc,
+      hasPnc,
       sectionStatus,
       markSectionReviewed,
       canMarkReviewed,

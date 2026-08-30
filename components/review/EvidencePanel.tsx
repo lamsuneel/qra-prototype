@@ -142,6 +142,7 @@ export function EvidencePanel({
 }) {
   /* Derived, so an unauthorised inactivation reads as flagged here too. */
   const flagged = resultFor(item) === "FLAGGED";
+  const invalid = resultFor(item) === "HARD_INVALID";
   const unverified = resultFor(item) === "NEEDS_VERIFICATION";
   const comparison = quantityComparison(item);
   const calibration = item.reference?.match(CAL_DUE)?.[1];
@@ -169,7 +170,11 @@ export function EvidencePanel({
   return (
     <div className="mt-3">
       {/* Level 1 — the finding itself, the first thing the eye lands on. */}
-      {flagged ? (
+      {invalid ? (
+        <div className="mb-3.5 flex items-center gap-2 rounded-[5px] bg-invalid-bg px-3.5 py-2.5 text-[16px] font-bold text-invalid-text">
+          <span aria-hidden="true">&#9888;</span> RESULT INVALID
+        </div>
+      ) : flagged ? (
         <div className="mb-3.5 flex items-center gap-2 rounded-[5px] bg-flagged-bg px-3.5 py-2.5 text-[16px] font-bold text-flagged-text">
           <span aria-hidden="true">&#9888;</span> FLAGGED — {flagType(item)}
         </div>
@@ -269,7 +274,7 @@ export function EvidencePanel({
         <p className="text-[13px] leading-relaxed text-source-text">{comparisonFor(item)}</p>
       </div>
 
-      {flagged ? null : (
+      {flagged || invalid ? null : (
         <dl className="mt-2.5 grid grid-cols-[110px_1fr]">
           <Field label="Result">
             {unverified ? (
@@ -285,7 +290,7 @@ export function EvidencePanel({
         </dl>
       )}
 
-      {flagged ? (
+      {flagged || invalid ? (
         children
       ) : unverified ? (
         <p className="mt-2.5 rounded-[5px] bg-warn-bg px-3 py-2 text-[11px] leading-relaxed font-medium text-warn-text">
