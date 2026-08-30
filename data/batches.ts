@@ -13,6 +13,9 @@ import type {
   TestParameter,
 } from "@/types";
 import { SOP, acceptabilityRule } from "./rules";
+
+/** The border-limit rule, named on every entry it produces. */
+const EMP_F23 = "FU7-QA-GEN-080 EMP-F23";
 import {
   attendanceCheck,
   empowerAuditTrail,
@@ -1541,6 +1544,37 @@ const batchBSections: Section[] = [
     }),
   ),
   section("rs", "Empower Audit Trail", 6, empowerAuditTrail("emp-rs")),
+  /*
+   * Known Impurity A sits a hundredth of a percent under its limit. It
+   * passes; whether it goes on passing is what the trend has to answer.
+   */
+  section("rs", "Related Substances Result", 7, [
+    compliant({
+      flagId: "EMP-F23",
+      sopReference: EMP_F23,
+      label: "Known Impurity A",
+      reference: "Mean of 3 injections",
+      statusText: "Within specification",
+      expected: "Not more than 0.20 % — STP-AMX-RS-001",
+      actual: "0.19 % (0.19 / 0.19 / 0.20), RSD 3.0 %",
+      expectedSource: "STP-AMX-RS-001",
+      source: EMPOWER,
+      borderLimit: { result: 0.19, upper: 0.2, unit: "%" },
+      comparison:
+        "Result sits 0.01 % below the upper specification limit — inside specification, inside the border-limit margin",
+      table: {
+        caption: "Known Impurity A — injections of 14-Aug-2026",
+        columns: ["Injection", "Result", "Specification"],
+        rows: [
+          { cells: ["1", "0.19 %", "NMT 0.20 %"] },
+          { cells: ["2", "0.19 %", "NMT 0.20 %"] },
+          { cells: ["3", "0.20 %", "NMT 0.20 %"] },
+          { cells: ["Mean", "0.19 %", "NMT 0.20 %"] },
+        ],
+      },
+    }),
+  ]),
+
 
   /* MassLynx keeps an audit trail too; it is a report rather than a
      database, so the same six questions are put to the PDF. */

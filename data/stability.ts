@@ -543,6 +543,25 @@ const sections: Section[] = [
 
   /* --- Assay (HPLC) ------------------------------------------------------- */
   section("assay", "Assay Trend", 1, [
+    /*
+     * The 6-month assay lands two tenths above the lower limit. Inside
+     * specification, and close enough that the trend decides.
+     */
+    compliant({
+      prefix: P,
+      flagId: "EMP-F23",
+      sopReference: "FU7-QA-GEN-080 EMP-F23",
+      label: "Assay at the 6-month timepoint",
+      reference: "6-month accelerated",
+      statusText: "Within specification",
+      expected: "95.0 % to 105.0 % of label claim — STP-STB-ASSAY-001",
+      actual: "95.2 % of label claim at the 6-month accelerated timepoint",
+      expectedSource: "STP-STB-ASSAY-001",
+      source: "Waters Empower",
+      borderLimit: { result: 95.2, lower: 95.0, upper: 105.0, unit: "%" },
+      comparison:
+        "Result sits 0.2 % above the lower specification limit — inside specification, inside the border-limit margin",
+    }),
     compliant({
       prefix: P,
       label: "Assay across the study timepoints",

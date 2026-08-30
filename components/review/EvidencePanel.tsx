@@ -1,5 +1,10 @@
 import type { CheckItem } from "@/types";
-import { borderLimitDistance, quantityComparison, resultFor } from "@/types";
+import {
+  borderLimitDistance,
+  formatDistance,
+  quantityComparison,
+  resultFor,
+} from "@/types";
 import { SourceBadge } from "./Badges";
 import { EvidenceTable } from "./EvidenceTable";
 import { AuditTrailTimeline } from "./AuditTrailTimeline";
@@ -56,7 +61,8 @@ export const readingFor = (item: CheckItem): string => {
 
   if (
     parts.length > 1 &&
-    (label.includes(parts[0].toLowerCase()) || parts[0].toLowerCase().includes(label))
+    (label.includes(parts[0].toLowerCase()) ||
+      parts[0].toLowerCase().includes(label))
   ) {
     parts.shift();
   }
@@ -120,7 +126,13 @@ function Column({
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <>
       <dt className="py-[5px] text-[11px] font-semibold tracking-wide text-source-text uppercase">
@@ -155,12 +167,16 @@ export function EvidencePanel({
   if (item.reference && !calibration) {
     actualLines.push({ label: "Reference", value: item.reference });
   }
-  if (calibration) actualLines.push({ label: "Calibration due", value: calibration });
+  if (calibration)
+    actualLines.push({ label: "Calibration due", value: calibration });
   /* A reference standard is read from two LIMS modules, so the panel names
      each one rather than collapsing them into a single source. */
   if (item.usageSource && item.potencySource) {
     actualLines.push({ label: "Usage data source", value: item.usageSource });
-    actualLines.push({ label: "Potency/assigned value source", value: item.potencySource });
+    actualLines.push({
+      label: "Potency/assigned value source",
+      value: item.potencySource,
+    });
   } else {
     actualLines.push({
       label: "Source",
@@ -195,12 +211,19 @@ export function EvidencePanel({
 
       {/* Level 2 — the core facts. Actual leads; expected is muted beside it. */}
       <div className="grid gap-4 border-t border-slate-200/70 pt-3 sm:grid-cols-2">
-        <Column heading="Actual" value={readingFor(item)} lines={actualLines} emphasis />
+        <Column
+          heading="Actual"
+          value={readingFor(item)}
+          lines={actualLines}
+          emphasis
+        />
         <Column
           heading="Expected"
           value={item.expected}
           lines={
-            item.expectedSource ? [{ label: "Source", value: item.expectedSource }] : []
+            item.expectedSource
+              ? [{ label: "Source", value: item.expectedSource }]
+              : []
           }
         />
       </div>
@@ -257,8 +280,12 @@ export function EvidencePanel({
 
       {item.requiresQuantityCheck ? (
         <dl className="mt-3 grid grid-cols-[minmax(180px,220px)_1fr] gap-x-4 gap-y-[3px] border-t border-slate-200/70 pt-3 text-[12px]">
-          <dt className="text-slate-400">Prescribed quantity (LIMS worksheet)</dt>
-          <dd className={item.prescribedQty ? "text-slate-700" : "text-warn-text"}>
+          <dt className="text-slate-400">
+            Prescribed quantity (LIMS worksheet)
+          </dt>
+          <dd
+            className={item.prescribedQty ? "text-slate-700" : "text-warn-text"}
+          >
             {item.prescribedQty ?? "Not fetched from LIMS"}
           </dd>
 
@@ -270,7 +297,9 @@ export function EvidencePanel({
           <dt className="text-slate-400">Comparison</dt>
           <dd
             className={
-              comparison ? "font-medium text-compliant-text" : "font-medium text-warn-text"
+              comparison
+                ? "font-medium text-compliant-text"
+                : "font-medium text-warn-text"
             }
           >
             {comparison ?? "NO COMPARISON — VERIFY AGAINST WORKSHEET"}
@@ -299,7 +328,7 @@ export function EvidencePanel({
 
           <dt className="text-slate-400">Distance from limit</dt>
           <dd className="font-medium text-warn-text">
-            {border.distance.toFixed(1)}
+            {formatDistance(border.distance)}
             {item.borderLimit.unit} above the {border.edge} limit
           </dd>
 
@@ -335,7 +364,9 @@ export function EvidencePanel({
         <div className="mb-0.5 text-[10px] font-semibold tracking-wider text-source-text uppercase">
           Comparison performed
         </div>
-        <p className="text-[13px] leading-relaxed text-source-text">{comparisonFor(item)}</p>
+        <p className="text-[13px] leading-relaxed text-source-text">
+          {comparisonFor(item)}
+        </p>
       </div>
 
       {flagged || invalid ? null : (
@@ -369,11 +400,22 @@ export function EvidencePanel({
 
       {flagged || invalid ? (
         children
+      ) : border ? (
+        /* Amber for the opposite reason to the one below: nothing is missing,
+           the result is simply close enough to its limit that the trend is
+           what decides. */
+        <p className="mt-2.5 rounded-[5px] bg-warn-bg px-3 py-2 text-[11px] leading-relaxed font-medium text-warn-text">
+          <span aria-hidden="true">&#9888;</span> Result is within{" "}
+          {formatDistance(border.distance)}
+          {item.borderLimit?.unit} of the {border.edge} specification limit.
+          Record the stability or trend evaluation before marking this section
+          as Reviewed.
+        </p>
       ) : unverified ? (
         <p className="mt-2.5 rounded-[5px] bg-warn-bg px-3 py-2 text-[11px] leading-relaxed font-medium text-warn-text">
-          <span aria-hidden="true">&#9888;</span> Verify against worksheet: prescribed
-          quantity not fetched from LIMS. Confirm the quantity used against the LIMS
-          worksheet before marking this section as Reviewed.
+          <span aria-hidden="true">&#9888;</span> Verify against worksheet:
+          prescribed quantity not fetched from LIMS. Confirm the quantity used
+          against the LIMS worksheet before marking this section as Reviewed.
         </p>
       ) : (
         <p className="mt-2.5 text-[11px] text-slate-400">

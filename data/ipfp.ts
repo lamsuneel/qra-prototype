@@ -400,6 +400,26 @@ const withAttendance = (
 const sections: Section[] = [
   /* --- Blend Uniformity — the characteristic in-process check ------------- */
   section("blend", "Blend Uniformity Result", 1, [
+    /*
+     * Location 7 failed outright. Location 10 did not — it passed by four
+     * tenths, which is a different question and gets a different colour.
+     */
+    compliant({
+      prefix: P,
+      flagId: "EMP-F23",
+      sopReference: "FU7-QA-GEN-080 EMP-F23",
+      label: "Sampling location 10",
+      reference: "90.4 % of label claim",
+      statusText: "Within specification",
+      expected:
+        "Each individual location between 90.0 % and 110.0 % of label claim — STP-IPFP-BU-002 §8.2",
+      actual: "Location 10 at 90.4 % of label claim",
+      expectedSource: "STP-IPFP-BU-002 §8.2",
+      source: "Waters Empower",
+      borderLimit: { result: 90.4, lower: 90.0, upper: 110.0, unit: "%" },
+      comparison:
+        "Result sits 0.4 % above the lower acceptance limit — inside range, inside the border-limit margin",
+    }),
     // LEVEL D — demonstration scenario.
     flagged({
       prefix: P,

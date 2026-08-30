@@ -563,6 +563,15 @@ export interface BorderLimit {
 
 export const BORDER_LIMIT_MARGIN = 0.5;
 
+/**
+ * The distance, at the precision it is meaningful.
+ *
+ * A hundredth of a percent under a limit is the whole point of the entry, and
+ * one decimal place rounds it away to nothing.
+ */
+export const formatDistance = (value: number): string =>
+  Number(value.toFixed(2)).toString();
+
 /** How close the result sits to the limit it is nearest, or null if clear. */
 export const borderLimitDistance = (
   border: BorderLimit,

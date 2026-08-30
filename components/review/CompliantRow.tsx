@@ -1,7 +1,7 @@
 "use client";
 
 import type { CheckItem } from "@/types";
-import { borderLimitDistance, resultFor } from "@/types";
+import { borderLimitDistance, formatDistance, resultFor } from "@/types";
 import { cn } from "@/lib/utils";
 import { CalibrationBadge, InactivationBadge, SourceBadge } from "./Badges";
 import {
@@ -115,7 +115,7 @@ export function CompliantRow({
 
             {border ? (
               <div className="mt-0.5 text-[11px] font-medium text-warn-text">
-                Within {border.distance.toFixed(1)}
+                Within {formatDistance(border.distance)}
                 {item.borderLimit?.unit} of the {border.edge} specification
                 limit — stability or trend evaluation required before
                 disposition
