@@ -97,6 +97,18 @@ const seedNotes = (): Record<string, string> =>
     ),
   );
 
+/**
+ * A batch that has already been round the correction loop carries what it was
+ * sent back for. The reviewer picking it up now is the one who needs it.
+ */
+const seedCorrections = (): Record<string, CorrectionRecord[]> =>
+  Object.fromEntries(
+    ALL_BATCHES.filter((batch) => batch.corrections?.length).map((batch) => [
+      batch.arNumber,
+      batch.corrections as CorrectionRecord[],
+    ]),
+  );
+
 const seedSectionStatuses = (): Record<string, SectionStatus> =>
   Object.fromEntries(
     ALL_BATCHES.flatMap((batch) =>
@@ -116,9 +128,8 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
   const [returnReasons, setReturnReasons] = useState<Record<string, string>>(
     {},
   );
-  const [corrections, setCorrections] = useState<
-    Record<string, CorrectionRecord[]>
-  >({});
+  const [corrections, setCorrections] =
+    useState<Record<string, CorrectionRecord[]>>(seedCorrections);
 
   /* ---------------------------------------------------------------- */
   /* Profile                                                          */

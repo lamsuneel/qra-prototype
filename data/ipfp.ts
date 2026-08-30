@@ -1,7 +1,7 @@
 import type {
   CheckItem, Batch, Section, StandaloneInstrument, TestParameter } from "@/types";
 import { compliant, flagged, section } from "./factories";
-import { attendanceCheck } from "./checks";
+import { attendanceCheck, empowerAuditTrail } from "./checks";
 import { SOP } from "./rules";
 
 /**
@@ -496,6 +496,13 @@ const sections: Section[] = [
       source: "Caliber LIMS — Manual Entry",
     }),
   ]),
+  /*
+   * The fourteen questions Empower is asked wherever it produced the result.
+   * Nothing fired here: the blend finding is in the result itself, not in
+   * what was done to it afterwards.
+   */
+  section("blend", "Empower Audit Trail", 2, empowerAuditTrail("emp-ipfp-blend")),
+
 
   /* --- Tablet Weight Variation ------------------------------------------- */
   section("weight", "Weight Variation Result", 1, [
@@ -650,6 +657,21 @@ const sections: Section[] = [
         flagAction:
           "Raise PNC per APL-GP-GEN-0023. Analysis must be repeated. Source: " + TIAMO_SOP + ".",
         source: "Tiamo 2.4",
+      }),
+      compliant({
+        prefix: P,
+        flagId: "TIA-F02",
+        sopReference: "APL-CP-F-QCCI-GEN-0013 TIA-F02",
+        label: "Determination version",
+        reference: "Version 1",
+        statusText: "Original",
+        checkDescription:
+          "QRA read the determination version in Tiamo. Anything above 1 means the run was processed a second time, which needs a PNC behind it.",
+        expected: "Version 1 (original)",
+        actual: "Version 1 — original determination",
+        expectedSource: "APL-CP-F-QCCI-GEN-0013",
+        source: "Tiamo 2.4",
+        comparison: "Determination version read against the original-run requirement",
       }),
       compliant({
         prefix: P,

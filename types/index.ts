@@ -89,6 +89,7 @@ export type SourceSystem =
   | "Spectrum ES"
   | "Mastersizer 3000"
   | "Qtegra ICP"
+  | "Magic Net 4.2"
   | "Axicon Barcode Verifier"
   | "LabSolutions UV"
   | "iCDAS 1.2"
@@ -427,6 +428,8 @@ export interface Batch {
   submittedAt?: string;
   parameters: TestParameter[];
   sections: Section[];
+  /** Rounds this batch has already been sent back for correction. */
+  corrections?: CorrectionRecord[];
   dataSources: SourceSystem[];
 }
 
