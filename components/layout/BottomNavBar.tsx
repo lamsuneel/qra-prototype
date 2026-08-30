@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { orderedSections, sectionSlug } from "@/data";
+import { reviewableSections, sectionSlug } from "@/data";
 import { useReview } from "@/context/ReviewContext";
 import {
   requiresConfirmation,
@@ -40,7 +40,9 @@ export function BottomNavBar({
 
   const [recheckOpen, setRecheckOpen] = useState(false);
 
-  const all = orderedSections(batch);
+  /* Walking into a locked section would strand the reviewer somewhere the
+     sidebar will not take them back to. */
+  const all = reviewableSections(batch);
   const index = all.findIndex((candidate) => candidate.id === section.id);
   const previous = index > 0 ? all[index - 1] : null;
   const next = index >= 0 && index < all.length - 1 ? all[index + 1] : null;

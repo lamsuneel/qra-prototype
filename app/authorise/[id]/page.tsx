@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import { getBatch, orderedSections } from "@/data";
+import { getBatch, reviewableSections } from "@/data";
 import { resultFor } from "@/types";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
@@ -46,7 +46,7 @@ export default function AuthoriseDetailPage() {
   const status = batchStatus(batch.arNumber);
   const decided = status !== "AWAITING_AUTHORISATION";
 
-  const exceptions = orderedSections(batch).flatMap((section) =>
+  const exceptions = reviewableSections(batch).flatMap((section) =>
     section.items
       .filter((item) => resultFor(item) === "FLAGGED")
       .map((item) => ({ section, item })),

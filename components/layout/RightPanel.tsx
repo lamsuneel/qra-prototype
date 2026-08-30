@@ -1,7 +1,7 @@
 "use client";
 
 import { useReview } from "@/context/ReviewContext";
-import { flaggedItemsInBatch, orderedSections, sourcesUsedIn } from "@/data";
+import { flaggedItemsInBatch, reviewableSections, sourcesUsedIn } from "@/data";
 import {
   requiresConfirmation,
   requiresNote,
@@ -27,7 +27,7 @@ export function RightPanel({ batch }: { batch: Batch }) {
 
   /* What is actually blocking the reviewer, across the whole batch — flags
      and entries QRA could not conclude both wait on a note. */
-  const unnoted = orderedSections(batch)
+  const unnoted = reviewableSections(batch)
     .flatMap((section) => section.items)
     .filter((item) =>
       requiresPnc(item)

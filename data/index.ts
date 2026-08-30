@@ -110,11 +110,26 @@ export const sectionsForParameter = (
     .filter((section) => section.parameter === parameterId)
     .sort((a, b) => a.order - b.order);
 
-/** Flat ordered walk of every section, used by Previous / Next navigation. */
+/** Flat ordered walk of every section the batch carries. */
 export const orderedSections = (batch: Batch): Section[] =>
   batch.parameters.flatMap((parameter) =>
     sectionsForParameter(batch, parameter.id),
   );
+
+/**
+ * The sections a reviewer can actually work on.
+ *
+ * In-process review runs test by test: a parameter the lab has not released
+ * has sections in the data, but nothing behind them yet and no way in. They
+ * are not work outstanding — they are work that has not arrived — so the
+ * progress count and Previous/Next both leave them out. Counting them would
+ * mean an in-process batch could never be submitted however much of it was
+ * finished.
+ */
+export const reviewableSections = (batch: Batch): Section[] =>
+  batch.parameters
+    .filter((parameter) => parameter.readiness !== "IN_PROGRESS")
+    .flatMap((parameter) => sectionsForParameter(batch, parameter.id));
 
 /** The most severe SLA state present in a set of batches. */
 const worstSla = (batches: Batch[]): SlaStatus => {

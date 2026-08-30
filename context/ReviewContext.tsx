@@ -18,7 +18,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { ALL_BATCHES, getBatch, orderedSections } from "@/data";
+import { ALL_BATCHES, getBatch, reviewableSections } from "@/data";
 import { getProfile } from "@/data/profiles";
 import {
   isValidPnc,
@@ -301,14 +301,14 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
 
   const totalSections = useCallback((arNumber: string) => {
     const batch = getBatch(arNumber);
-    return batch ? orderedSections(batch).length : 0;
+    return batch ? reviewableSections(batch).length : 0;
   }, []);
 
   const reviewedCount = useCallback(
     (arNumber: string) => {
       const batch = getBatch(arNumber);
       if (!batch) return 0;
-      return orderedSections(batch).filter(
+      return reviewableSections(batch).filter(
         (section) => reviewed[section.id] === "REVIEWED",
       ).length;
     },

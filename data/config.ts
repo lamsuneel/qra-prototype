@@ -232,11 +232,6 @@ export const CONFIGURED_RULES: ConfiguredRule[] = [
     comparison: "Calibration due date is after the date of use",
   },
   {
-    check: "Analyst qualification",
-    sourceDocument: "SOP-INST-004 §3.1",
-    comparison: "Analyst holds a current qualification for the instrument used",
-  },
-  {
     check: "System suitability",
     sourceDocument: "SOP-HPLC-001",
     comparison: "Tailing, plate count and resolution meet the STP method limits",

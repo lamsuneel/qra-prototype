@@ -135,9 +135,9 @@ Exported by     : A.KULKARNI (Analyst)
 --------------------------------------------------------------
 END OF AUDIT TRAIL`;
 
-const ICDAS_AUDIT = `iCDAS 1.2 - CHAMBER MONITORING AUDIT TRAIL
+const CHAMBER_LOG = `SITE LOGBOOK / MANUAL LIMS ENTRY - CHAMBER MONITORING RECORD
 Chamber         : SCH-04 (Thermolab accelerated stability chamber)
-Software        : iCDAS 1.2 build 340
+Record source   : Site Logbook / Manual LIMS Entry
 Condition       : 40 C +/- 2 C / 75 % RH +/- 5 % RH
 Report exported : 07-Aug-2026 08:44:12
 Exported by     : QA.STABILITY (Reviewer)
@@ -179,15 +179,15 @@ const UV: StandaloneInstrument = {
   auditTrail: UV_AUDIT,
 };
 
-const ICDAS: StandaloneInstrument = {
+const CHAMBER_LOG_RECORD: StandaloneInstrument = {
   name: "Chamber log — manual LIMS entry",
   version: "",
   source: "Caliber LIMS — Manual Entry",
   analyst: "QA Stability Desk",
   loginAt: "07-Aug-2026 08:40",
   logoutAt: "07-Aug-2026 08:46",
-  pdfFilename: "iCDAS_SCH04_AMX-2026-0288-6M_Feb2026-Aug2026.pdf",
-  auditTrail: ICDAS_AUDIT,
+  pdfFilename: "ChamberLog_SCH04_AMX-2026-0288-6M_Feb2026-Aug2026.pdf",
+  auditTrail: CHAMBER_LOG,
 };
 
 const BALANCE_STB_AUDIT = `SARTORIUS CUBIS II - BALANCE AUDIT TRAIL
@@ -535,7 +535,7 @@ const sections: Section[] = [
       }),
     ],
     {
-      standaloneInstrument: ICDAS,
+      standaloneInstrument: CHAMBER_LOG_RECORD,
       chamberReadings: CHAMBER_READINGS,
       chamberLimits: { temperature: "40 °C ± 2 °C", humidity: "75 % RH ± 5 % RH" },
     },

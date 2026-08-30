@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import { getBatch, orderedSections, sectionSlug } from "@/data";
+import { getBatch, reviewableSections, sectionSlug } from "@/data";
 import { DOMAIN_META, resultFor } from "@/types";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
@@ -36,7 +36,7 @@ export default function SummaryPage() {
 
   if (!profile || !batch) return null;
 
-  const sections = orderedSections(batch);
+  const sections = reviewableSections(batch);
   const exceptions = sections.flatMap((section) =>
     section.items
       .filter((item) => resultFor(item) === "FLAGGED")

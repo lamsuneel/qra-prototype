@@ -75,7 +75,7 @@ export function BatchIntegrity({ batch }: { batch: Batch }) {
           Integrity —{" "}
           {issues.length > 0
             ? `${issues.length} ${issues.length === 1 ? "issue" : "issues"} found`
-            : `${checks.length} checks passed`}
+            : `${checks.length} checks clear`}
         </span>
         <span className="text-[11px] text-source-text">
           {open ? "Hide" : "Show"}
