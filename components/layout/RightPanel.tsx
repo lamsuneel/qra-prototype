@@ -18,6 +18,13 @@ export function RightPanel({ batch }: { batch: Batch }) {
   const total = totalSections(batch.arNumber);
   const exceptions = flaggedItemsInBatch(batch);
 
+  const readyCount = batch.parameters.filter(
+    (parameter) => parameter.readiness === "READY",
+  ).length;
+  const inProgressCount = batch.parameters.filter(
+    (parameter) => parameter.readiness === "IN_PROGRESS",
+  ).length;
+
   /* What is actually blocking the reviewer, across the whole batch — flags
      and entries QRA could not conclude both wait on a note. */
   const unnoted = orderedSections(batch)
@@ -50,6 +57,18 @@ export function RightPanel({ batch }: { batch: Batch }) {
         <div className="mb-3.5 rounded-[5px] border border-warn-text/30 bg-warn-bg px-2.5 py-2 text-[11px] leading-relaxed font-medium text-warn-text">
           <span aria-hidden="true">&#9888;</span> {unnoted}{" "}
           {unnoted === 1 ? "entry needs" : "entries need"} your note
+        </div>
+      ) : null}
+
+      {/* In-process review runs test by test, so how many are even
+          reviewable yet is part of what is left. */}
+      {batch.parameters.some((parameter) => parameter.readiness) ? (
+        <div className="mb-3.5 border-t border-slate-100 pt-3 text-[11px] leading-relaxed">
+          <div className="mb-1 text-slate-400">Test parameters</div>
+          <div className="text-compliant-text">
+            {readyCount} ready for review
+          </div>
+          <div className="text-slate-400">{inProgressCount} in progress</div>
         </div>
       ) : null}
 

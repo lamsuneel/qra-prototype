@@ -172,6 +172,14 @@ export interface Profile {
  * are marked so the reader finds them without hunting.
  */
 export interface EvidenceTable {
+  /**
+   * Folded away by default. Use where the table is the history behind a
+   * finding rather than the finding itself — the reviewer meets the result
+   * first and opens the trend when they want it.
+   */
+  collapsible?: boolean;
+  /** What the fold is called while it is shut. */
+  collapsedLabel?: string;
   caption?: string;
   columns: string[];
   rows: EvidenceRow[];
@@ -384,6 +392,12 @@ export interface Section {
 }
 
 export interface TestParameter {
+  /**
+   * Whether the lab has released this test for review yet. In-process review
+   * runs test by test, so a batch is normally part ready and part still on
+   * the bench.
+   */
+  readiness?: "READY" | "IN_PROGRESS";
   id: string;
   name: string;
   shortName: string;

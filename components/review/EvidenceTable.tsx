@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 import type { EvidenceTable as EvidenceTableData } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +17,23 @@ const numericColumns = (table: EvidenceTableData): boolean[] =>
  * has to be able to read the numbers the finding was drawn from.
  */
 export function EvidenceTable({ table }: { table: EvidenceTableData }) {
+  const [open, setOpen] = useState(!table.collapsible);
+
+  /* Context, not the finding — so it opens on request rather than pushing the
+     result the reviewer came for down the panel. */
+  if (table.collapsible && !open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="mt-3 cursor-pointer text-[11px] font-medium text-navy-accent transition-colors duration-150 hover:underline"
+      >
+        {table.collapsedLabel ?? "View trend data"}{" "}
+        <span aria-hidden="true">&#9660;</span>
+      </button>
+    );
+  }
+
   const numeric = numericColumns(table);
 
   return (

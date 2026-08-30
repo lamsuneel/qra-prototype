@@ -1,6 +1,8 @@
-import type { Batch, Section, StandaloneInstrument, TestParameter } from "@/types";
+import type {
+  CheckItem, Batch, Section, StandaloneInstrument, TestParameter } from "@/types";
 import { compliant, flagged, section } from "./factories";
-import { attendanceCheck } from "./checks";
+import { attendanceCheck, nonCdsAuditTrail } from "./checks";
+import { SOP } from "./rules";
 
 /**
  * Raw Material review — Amoxicillin Trihydrate API.
@@ -146,6 +148,216 @@ const MASTERSIZER: StandaloneInstrument = {
   logoutAt: "11-Aug-2026 11:51",
   pdfFilename: "Mastersizer_PSD2023001_AMXAPI-2026-0088_11Aug2026.pdf",
   auditTrail: MASTERSIZER_AUDIT,
+};
+
+/* -------------------------------------------------------------------------- */
+/* Titrator routine flags — TIA-F01 to TIA-F25                                */
+/* -------------------------------------------------------------------------- */
+
+interface TitratorFacts {
+  /** The day the analysis was performed, for the day-specific factor check. */
+  analysisDate: string;
+  /** Sample identity as it appears in Tiamo. */
+  sampleName: string;
+  arNumber: string;
+  /** Weight in Tiamo, and on the printed slip — they have to agree. */
+  weight: string;
+  /** KF starts before the weight print; potentiometry starts after. */
+  determinationStart: string;
+  weightPrintStart: string;
+  serialRange: string;
+}
+
+/**
+ * The twenty-five routine checks the titrator SOP puts to every batch.
+ *
+ * Most of them pass and say so in a line. They are here in full rather than
+ * only where they fire, because a reviewer signing a batch off is attesting
+ * that all of them were asked — and a check that only appears when it fails
+ * cannot be distinguished from a check nobody ran.
+ *
+ * TIA-F01 and TIA-F02 are supplied by the domain, since those are the two
+ * that carry the demo findings.
+ */
+const titratorRoutineChecks = (
+  prefix: string,
+  facts: TitratorFacts,
+): CheckItem[] => {
+  const clean = (flagId: string, label: string, expected: string, actual: string) =>
+    compliant({
+      prefix,
+      flagId,
+      sopReference: SOP.TIAMO,
+      label,
+      statusText: "Verified",
+      expected,
+      actual,
+      expectedSource: SOP.TIAMO,
+      source: "Tiamo 2.4",
+    });
+
+  return [
+    clean(
+      "TIA-F03",
+      "Determination status",
+      "Determination status is original",
+      "Status reads original — the determination has not been superseded",
+    ),
+    clean(
+      "TIA-F04",
+      "Reprocessed determination carries a PNC",
+      `Any reprocessed determination has a PNC raised per ${SOP.PNC}`,
+      "No reprocessed determination without a PNC",
+    ),
+    clean(
+      "TIA-F05",
+      "KF factor mean verified for the day of analysis",
+      "KF factor mean value verified for the day of analysis",
+      `KF factor mean verified for ${facts.analysisDate} — matches day of analysis`,
+    ),
+    clean(
+      "TIA-F06",
+      "Electrode calibration before titration",
+      "Electrode calibrated before potentiometric titration where applicable",
+      "Not applicable to a coulometric determination — no electrode calibration required",
+    ),
+    clean(
+      "TIA-F07",
+      "Normality verified against the standardisation mean",
+      "Normality/Molarity cross-checked against the standardisation mean",
+      "Cross-checked against the standardisation mean for the period",
+    ),
+    clean(
+      "TIA-F08",
+      "Electrode calibration after non-use",
+      "Electrode recalibrated after more than three days without use",
+      "Instrument in continuous use — the three-day rule is not engaged",
+    ),
+    clean(
+      "TIA-F09",
+      "Calculation formula matches the worksheet",
+      "Calculation formula in Tiamo matches the analytical worksheet",
+      "Formula read against the worksheet — identical",
+    ),
+    clean(
+      "TIA-F10",
+      "Sample name, batch and AR number",
+      "Sample name, batch and AR in Tiamo match the analytical worksheet",
+      `${facts.sampleName} · ${facts.arNumber} in Tiamo matches the analytical worksheet`,
+    ),
+    clean(
+      "TIA-F11",
+      "Weights against the weight slip",
+      "Weights in Tiamo match the worksheet and the weight slips",
+      `Weight in Tiamo (${facts.weight}) matches weight slip (${facts.weight})`,
+    ),
+    clean(
+      "TIA-F12",
+      "REQUEST entry old value",
+      "REQUEST old value comparable with the previous analysis weight",
+      "Old value read against the previous analysis weight — comparable",
+    ),
+    clean(
+      "TIA-F13",
+      "REQUEST entry new value",
+      "REQUEST new value comparable with the weight print",
+      "New value read against the weight print — comparable",
+    ),
+    compliant({
+      prefix,
+      flagId: "TIA-F14",
+      sopReference: SOP.TIAMO,
+      label: "Determination start against weight print start",
+      statusText: "Sequence correct",
+      expected:
+        "Karl Fischer: the determination starts before the weight print starts",
+      actual: `Determination start ${facts.determinationStart} · weight print start ${facts.weightPrintStart}`,
+      expectedSource: SOP.TIAMO,
+      source: "Tiamo 2.4",
+      comparison: `Determination start ${facts.determinationStart} | Weight print start ${facts.weightPrintStart} | ✓ Determination started before weight print`,
+      details: [
+        { label: "Determination start", value: facts.determinationStart },
+        { label: "Weight print start", value: facts.weightPrintStart },
+        {
+          label: "Required order",
+          value: "Determination start before weight print start (Karl Fischer)",
+        },
+        { label: "Result", value: "✓ Determination started before weight print" },
+      ],
+    }),
+    clean(
+      "TIA-F15",
+      "Potentiometry timing rule",
+      "Potentiometry: the determination starts after the weight print starts",
+      "Not applicable — this is a Karl Fischer determination",
+    ),
+    clean(
+      "TIA-F16",
+      "Potentiometry weight against the print",
+      "Potentiometry: weight in Tiamo matches the weight print net weight",
+      "Not applicable — this is a Karl Fischer determination",
+    ),
+    clean(
+      "TIA-F17",
+      "Parameter live modification during the run",
+      "No parameter modified between determination start and finish",
+      "No parameter modification recorded inside the run",
+    ),
+    clean(
+      "TIA-F18",
+      "Sample data live modification during the run",
+      "No sample data modified between determination start and finish",
+      "No in-run sample data modification recorded",
+    ),
+    clean(
+      "TIA-F19",
+      "Determination deleted",
+      "No determination deleted in the audit trail",
+      "No deletion entries in the audit trail",
+    ),
+    clean(
+      "TIA-F20",
+      "Start test error during the run",
+      "No start test error between determination start and finish",
+      "No start test error recorded",
+    ),
+    clean(
+      "TIA-F21",
+      "Every determination started was finished",
+      "No determination started without a corresponding finish",
+      "Every determination started carries a finish",
+    ),
+    clean(
+      "TIA-F22",
+      "Events after a determination started",
+      "No events after a determination started without it finishing",
+      "No orphaned events in the audit trail",
+    ),
+    clean(
+      "TIA-F23",
+      "LIMS instrument usage entry",
+      "LIMS instrument usage entry present for the analysis day",
+      `LIMS instrument usage entry confirmed for ${facts.analysisDate}`,
+    ),
+    clean(
+      "TIA-F24",
+      "Duplicate AR number",
+      "No duplicate AR number without a PNC, OOS or OOT against it",
+      `${facts.arNumber} searched across all databases and monthly projects — no duplicate`,
+    ),
+    compliant({
+      prefix,
+      flagId: "TIA-F25",
+      sopReference: SOP.TIAMO,
+      label: "Sample registered within the live database",
+      statusText: "In scope",
+      expected: "Sample registered within the live database scope",
+      actual: `Sample registered in the live database — serial continuity ${facts.serialRange}`,
+      expectedSource: SOP.TIAMO,
+      source: "Tiamo 2.4",
+      serialContinuity: { range: facts.serialRange },
+    }),
+  ];
 };
 
 /* -------------------------------------------------------------------------- */
@@ -499,6 +711,15 @@ const sections: Section[] = [
         expectedSource: "SOP-INST-004",
         source: "Caliber LIMS",
       }),
+      ...titratorRoutineChecks(P, {
+        analysisDate: "11-Aug-2026",
+        sampleName: "Amoxicillin Trihydrate API",
+        arNumber: "07-RM-26-4417",
+        weight: "0.2014 g",
+        determinationStart: "10:22:04",
+        weightPrintStart: "10:22:31",
+        serialRange: "Trial #001 – #003",
+      }),
     ],
     { standaloneInstrument: TIAMO_RM },
   ),
@@ -609,6 +830,30 @@ const sections: Section[] = [
         note: "The Qtegra ICP at this site does not write to LIMS, so run ICP-2026-0331 was transcribed into the departmental logbook. QRA has no electronic record to compare against.",
       },
     },
+  ),
+
+  /*
+   * Each of these instruments writes its own record and hands it over as a
+   * PDF in LIMS. Nothing here can be queried, so the six questions have to be
+   * read off the report by a person — which is exactly why they are listed.
+   */
+  section(
+    "identity",
+    "FTIR Audit Trail",
+    2,
+    nonCdsAuditTrail(P, "Spectrum ES", "Spectrum ES", "Trial #001 – #003"),
+  ),
+  section(
+    "metals",
+    "ICP-OES Audit Trail",
+    2,
+    nonCdsAuditTrail(P, "Qtegra", "Qtegra ICP", "Run #001 – #002"),
+  ),
+  section(
+    "psd",
+    "Particle Analyser Audit Trail",
+    2,
+    nonCdsAuditTrail(P, "Mastersizer 3000", "Mastersizer 3000", "Run #001 – #004"),
   ),
 ];
 

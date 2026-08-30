@@ -1,6 +1,6 @@
 import type { Batch, Section, StandaloneInstrument, TestParameter } from "@/types";
 import { compliant, flagged, section } from "./factories";
-import { attendanceCheck } from "./checks";
+import { attendanceCheck, nonCdsAuditTrail } from "./checks";
 
 /**
  * Packing Material review — HDPE Bottle 60 ml.
@@ -397,6 +397,26 @@ const sections: Section[] = [
         note: "The supplier issues this certificate on paper and it is filed in the goods receipt binder. The reviewer must confirm the document matches the consignment physically received; QRA cannot read it.",
       },
     },
+  ),
+
+  /* The verifier's own record, and the spectrometer's — both arrive as PDFs
+     attached in LIMS. The grade finding stays with the results. */
+  section(
+    "barcode",
+    "Axicon Audit Trail",
+    2,
+    nonCdsAuditTrail(
+      P,
+      "Axicon Barcode Verifier",
+      "Axicon Barcode Verifier",
+      "Scan #001 – #006",
+    ),
+  ),
+  section(
+    "identity",
+    "FTIR Audit Trail",
+    2,
+    nonCdsAuditTrail(P, "Spectrum ES", "Spectrum ES", "Trial #001 – #003"),
   ),
 ];
 

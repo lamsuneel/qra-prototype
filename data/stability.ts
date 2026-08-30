@@ -1,12 +1,14 @@
 import type {
   Batch,
   ChamberReading,
+  CheckItem,
   Section,
   StandaloneInstrument,
   TestParameter,
 } from "@/types";
 import { compliant, flagged, section } from "./factories";
-import { attendanceCheck } from "./checks";
+import { attendanceCheck, empowerAuditTrail } from "./checks";
+import { SOP } from "./rules";
 
 /**
  * Stability review — Amoxicillin 250 mg, 6-month accelerated condition.
@@ -178,9 +180,9 @@ const UV: StandaloneInstrument = {
 };
 
 const ICDAS: StandaloneInstrument = {
-  name: "iCDAS",
-  version: "1.2",
-  source: "iCDAS 1.2",
+  name: "Chamber log — manual LIMS entry",
+  version: "",
+  source: "Caliber LIMS — Manual Entry",
   analyst: "QA Stability Desk",
   loginAt: "07-Aug-2026 08:40",
   logoutAt: "07-Aug-2026 08:46",
@@ -213,6 +215,216 @@ const BALANCE_STB: StandaloneInstrument = {
   logoutAt: "06-Aug-2026 09:52",
   pdfFilename: "Sartorius_BAL003_AMX-2026-0288-6M_06Aug2026.pdf",
   auditTrail: BALANCE_STB_AUDIT,
+};
+
+/* -------------------------------------------------------------------------- */
+/* Titrator routine flags — TIA-F01 to TIA-F25                                */
+/* -------------------------------------------------------------------------- */
+
+interface TitratorFacts {
+  /** The day the analysis was performed, for the day-specific factor check. */
+  analysisDate: string;
+  /** Sample identity as it appears in Tiamo. */
+  sampleName: string;
+  arNumber: string;
+  /** Weight in Tiamo, and on the printed slip — they have to agree. */
+  weight: string;
+  /** KF starts before the weight print; potentiometry starts after. */
+  determinationStart: string;
+  weightPrintStart: string;
+  serialRange: string;
+}
+
+/**
+ * The twenty-five routine checks the titrator SOP puts to every batch.
+ *
+ * Most of them pass and say so in a line. They are here in full rather than
+ * only where they fire, because a reviewer signing a batch off is attesting
+ * that all of them were asked — and a check that only appears when it fails
+ * cannot be distinguished from a check nobody ran.
+ *
+ * TIA-F01 and TIA-F02 are supplied by the domain, since those are the two
+ * that carry the demo findings.
+ */
+const titratorRoutineChecks = (
+  prefix: string,
+  facts: TitratorFacts,
+): CheckItem[] => {
+  const clean = (flagId: string, label: string, expected: string, actual: string) =>
+    compliant({
+      prefix,
+      flagId,
+      sopReference: SOP.TIAMO,
+      label,
+      statusText: "Verified",
+      expected,
+      actual,
+      expectedSource: SOP.TIAMO,
+      source: "Tiamo 2.4",
+    });
+
+  return [
+    clean(
+      "TIA-F03",
+      "Determination status",
+      "Determination status is original",
+      "Status reads original — the determination has not been superseded",
+    ),
+    clean(
+      "TIA-F04",
+      "Reprocessed determination carries a PNC",
+      `Any reprocessed determination has a PNC raised per ${SOP.PNC}`,
+      "No reprocessed determination without a PNC",
+    ),
+    clean(
+      "TIA-F05",
+      "KF factor mean verified for the day of analysis",
+      "KF factor mean value verified for the day of analysis",
+      `KF factor mean verified for ${facts.analysisDate} — matches day of analysis`,
+    ),
+    clean(
+      "TIA-F06",
+      "Electrode calibration before titration",
+      "Electrode calibrated before potentiometric titration where applicable",
+      "Not applicable to a coulometric determination — no electrode calibration required",
+    ),
+    clean(
+      "TIA-F07",
+      "Normality verified against the standardisation mean",
+      "Normality/Molarity cross-checked against the standardisation mean",
+      "Cross-checked against the standardisation mean for the period",
+    ),
+    clean(
+      "TIA-F08",
+      "Electrode calibration after non-use",
+      "Electrode recalibrated after more than three days without use",
+      "Instrument in continuous use — the three-day rule is not engaged",
+    ),
+    clean(
+      "TIA-F09",
+      "Calculation formula matches the worksheet",
+      "Calculation formula in Tiamo matches the analytical worksheet",
+      "Formula read against the worksheet — identical",
+    ),
+    clean(
+      "TIA-F10",
+      "Sample name, batch and AR number",
+      "Sample name, batch and AR in Tiamo match the analytical worksheet",
+      `${facts.sampleName} · ${facts.arNumber} in Tiamo matches the analytical worksheet`,
+    ),
+    clean(
+      "TIA-F11",
+      "Weights against the weight slip",
+      "Weights in Tiamo match the worksheet and the weight slips",
+      `Weight in Tiamo (${facts.weight}) matches weight slip (${facts.weight})`,
+    ),
+    clean(
+      "TIA-F12",
+      "REQUEST entry old value",
+      "REQUEST old value comparable with the previous analysis weight",
+      "Old value read against the previous analysis weight — comparable",
+    ),
+    clean(
+      "TIA-F13",
+      "REQUEST entry new value",
+      "REQUEST new value comparable with the weight print",
+      "New value read against the weight print — comparable",
+    ),
+    compliant({
+      prefix,
+      flagId: "TIA-F14",
+      sopReference: SOP.TIAMO,
+      label: "Determination start against weight print start",
+      statusText: "Sequence correct",
+      expected:
+        "Karl Fischer: the determination starts before the weight print starts",
+      actual: `Determination start ${facts.determinationStart} · weight print start ${facts.weightPrintStart}`,
+      expectedSource: SOP.TIAMO,
+      source: "Tiamo 2.4",
+      comparison: `Determination start ${facts.determinationStart} | Weight print start ${facts.weightPrintStart} | ✓ Determination started before weight print`,
+      details: [
+        { label: "Determination start", value: facts.determinationStart },
+        { label: "Weight print start", value: facts.weightPrintStart },
+        {
+          label: "Required order",
+          value: "Determination start before weight print start (Karl Fischer)",
+        },
+        { label: "Result", value: "✓ Determination started before weight print" },
+      ],
+    }),
+    clean(
+      "TIA-F15",
+      "Potentiometry timing rule",
+      "Potentiometry: the determination starts after the weight print starts",
+      "Not applicable — this is a Karl Fischer determination",
+    ),
+    clean(
+      "TIA-F16",
+      "Potentiometry weight against the print",
+      "Potentiometry: weight in Tiamo matches the weight print net weight",
+      "Not applicable — this is a Karl Fischer determination",
+    ),
+    clean(
+      "TIA-F17",
+      "Parameter live modification during the run",
+      "No parameter modified between determination start and finish",
+      "No parameter modification recorded inside the run",
+    ),
+    clean(
+      "TIA-F18",
+      "Sample data live modification during the run",
+      "No sample data modified between determination start and finish",
+      "No in-run sample data modification recorded",
+    ),
+    clean(
+      "TIA-F19",
+      "Determination deleted",
+      "No determination deleted in the audit trail",
+      "No deletion entries in the audit trail",
+    ),
+    clean(
+      "TIA-F20",
+      "Start test error during the run",
+      "No start test error between determination start and finish",
+      "No start test error recorded",
+    ),
+    clean(
+      "TIA-F21",
+      "Every determination started was finished",
+      "No determination started without a corresponding finish",
+      "Every determination started carries a finish",
+    ),
+    clean(
+      "TIA-F22",
+      "Events after a determination started",
+      "No events after a determination started without it finishing",
+      "No orphaned events in the audit trail",
+    ),
+    clean(
+      "TIA-F23",
+      "LIMS instrument usage entry",
+      "LIMS instrument usage entry present for the analysis day",
+      `LIMS instrument usage entry confirmed for ${facts.analysisDate}`,
+    ),
+    clean(
+      "TIA-F24",
+      "Duplicate AR number",
+      "No duplicate AR number without a PNC, OOS or OOT against it",
+      `${facts.arNumber} searched across all databases and monthly projects — no duplicate`,
+    ),
+    compliant({
+      prefix,
+      flagId: "TIA-F25",
+      sopReference: SOP.TIAMO,
+      label: "Sample registered within the live database",
+      statusText: "In scope",
+      expected: "Sample registered within the live database scope",
+      actual: `Sample registered in the live database — serial continuity ${facts.serialRange}`,
+      expectedSource: SOP.TIAMO,
+      source: "Tiamo 2.4",
+      serialContinuity: { range: facts.serialRange },
+    }),
+  ];
 };
 
 /* -------------------------------------------------------------------------- */
@@ -263,7 +475,7 @@ const sections: Section[] = [
         expected: "40 °C ± 2 °C throughout the storage period — ICH Q1A(R2), SOP-STB-CHM-001",
         actual: "43.7 °C on 05-Mar-2026 and 44.2 °C on 19-Mar-2026 in chamber SCH-04",
         expectedSource: "SOP-STB-CHM-001",
-        source: "iCDAS 1.2",
+        source: "Caliber LIMS — Manual Entry",
         comparison:
           "Two readings exceed the 42 °C upper limit, 96 hours in total above limit, both traced to the same compressor fault",
         flagReason:
@@ -288,7 +500,7 @@ const sections: Section[] = [
         actual:
           "Mean 40.7 °C, minimum 39.7 °C, maximum 44.2 °C; eleven of thirteen readings within limits",
         expectedSource: "SOP-STB-CHM-001",
-        source: "iCDAS 1.2",
+        source: "Caliber LIMS — Manual Entry",
       }),
       compliant({
         prefix: P,
@@ -298,7 +510,7 @@ const sections: Section[] = [
         expected: "75 % RH ± 5 % RH throughout the storage period — ICH Q1A(R2)",
         actual: "Mean 74.3 % RH, minimum 70.8 % RH, maximum 75.3 % RH — all readings within limits",
         expectedSource: "SOP-STB-CHM-001",
-        source: "iCDAS 1.2",
+        source: "Caliber LIMS — Manual Entry",
         details: [
           { label: "Chamber", value: "SCH-04, Thermolab accelerated stability chamber" },
           { label: "Condition", value: "75 % RH plus or minus 5 % RH" },
@@ -421,12 +633,20 @@ const sections: Section[] = [
       flagAction:
         "Review OOS-2026-0091 and confirm the investigation covers the chamber excursion recorded under DEV-2026-SCH-0023. Confirm whether the accelerated study is to be repeated before the long-term data is reported.",
       table: {
-        caption: "Known Impurity B — stability trend",
+        /* The history behind the finding, folded away: the reviewer meets
+           the result first and opens the trend when they want it. */
+        collapsible: true,
+        collapsedLabel: "View trend data",
+        caption: "Known Impurity B — stability trend across all timepoints",
         columns: ["Timepoint", "Pull date", "Result", "Limit"],
         rows: [
-          { cells: ["Initial", "05-Feb-2026", "0.08 %", "NMT 0.20 %"] },
-          { cells: ["3-month", "05-May-2026", "0.12 %", "NMT 0.20 %"] },
-          { cells: ["6-month", "05-Aug-2026", "0.21 %", "NMT 0.20 %"], flagged: true },
+          { cells: ["0M", "Jan-2024", "0.05 %", "NMT 0.20 %"] },
+          { cells: ["3M", "Apr-2024", "0.08 %", "NMT 0.20 %"] },
+          { cells: ["6M", "Jul-2024", "0.11 %", "NMT 0.20 %"] },
+          { cells: ["12M", "Jan-2025", "0.15 %", "NMT 0.20 %"] },
+          { cells: ["18M", "Jul-2025", "0.17 %", "NMT 0.20 %"] },
+          { cells: ["24M", "Jan-2026", "0.19 %", "NMT 0.20 %"] },
+          { cells: ["36M", "Aug-2026", "0.21 %", "NMT 0.20 %"], flagged: true },
         ],
       },
     }),
@@ -513,6 +733,15 @@ const sections: Section[] = [
         actual: "KFT-2024-005 — calibrated 12-Jul-2026, due 12-Jan-2027, used 09:05 to 09:21",
         expectedSource: "SOP-INST-004",
         source: "Caliber LIMS",
+      }),
+      ...titratorRoutineChecks(P, {
+        analysisDate: "06-Aug-2026",
+        sampleName: "Amoxicillin 250mg Tablet — 6M accelerated",
+        arNumber: "07-ST-26-0089",
+        weight: "0.2506 g",
+        determinationStart: "09:38:22",
+        weightPrintStart: "09:38:50",
+        serialRange: "Trial #001 – #002",
       }),
     ],
     { standaloneInstrument: TIAMO_STB },
@@ -639,6 +868,60 @@ const sections: Section[] = [
       },
     },
   ),
+
+  /* The same fourteen questions FP puts to Empower. Nothing fired here. */
+  section("rs", "Empower Audit Trail", 2, empowerAuditTrail("emp-stb-rs")),
+
+  /*
+   * Whether the sample was pulled when it was supposed to be.
+   *
+   * A timepoint pulled outside its window is not comparable with the ones
+   * before it, so the trend it feeds means less than it appears to — which
+   * makes this a question to settle before reading any result, not after.
+   */
+  section("chamber", "Stability Window", 0, [
+    compliant({
+      prefix: P,
+      label: "36-month long-term pull — window compliance",
+      sopReference: "FU7-QA-GEN-080 — Stability Window",
+      reference: "Long-term 25 °C / 60 % RH",
+      statusText: "Within window",
+      expected: "Pulled within ±45 days of the scheduled date — long-term condition",
+      actual: "Scheduled 01-Aug-2026, pulled 03-Aug-2026 — 2 days late",
+      expectedSource: "FU7-QA-GEN-080 — Stability Window",
+      source: "Caliber LIMS",
+      comparison:
+        "2 days against a ±45 day window — the timepoint is comparable with those before it",
+      details: [
+        { label: "Condition", value: "Long-term — 25 °C / 60 % RH" },
+        { label: "Scheduled pull date", value: "01-Aug-2026" },
+        { label: "Actual pull date", value: "03-Aug-2026" },
+        { label: "Window", value: "±45 days" },
+        { label: "Days difference", value: "+2 days late" },
+        { label: "Within window", value: "YES" },
+      ],
+    }),
+    compliant({
+      prefix: P,
+      label: "6-month accelerated pull — window compliance",
+      sopReference: "FU7-QA-GEN-080 — Stability Window",
+      reference: "Accelerated 40 °C / 75 % RH",
+      statusText: "Within window",
+      expected: "Pulled within ±30 days of the scheduled date — accelerated condition",
+      actual: "Scheduled 05-Aug-2026, pulled 06-Aug-2026 — 1 day late",
+      expectedSource: "FU7-QA-GEN-080 — Stability Window",
+      source: "Caliber LIMS",
+      comparison: "1 day against a ±30 day window",
+      details: [
+        { label: "Condition", value: "Accelerated — 40 °C / 75 % RH" },
+        { label: "Scheduled pull date", value: "05-Aug-2026" },
+        { label: "Actual pull date", value: "06-Aug-2026" },
+        { label: "Window", value: "±30 days" },
+        { label: "Days difference", value: "+1 day late" },
+        { label: "Within window", value: "YES" },
+      ],
+    }),
+  ]),
 ];
 
 export const STABILITY_BATCHES: Batch[] = [
@@ -661,7 +944,7 @@ export const STABILITY_BATCHES: Batch[] = [
     parameters: STB_PARAMETERS,
     sections: withAttendance(sections, "Anil Kulkarni", "06-Aug-2026", []),
     dataSources: [
-      "iCDAS 1.2",
+      "Caliber LIMS — Manual Entry",
       "Caliber LIMS",
       "Waters Empower",
       "Tiamo 2.4",

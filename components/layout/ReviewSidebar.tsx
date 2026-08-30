@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import {
@@ -31,6 +31,7 @@ export function ReviewSidebar({
   const router = useRouter();
   const params = useSearchParams();
   const { sectionStatus } = useReview();
+  const [blocked, setBlocked] = useState<string | null>(null);
 
   /*
    * What each exception badge is made of, for anyone checking a count against
@@ -60,6 +61,22 @@ export function ReviewSidebar({
 
   return (
     <nav className="w-[200px] shrink-0 overflow-y-auto border-r border-slate-200 bg-white">
+      {blocked ? (
+        <div
+          role="status"
+          className="border-b border-slate-200 bg-warn-bg px-3.5 py-2.5 text-[11px] leading-relaxed text-warn-text"
+        >
+          {blocked} is still under analysis. Review will be available once QC
+          submits the data.
+          <button
+            type="button"
+            onClick={() => setBlocked(null)}
+            className="mt-1 block cursor-pointer font-medium underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      ) : null}
       <div className="py-3">
         <div className="px-3.5 py-1.5 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
           Test Parameters
@@ -71,17 +88,21 @@ export function ReviewSidebar({
             0,
           );
           const active = parameter.id === parameterId;
+          const inProgress = parameter.readiness === "IN_PROGRESS";
 
           return (
             <button
               key={parameter.id}
               type="button"
-              onClick={() =>
-                go(
-                  parameter.id,
-                  sections[0] ? sectionSlug(sections[0]) : sectionId,
-                )
-              }
+              onClick={() => {
+                /* A test the lab has not released has nothing to review yet,
+                   and saying so is more use than an empty screen. */
+                if (inProgress) {
+                  setBlocked(parameter.name);
+                  return;
+                }
+                go(parameter.id, sections[0] ? sectionSlug(sections[0]) : sectionId);
+              }}
               className={cn(
                 "flex w-full cursor-pointer items-center gap-2 border-l-[3px] px-3.5 py-[7px] text-left transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none",
                 active
@@ -92,11 +113,25 @@ export function ReviewSidebar({
               <span
                 className={cn(
                   "size-[7px] shrink-0 rounded-full",
-                  flags > 0 ? "bg-flagged-text" : "bg-compliant-text",
+                  inProgress
+                    ? "bg-slate-300"
+                    : flags > 0
+                      ? "bg-flagged-text"
+                      : "bg-compliant-text",
                 )}
               />
               <span className="flex-1 truncate text-xs">
                 {parameter.shortName}
+                {parameter.readiness ? (
+                  <span
+                    className={cn(
+                      "mt-0.5 block text-[10px] font-normal",
+                      inProgress ? "text-slate-400" : "text-compliant-text",
+                    )}
+                  >
+                    {inProgress ? "Analysis In Progress" : "Ready for Review"}
+                  </span>
+                ) : null}
               </span>
               {flags > 0 ? (
                 <span className="rounded bg-flagged-bg px-[5px] text-[10px] text-flagged-text">
