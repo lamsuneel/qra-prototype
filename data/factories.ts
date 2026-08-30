@@ -1,5 +1,6 @@
 import type {
   AuditTrailStep,
+  BorderLimit,
   CheckItem,
   DetailField,
   InactivationStatus,
@@ -72,6 +73,7 @@ export interface CompliantSpec {
   /** Set where the result cannot be used at all — a PNC number is required. */
   severity?: "HARD_INVALID";
   acceptability?: { id: string; found: string; condition: string };
+  borderLimit?: BorderLimit;
   exceptionType?: string;
   reference?: string;
   statusText?: string;
@@ -113,6 +115,7 @@ export const compliant = (spec: CompliantSpec): CheckItem => ({
   sopReference: sopFor(spec),
   severity: spec.severity,
   acceptability: spec.acceptability,
+  borderLimit: spec.borderLimit,
   exceptionType: spec.exceptionType,
   reference: spec.reference,
   statusText: spec.statusText ?? "Active",
@@ -153,6 +156,7 @@ export interface FlaggedSpec {
   /** Set where the result cannot be used at all — a PNC number is required. */
   severity?: "HARD_INVALID";
   acceptability?: { id: string; found: string; condition: string };
+  borderLimit?: BorderLimit;
   exceptionType?: string;
   reference?: string;
   expected: string;
@@ -185,6 +189,7 @@ export const flagged = (spec: FlaggedSpec): CheckItem => ({
   sopReference: sopFor(spec),
   severity: spec.severity,
   acceptability: spec.acceptability,
+  borderLimit: spec.borderLimit,
   exceptionType: spec.exceptionType,
   reference: spec.reference,
   expected: spec.expected,

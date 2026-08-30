@@ -207,6 +207,7 @@ const STATUS_TONES: Record<BatchStatus, string> = {
   AWAITING_AUTHORISATION: "bg-warn-bg text-warn-text",
   REVIEW_AUTHORISED: "bg-compliant-bg text-compliant-text",
   RETURNED_TO_REVIEWER: "bg-flagged-bg text-flagged-text",
+  RETURNED_FOR_CORRECTION: "bg-warn-bg text-warn-text",
 };
 
 export function BatchStatusBadge({ status }: { status: BatchStatus }) {

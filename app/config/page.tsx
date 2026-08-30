@@ -8,6 +8,7 @@ import {
   CONFIGURED_RULES,
   CONFIGURED_RULES_TITLE,
   PRODUCT_SPECIFICATIONS,
+  CHECKLIST_FORMATS,
   REGULATORY_STANDARDS,
   SOPS,
   STPS,
@@ -81,6 +82,13 @@ export default function ConfigPage() {
             headings={["STP Reference", "Method Name", "Domain", "Status"]}
             rows={STPS.map((row) => [row.reference, row.method, row.domain, row.status])}
             monoColumn={0}
+          />
+
+          <ConfigTable
+            title="Checklist Format"
+            headings={["Domain", "Review Checklist"]}
+            rows={CHECKLIST_FORMATS.map((row) => [row.domain, row.format])}
+            monoColumn={1}
           />
 
           <ConfigTable

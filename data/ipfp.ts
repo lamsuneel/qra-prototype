@@ -1,5 +1,6 @@
 import type { Batch, Section, StandaloneInstrument, TestParameter } from "@/types";
 import { compliant, flagged, section } from "./factories";
+import { attendanceCheck } from "./checks";
 
 /**
  * In-Process Finished Product review — Amoxicillin 250 mg compression stage.
@@ -149,6 +150,35 @@ const TIAMO_SOP = "APL-CP-F-QCCI-GEN-0013";
 /* -------------------------------------------------------------------------- */
 /* Sections                                                                   */
 /* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+/* Attendance                                                                 */
+/* -------------------------------------------------------------------------- */
+
+const ATT = "att";
+
+/**
+ * One attendance section per test parameter, ordered first.
+ *
+ * Derived from the sections the batch already carries, so a parameter added
+ * later gets the check without anyone having to remember it.
+ */
+const withAttendance = (
+  entries: Section[],
+  analyst: string,
+  date: string,
+  unverified: string[] = [],
+): Section[] => {
+  const parameters = [...new Set(entries.map((entry) => entry.parameter))];
+
+  const attendance = parameters.map((parameter) =>
+    section(parameter, "Attendance Verification", 0, [
+      attendanceCheck(ATT, analyst, date, !unverified.includes(parameter)),
+    ]),
+  );
+
+  return [...attendance, ...entries];
+};
 
 const sections: Section[] = [
   /* --- Blend Uniformity — the characteristic in-process check ------------- */
@@ -526,7 +556,7 @@ export const IPFP_BATCHES: Batch[] = [
     analyst: "Rajesh Iyer",
     lastActivity: "Yesterday 16:40",
     parameters: IPFP_PARAMETERS,
-    sections,
+    sections: withAttendance(sections, "Rajesh Iyer", "03-Aug-2026", []),
     dataSources: ["Caliber LIMS", "Waters Empower", "Tiamo 2.4", "Paper Logbook"],
   },
 ];

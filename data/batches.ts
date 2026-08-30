@@ -1,8 +1,10 @@
 import type {
   AuditTrailStep,
+  BorderLimit,
   Batch,
   CheckItem,
   DetailField,
+  EvidenceTable,
   InactivationStatus,
   Section,
   SerialContinuity,
@@ -11,6 +13,11 @@ import type {
   TestParameter,
 } from "@/types";
 import { SOP, acceptabilityRule } from "./rules";
+import {
+  attendanceCheck,
+  empowerAuditTrail,
+  nonCdsAuditTrail,
+} from "./checks";
 
 /**
  * Finished Product review data.
@@ -75,6 +82,7 @@ const nextId = (prefix: string) => `${prefix}-${(seq += 1)}`;
 
 interface CompliantSpec {
   label: string;
+  table?: EvidenceTable;
   subLabel?: string;
   /** The rule this entry answers to, e.g. "TIA-F01". */
   flagId?: string;
@@ -83,6 +91,7 @@ interface CompliantSpec {
   /** Set where the result cannot be used at all — a PNC number is required. */
   severity?: "HARD_INVALID";
   acceptability?: { id: string; found: string; condition: string };
+  borderLimit?: BorderLimit;
   exceptionType?: string;
   reference?: string;
   statusText?: string;
@@ -123,6 +132,7 @@ const compliant = (spec: CompliantSpec): CheckItem => ({
   sopReference: sopFor(spec),
   severity: spec.severity,
   acceptability: spec.acceptability,
+  borderLimit: spec.borderLimit,
   exceptionType: spec.exceptionType,
   reference: spec.reference,
   statusText: spec.statusText ?? "Active",
@@ -146,6 +156,7 @@ const compliant = (spec: CompliantSpec): CheckItem => ({
   inactivationApprovalDate: spec.inactivationApprovalDate,
   auditTrailSequence: spec.auditTrailSequence,
   serialContinuity: spec.serialContinuity,
+  table: spec.table,
   comparison: spec.comparison,
   flagReason: spec.flagReason,
   flagAction: spec.flagAction,
@@ -161,6 +172,7 @@ interface FlaggedSpec {
   /** Set where the result cannot be used at all — a PNC number is required. */
   severity?: "HARD_INVALID";
   acceptability?: { id: string; found: string; condition: string };
+  borderLimit?: BorderLimit;
   exceptionType?: string;
   reference?: string;
   expected: string;
@@ -192,6 +204,7 @@ const flagged = (spec: FlaggedSpec): CheckItem => ({
   sopReference: sopFor(spec),
   severity: spec.severity,
   acceptability: spec.acceptability,
+  borderLimit: spec.borderLimit,
   exceptionType: spec.exceptionType,
   reference: spec.reference,
   expected: spec.expected,
@@ -314,6 +327,10 @@ const standardsCompliant = () => [
     expectedSource: "SOP-STD-002",
     details: [
       { label: "Standard number", value: "WS-2024-41" },
+      { label: "Solution prepared", value: "14-Aug-2026 08:30" },
+      { label: "Validity period", value: "24 hours from preparation" },
+      { label: "Analysis performed", value: "14-Aug-2026 10:45" },
+      { label: "Valid at time of analysis", value: "YES — 2h 15m into a 24 hour window" },
       { label: "Prepared from", value: "RS-2024-18, Amoxicillin USP Reference Standard" },
       { label: "Assigned potency", value: "99.6 % on the anhydrous basis" },
       { label: "Status in LIMS", value: "Active" },
@@ -404,6 +421,49 @@ const instrumentsCompliant = () => [
 ];
 
 const chromatographyCompliant = (systemId: string) => [
+  compliant({
+    label: `Chromatogram — ${systemId} sample set`,
+    sopReference: SOP.CHROMATOGRAM,
+    reference: "AMX-ASSAY-140826-01",
+    statusText: "Reviewed",
+    expected: "Every field on the chromatogram read against the worksheet and the STP",
+    actual: "24 of 24 chromatogram fields read and reconciled",
+    expectedSource: SOP.CHROMATOGRAM,
+    source: EMPOWER,
+    comparison:
+      "Chromatogram fields read against the LIMS worksheet and STP-AMX-ASSAY-003",
+    /* The field list is the SOP's, in the SOP's order — a reviewer checking
+       their own work against §4.5.2.2 should be able to read straight down. */
+    details: [
+      { label: "Sample set name", value: "AMX-ASSAY-140826-01" },
+      { label: "Injection volume", value: "10 µL" },
+      { label: "Run time", value: "12.0 min" },
+      { label: "Batch No.", value: "AMX-2026-0341" },
+      { label: "Column ID", value: "COL-2024-09" },
+      { label: "A.R. No.", value: "07-FP-26-0122" },
+      { label: "Acquired by", value: "Priya Sharma" },
+      { label: "Acquired method set", value: "AMX_ASSAY_MS_v4" },
+      { label: "Processing method", value: "AMX_ASSAY_PROC_v3" },
+      {
+        label: "Sample acquired & processed date",
+        value: "14-Aug-2026 08:15 acquired · 14-Aug-2026 08:58 processed",
+      },
+      { label: "Vial", value: "7" },
+      { label: "Injection", value: "3 of 3" },
+      { label: "RT", value: "4.82 min" },
+      { label: "RRT", value: "1.00 (reference peak)" },
+      { label: "Area", value: "2,481,903" },
+      { label: "% Area", value: "99.31 %" },
+      { label: "Sample wt", value: "250.4 mg" },
+      { label: "Multiplication factor", value: "1.0" },
+      { label: "Label claim", value: "250 mg" },
+      { label: "Average weight", value: "251.2 mg" },
+      { label: "Int type", value: "BB (baseline to baseline)" },
+      { label: "% known impurity", value: "0.02%" },
+      { label: "% unknown impurity", value: "0.01%" },
+      { label: "Result sign-off", value: "Analyst 14-Aug-2026 · Reviewer 15-Aug-2026" },
+    ],
+  }),
   compliant({
     label: `Chromatography system ${systemId}`,
     reference: "Waters Alliance e2695",
@@ -507,6 +567,35 @@ const TPW_FP: StandaloneInstrument = {
   logoutAt: "30-Jul-2026 09:02",
   pdfFilename: "TPW_TPW001_07FP260122_30Jul2026.pdf",
   auditTrail: TPW_FP_AUDIT,
+};
+
+/* -------------------------------------------------------------------------- */
+/* Attendance                                                                 */
+/* -------------------------------------------------------------------------- */
+
+const ATT = "att";
+
+/**
+ * One attendance section per test parameter, ordered first.
+ *
+ * Derived from the sections the batch already carries, so a parameter added
+ * later gets the check without anyone having to remember it.
+ */
+const withAttendance = (
+  entries: Section[],
+  analyst: string,
+  date: string,
+  unverified: string[] = [],
+): Section[] => {
+  const parameters = [...new Set(entries.map((entry) => entry.parameter))];
+
+  const attendance = parameters.map((parameter) =>
+    section(parameter, "Attendance Verification", 0, [
+      attendanceCheck(ATT, analyst, date, !unverified.includes(parameter)),
+    ]),
+  );
+
+  return [...attendance, ...entries];
 };
 
 /* -------------------------------------------------------------------------- */
@@ -711,6 +800,38 @@ const batchBSections: Section[] = [
   ]),
 
   /*
+   * Passes, and only just. Three tenths of a percent above the lower limit is
+   * inside specification and outside the range anyone should sign off without
+   * looking at the trend first.
+   */
+  section("assay", "Assay Result", 8, [
+    compliant({
+      label: "Assay — Amoxicillin",
+      sopReference: SOP.EMPOWER,
+      flagId: "EMP-F23",
+      reference: "Mean of 3 determinations",
+      statusText: "Within specification",
+      expected: "95.0 % to 105.0 % of label claim — STP-AMX-ASSAY-003",
+      actual: "95.3 % of label claim (95.2 / 95.4 / 95.3), RSD 0.1 %",
+      expectedSource: "STP-AMX-ASSAY-003",
+      source: EMPOWER,
+      borderLimit: { result: 95.3, lower: 95.0, upper: 105.0, unit: "%" },
+      comparison:
+        "Result sits 0.3 % above the lower specification limit — inside specification, inside the border-limit margin",
+      table: {
+        caption: "Assay determinations — 14-Aug-2026",
+        columns: ["Determination", "Sample weight", "Result", "Specification"],
+        rows: [
+          { cells: ["1", "250.4 mg", "95.2 %", "95.0 – 105.0 %"] },
+          { cells: ["2", "251.1 mg", "95.4 %", "95.0 – 105.0 %"] },
+          { cells: ["3", "250.8 mg", "95.3 %", "95.0 – 105.0 %"] },
+          { cells: ["Mean", "—", "95.3 %", "95.0 – 105.0 %"] },
+        ],
+      },
+    }),
+  ]),
+
+  /*
    * The balance has a section of its own as well as a row in Instruments:
    * it keeps its own audit trail, and the reviewer reads the weighing
    * record rather than only the calibration state.
@@ -754,6 +875,10 @@ const batchBSections: Section[] = [
       potencySource: "Caliber LIMS — eLIMS Reference Standard Audit Trail",
       details: [
         { label: "Standard number", value: "RS-AMX-2024-12" },
+        { label: "Solution prepared", value: "14-Aug-2026 08:15" },
+        { label: "Validity period", value: "24 hours from preparation" },
+        { label: "Analysis performed", value: "14-Aug-2026 11:20" },
+        { label: "Valid at time of analysis", value: "YES — 3h 05m into a 24 hour window" },
         { label: "Origin", value: "United States Pharmacopeia, catalogue 1033005" },
         { label: "Assigned potency", value: "99.7 % on the anhydrous basis" },
         { label: "Potency held in", value: "eLIMS Reference Standard Audit Trail" },
@@ -1156,6 +1281,31 @@ const batchBSections: Section[] = [
     },
   ),
 
+  /*
+   * The data system's own record of what was done to the data after it was
+   * produced. Fourteen ways of asking the same question; one of them here has
+   * something to say.
+   */
+  section(
+    "assay",
+    "Empower Audit Trail",
+    7,
+    empowerAuditTrail("emp-assay", {
+      reprocessed:
+        "Sample 3, Vial 7 reprocessed 14-Aug-2026 09:42 — originally processed 14-Aug-2026 08:58",
+    }),
+  ),
+  section("rs", "Empower Audit Trail", 6, empowerAuditTrail("emp-rs")),
+
+  /* MassLynx keeps an audit trail too; it is a report rather than a
+     database, so the same six questions are put to the PDF. */
+  section(
+    "lcms",
+    "MassLynx Audit Trail",
+    5,
+    nonCdsAuditTrail("mlx", "MassLynx", "MassLynx", "Run #001 – #006"),
+  ),
+
   /* ---- LCMS Genotoxic Impurity ---- */
   section("lcms", "Chemicals", 1, [
     compliant({
@@ -1305,7 +1455,9 @@ const batchB: Batch = {
   analyst: "Priya Sharma",
   lastActivity: "09:12 AM today",
   parameters: FP_PARAMETERS,
-  sections: batchBSections,
+  sections: withAttendance(batchBSections, "Priya Sharma", "30-Jul-2026", [
+    "lcms",
+  ]),
   dataSources: [LIMS, EMPOWER, "Tiamo 2.4", "MassLynx"],
 };
 
@@ -1408,7 +1560,7 @@ const batchA: Batch = {
   lastActivity: "Submitted 14:35 yesterday",
   submittedAt: "01-Aug-2026 · 14:35",
   parameters: assayOnly,
-  sections: batchASections,
+  sections: withAttendance(batchASections, "Meena Nair", "29-Jul-2026"),
   dataSources: [LIMS, EMPOWER],
 };
 
@@ -1429,7 +1581,11 @@ const batchC: Batch = {
   analyst: "Amit Patel",
   lastActivity: "2 days ago",
   parameters: assayOnly,
-  sections: cleanAssaySections("COL-2024-11", 210),
+  sections: withAttendance(
+    cleanAssaySections("COL-2024-11", 210),
+    "Arjun Mehta",
+    "28-Jul-2026",
+  ),
   dataSources: [LIMS, EMPOWER],
 };
 

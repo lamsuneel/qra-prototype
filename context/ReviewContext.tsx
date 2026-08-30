@@ -26,7 +26,13 @@ import {
   requiresNote,
   requiresPnc,
 } from "@/types";
-import type { BatchStatus, Profile, Section, SectionStatus } from "@/types";
+import type {
+  BatchStatus,
+  CorrectionRecord,
+  Profile,
+  Section,
+  SectionStatus,
+} from "@/types";
 
 interface ReviewContextValue {
   /* Profile */
@@ -60,6 +66,8 @@ interface ReviewContextValue {
   authoriseReview: (arNumber: string) => void;
   returnToReviewer: (arNumber: string, reason: string) => void;
   returnReason: (arNumber: string) => string;
+  requestRecheck: (arNumber: string, reason: string) => void;
+  correctionHistory: (arNumber: string) => CorrectionRecord[];
 
   /* Progress */
   reviewedCount: (arNumber: string) => number;
@@ -108,6 +116,9 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
   const [returnReasons, setReturnReasons] = useState<Record<string, string>>(
     {},
   );
+  const [corrections, setCorrections] = useState<
+    Record<string, CorrectionRecord[]>
+  >({});
 
   /* ---------------------------------------------------------------- */
   /* Profile                                                          */
@@ -256,6 +267,34 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
     [returnReasons],
   );
 
+  /**
+   * Send the batch back to the lab, and keep what it was sent back for. The
+   * reason outlives the request: it is what tells the next reviewer where to
+   * look when the batch returns looking clean.
+   */
+  const requestRecheck = useCallback(
+    (arNumber: string, reason: string) => {
+      setBatchStatus(arNumber, "RETURNED_FOR_CORRECTION");
+      setCorrections((current) => ({
+        ...current,
+        [arNumber]: [
+          ...(current[arNumber] ?? []),
+          {
+            returnedOn: "30-Aug-2026",
+            returnedBy: profile?.name ?? "QA Reviewer",
+            reason,
+          },
+        ],
+      }));
+    },
+    [profile, setBatchStatus],
+  );
+
+  const correctionHistory = useCallback(
+    (arNumber: string) => corrections[arNumber] ?? [],
+    [corrections],
+  );
+
   /* ---------------------------------------------------------------- */
   /* Progress                                                         */
   /* ---------------------------------------------------------------- */
@@ -308,6 +347,8 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
       authoriseReview,
       returnToReviewer,
       returnReason,
+      requestRecheck,
+      correctionHistory,
       reviewedCount,
       totalSections,
       allSectionsReviewed,
@@ -335,6 +376,8 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
       authoriseReview,
       returnToReviewer,
       returnReason,
+      requestRecheck,
+      correctionHistory,
       reviewedCount,
       totalSections,
       allSectionsReviewed,

@@ -1,5 +1,5 @@
 import type { CheckItem } from "@/types";
-import { quantityComparison, resultFor } from "@/types";
+import { borderLimitDistance, quantityComparison, resultFor } from "@/types";
 import { SourceBadge } from "./Badges";
 import { EvidenceTable } from "./EvidenceTable";
 import { AuditTrailTimeline } from "./AuditTrailTimeline";
@@ -38,6 +38,7 @@ export const flagType = (item: CheckItem): string => {
 /** Where the evidence physically sits, named on the collapsed row. */
 export const evidenceKind = (item: CheckItem): string => {
   if (item.source === "Paper Logbook") return "Logbook";
+  if (item.source === "HRMS System") return "Attendance Record";
   if (
     item.source === "Caliber LIMS" ||
     item.source === "Caliber LIMS — Manual Entry" ||
@@ -145,6 +146,9 @@ export function EvidencePanel({
   const invalid = resultFor(item) === "HARD_INVALID";
   const unverified = resultFor(item) === "NEEDS_VERIFICATION";
   const comparison = quantityComparison(item);
+  const border = item.borderLimit
+    ? borderLimitDistance(item.borderLimit)
+    : null;
   const calibration = item.reference?.match(CAL_DUE)?.[1];
 
   const actualLines: { label: string; value: string }[] = [];
@@ -270,6 +274,40 @@ export function EvidencePanel({
             }
           >
             {comparison ?? "NO COMPARISON — VERIFY AGAINST WORKSHEET"}
+          </dd>
+        </dl>
+      ) : null}
+
+      {border && item.borderLimit ? (
+        <dl className="mt-3 grid grid-cols-[minmax(180px,220px)_1fr] gap-x-4 gap-y-[3px] border-t border-slate-200/70 pt-3 text-[12px]">
+          <dt className="text-slate-400">Result</dt>
+          <dd className="text-slate-700">
+            {item.borderLimit.result}
+            {item.borderLimit.unit}
+          </dd>
+
+          <dt className="text-slate-400">Specification</dt>
+          <dd className="text-slate-700">
+            {item.borderLimit.lower !== undefined
+              ? `${item.borderLimit.lower}${item.borderLimit.unit}`
+              : "—"}{" "}
+            to{" "}
+            {item.borderLimit.upper !== undefined
+              ? `${item.borderLimit.upper}${item.borderLimit.unit}`
+              : "—"}
+          </dd>
+
+          <dt className="text-slate-400">Distance from limit</dt>
+          <dd className="font-medium text-warn-text">
+            {border.distance.toFixed(1)}
+            {item.borderLimit.unit} above the {border.edge} limit
+          </dd>
+
+          <dt className="text-slate-400">Required action</dt>
+          <dd className="text-slate-700">
+            Stability/trend evaluation mandatory before disposition per
+            RULE-EMP-02. If no stability data available: batch charged for
+            stability. Head-QA decides disposition.
           </dd>
         </dl>
       ) : null}

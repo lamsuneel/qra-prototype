@@ -1,7 +1,7 @@
 "use client";
 
 import type { CheckItem } from "@/types";
-import { resultFor } from "@/types";
+import { borderLimitDistance, resultFor } from "@/types";
 import { cn } from "@/lib/utils";
 import { CalibrationBadge, InactivationBadge, SourceBadge } from "./Badges";
 import {
@@ -44,6 +44,9 @@ export function CompliantRow({
 }) {
   const calibration = item.reference?.match(CAL_DUE)?.[1];
   const unverified = resultFor(item) === "NEEDS_VERIFICATION";
+  const border = item.borderLimit
+    ? borderLimitDistance(item.borderLimit)
+    : null;
 
   return (
     <div
@@ -102,11 +105,22 @@ export function CompliantRow({
                   unverified ? "text-warn-text" : "text-compliant-text",
                 )}
               >
-                {unverified ? "Needs Verification" : "Compliant"}
+                {border
+                ? "Border Limit — Trend Evaluation Required"
+                : unverified
+                  ? "Needs Verification"
+                  : "Compliant"}
               </span>
             </div>
 
-            {unverified ? (
+            {border ? (
+              <div className="mt-0.5 text-[11px] font-medium text-warn-text">
+                Within {border.distance.toFixed(1)}
+                {item.borderLimit?.unit} of the {border.edge} specification
+                limit — stability or trend evaluation required before
+                disposition
+              </div>
+            ) : unverified ? (
               <div className="mt-0.5 text-[11px] font-medium text-warn-text">
                 Verify against worksheet: prescribed quantity not fetched from
                 LIMS
@@ -175,8 +189,12 @@ export function CompliantRow({
             itemId={item.id}
             tone="unverified"
             heading="Reviewer observation"
-            placeholder={VERIFICATION_PLACEHOLDER}
-            prefill={VERIFICATION_PREFILL}
+            placeholder={
+              border
+                ? "Record the stability or trend evaluation for this result..."
+                : VERIFICATION_PLACEHOLDER
+            }
+            prefill={border ? "" : VERIFICATION_PREFILL}
           />
         </div>
       ) : null}

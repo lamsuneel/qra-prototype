@@ -1,5 +1,6 @@
 import type { Batch, Section, StandaloneInstrument, TestParameter } from "@/types";
 import { compliant, flagged, section } from "./factories";
+import { attendanceCheck } from "./checks";
 
 /**
  * Packing Material review — HDPE Bottle 60 ml.
@@ -128,6 +129,35 @@ const AXICON: StandaloneInstrument = {
 /* -------------------------------------------------------------------------- */
 /* Sections                                                                   */
 /* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+/* Attendance                                                                 */
+/* -------------------------------------------------------------------------- */
+
+const ATT = "att";
+
+/**
+ * One attendance section per test parameter, ordered first.
+ *
+ * Derived from the sections the batch already carries, so a parameter added
+ * later gets the check without anyone having to remember it.
+ */
+const withAttendance = (
+  entries: Section[],
+  analyst: string,
+  date: string,
+  unverified: string[] = [],
+): Section[] => {
+  const parameters = [...new Set(entries.map((entry) => entry.parameter))];
+
+  const attendance = parameters.map((parameter) =>
+    section(parameter, "Attendance Verification", 0, [
+      attendanceCheck(ATT, analyst, date, !unverified.includes(parameter)),
+    ]),
+  );
+
+  return [...attendance, ...entries];
+};
 
 const sections: Section[] = [
   /* --- Identity (FTIR) ---------------------------------------------------- */
@@ -388,7 +418,7 @@ export const PACKING_MATERIAL_BATCHES: Batch[] = [
     analyst: "Sunita Nair",
     lastActivity: "10:05 AM today",
     parameters: PM_PARAMETERS,
-    sections,
+    sections: withAttendance(sections, "Kavita Rao", "12-Aug-2026", []),
     dataSources: [
       "Caliber LIMS",
       "Spectrum ES",

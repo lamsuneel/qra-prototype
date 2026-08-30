@@ -105,7 +105,7 @@ export default function AuthoriseDetailPage() {
                     : "cursor-pointer border-slate-200 text-source-text hover:bg-navy hover:text-white"
                 }`}
               >
-                Send Back
+                Request Recheck
               </button>
               <button
                 type="button"
@@ -158,13 +158,14 @@ export default function AuthoriseDetailPage() {
                   htmlFor="return-reason"
                   className="mb-2 block text-xs font-semibold text-slate-700"
                 >
-                  Reason for sending back <span className="text-flagged-text">*</span>
+                  Reason for recheck (required){" "}
+                  <span className="text-flagged-text">*</span>
                 </label>
                 <textarea
                   id="return-reason"
                   value={reason}
                   onChange={(event) => setReason(event.target.value)}
-                  placeholder="Explain what the reviewer needs to address before resubmitting..."
+                  placeholder="Say what has to be corrected before this comes back..."
                   className="h-20 w-full resize-none rounded-[5px] border border-slate-200 p-2.5 text-[13px] outline-none focus:border-navy-accent"
                 />
                 <div className="mt-2.5 flex justify-end gap-2">
@@ -185,7 +186,7 @@ export default function AuthoriseDetailPage() {
                         : "cursor-not-allowed bg-slate-200 text-slate-400 opacity-40"
                     }`}
                   >
-                    Send Back to Reviewer
+                    Submit Recheck Request
                   </button>
                 </div>
               </div>

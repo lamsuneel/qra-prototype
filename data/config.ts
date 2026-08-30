@@ -141,6 +141,39 @@ export const STPS: StpRow[] = [
   },
 ];
 
+/**
+ * The checklist a domain is reviewed to. Raw and packing material run on the
+ * corporate material checklist rather than the site's own analytical review
+ * formats, so the difference is stated rather than left to be discovered.
+ */
+export interface ChecklistFormatRow {
+  domain: string;
+  format: string;
+}
+
+export const CHECKLIST_FORMATS: ChecklistFormatRow[] = [
+  {
+    domain: "Raw Material",
+    format: "CQA-CP-GEN-042 — Material Release/Reject Review Checklist (Corporate)",
+  },
+  {
+    domain: "Packing Material",
+    format: "CQA-CP-GEN-042 — Material Release/Reject Review Checklist (Corporate)",
+  },
+  {
+    domain: "Finished Product",
+    format: "FU7-QA-GEN-080 — Analytical data review, Format 1",
+  },
+  {
+    domain: "In-Process Finished Product",
+    format: "FU7-QA-GEN-080 — Analytical data review, Format 1",
+  },
+  {
+    domain: "Stability",
+    format: "FU7-QA-GEN-080 — Analytical data review, Format 1",
+  },
+];
+
 export const REGULATORY_STANDARDS: RegulatoryRow[] = [
   {
     standard: "ICH Q3C",

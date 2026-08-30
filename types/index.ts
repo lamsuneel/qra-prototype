@@ -26,7 +26,8 @@ export type BatchStatus =
   | "IN_REVIEW"
   | "AWAITING_AUTHORISATION"
   | "REVIEW_AUTHORISED"
-  | "RETURNED_TO_REVIEWER";
+  | "RETURNED_TO_REVIEWER"
+  | "RETURNED_FOR_CORRECTION";
 
 export type InactivationStatus =
   | "Initiated"
@@ -92,6 +93,7 @@ export type SourceSystem =
   | "LabSolutions UV"
   | "iCDAS 1.2"
   | "Chamber Monitoring System"
+  | "HRMS System"
   | "Paper Logbook"
   | "Test method configuration";
 
@@ -224,6 +226,11 @@ export interface CheckItem {
    * do.
    */
   severity?: "HARD_INVALID";
+
+  /**
+   * A quantitative result, so QRA can say how close to the limit it landed.
+   */
+  borderLimit?: BorderLimit;
 
   /**
    * An entry the rule set accepts provided a stated condition holds. The
@@ -413,6 +420,20 @@ export interface Batch {
 /* Dashboards                                                                 */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * A batch sent back to the lab and returned.
+ *
+ * Kept because the next reviewer needs to know what was corrected — a batch
+ * that arrives clean tells you nothing about what it looked like before, and
+ * that is exactly what they should be looking at hardest.
+ */
+export interface CorrectionRecord {
+  returnedOn: string;
+  returnedBy: string;
+  reason: string;
+  correctedOn?: string;
+}
+
 export interface DomainSummary {
   domain: Domain;
   batchCount: number;
@@ -511,6 +532,45 @@ export interface ConfiguredRule {
 /* -------------------------------------------------------------------------- */
 
 /**
+ * A result inside specification but within half a percent of a limit.
+ *
+ * It passes, and passing is not the whole question: a batch that lands this
+ * close to a limit is one the stability trend has to be read against before
+ * anyone decides what happens to it. So it is not green — it is amber, and
+ * the reviewer says what the trend showed.
+ */
+export interface BorderLimit {
+  /** The reported result, as a number. */
+  result: number;
+  lower?: number;
+  upper?: number;
+  unit: string;
+}
+
+export const BORDER_LIMIT_MARGIN = 0.5;
+
+/** How close the result sits to the limit it is nearest, or null if clear. */
+export const borderLimitDistance = (
+  border: BorderLimit,
+): { distance: number; edge: "lower" | "upper" } | null => {
+  const candidates: { distance: number; edge: "lower" | "upper" }[] = [];
+
+  if (border.lower !== undefined) {
+    candidates.push({ distance: border.result - border.lower, edge: "lower" });
+  }
+  if (border.upper !== undefined) {
+    candidates.push({ distance: border.upper - border.result, edge: "upper" });
+  }
+
+  const nearest = candidates
+    .filter((entry) => entry.distance >= 0)
+    .sort((a, b) => a.distance - b.distance)[0];
+
+  if (!nearest) return null;
+  return nearest.distance < BORDER_LIMIT_MARGIN ? nearest : null;
+};
+
+/**
  * What the reviewer is actually shown for an entry.
  *
  * There is no fixed specification for chemical or working standard usage: the
@@ -547,6 +607,12 @@ export const resultFor = (item: CheckItem): ItemResult => {
   if (item.serialContinuity?.gap) return "FLAGGED";
 
   if (item.requiresQuantityCheck && !(item.prescribedQty && item.actualQty)) {
+    return "NEEDS_VERIFICATION";
+  }
+
+  /* Passes, but close enough to the limit that the trend has to be read
+     before anyone decides what happens to the batch. */
+  if (item.borderLimit && borderLimitDistance(item.borderLimit)) {
     return "NEEDS_VERIFICATION";
   }
 
@@ -607,4 +673,5 @@ export const BATCH_STATUS_LABELS: Record<BatchStatus, string> = {
   AWAITING_AUTHORISATION: "Awaiting Authorisation",
   REVIEW_AUTHORISED: "Review Authorised",
   RETURNED_TO_REVIEWER: "Returned to Reviewer",
+  RETURNED_FOR_CORRECTION: "Returned for Correction",
 };

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { orderedSections, sectionSlug } from "@/data";
@@ -13,6 +14,7 @@ import {
   type Section,
 } from "@/types";
 import { cn } from "@/lib/utils";
+import { RecheckDialog } from "@/components/review/RecheckDialog";
 
 /**
  * Always visible. Previous / Next walk every section across every parameter,
@@ -33,7 +35,10 @@ export function BottomNavBar({
     isNoted,
     hasPnc,
     isConfirmed,
+    requestRecheck,
   } = useReview();
+
+  const [recheckOpen, setRecheckOpen] = useState(false);
 
   const all = orderedSections(batch);
   const index = all.findIndex((candidate) => candidate.id === section.id);
@@ -116,6 +121,17 @@ export function BottomNavBar({
         </div>
 
         <div className="flex items-center gap-2.5">
+          {/* The lab is being asked to check something again, which is what
+              the person reading this needs to know — not that a document
+              moved. */}
+          <button
+            type="button"
+            onClick={() => setRecheckOpen(true)}
+            className="cursor-pointer rounded-[5px] border border-slate-200 px-3.5 py-[7px] text-[13px] text-source-text transition-colors duration-150 hover:bg-navy hover:text-white focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            Request Recheck
+          </button>
+
           <div className="group relative">
             <button
               type="button"
@@ -153,6 +169,16 @@ export function BottomNavBar({
           </button>
         </div>
       </div>
+
+      <RecheckDialog
+        open={recheckOpen}
+        onCancel={() => setRecheckOpen(false)}
+        onSubmit={(reason) => {
+          requestRecheck(batch.arNumber, reason);
+          setRecheckOpen(false);
+          router.push("/dashboard");
+        }}
+      />
     </div>
   );
 }

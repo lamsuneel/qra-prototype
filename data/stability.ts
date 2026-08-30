@@ -6,6 +6,7 @@ import type {
   TestParameter,
 } from "@/types";
 import { compliant, flagged, section } from "./factories";
+import { attendanceCheck } from "./checks";
 
 /**
  * Stability review — Amoxicillin 250 mg, 6-month accelerated condition.
@@ -217,6 +218,35 @@ const BALANCE_STB: StandaloneInstrument = {
 /* -------------------------------------------------------------------------- */
 /* Sections                                                                   */
 /* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+/* Attendance                                                                 */
+/* -------------------------------------------------------------------------- */
+
+const ATT = "att";
+
+/**
+ * One attendance section per test parameter, ordered first.
+ *
+ * Derived from the sections the batch already carries, so a parameter added
+ * later gets the check without anyone having to remember it.
+ */
+const withAttendance = (
+  entries: Section[],
+  analyst: string,
+  date: string,
+  unverified: string[] = [],
+): Section[] => {
+  const parameters = [...new Set(entries.map((entry) => entry.parameter))];
+
+  const attendance = parameters.map((parameter) =>
+    section(parameter, "Attendance Verification", 0, [
+      attendanceCheck(ATT, analyst, date, !unverified.includes(parameter)),
+    ]),
+  );
+
+  return [...attendance, ...entries];
+};
 
 const sections: Section[] = [
   /* --- Chamber Conditions — read before any test result ------------------- */
@@ -629,7 +659,7 @@ export const STABILITY_BATCHES: Batch[] = [
     analyst: "Anil Kulkarni",
     lastActivity: "11:20 AM today",
     parameters: STB_PARAMETERS,
-    sections,
+    sections: withAttendance(sections, "Anil Kulkarni", "06-Aug-2026", []),
     dataSources: [
       "iCDAS 1.2",
       "Caliber LIMS",

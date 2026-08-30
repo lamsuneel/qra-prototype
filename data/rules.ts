@@ -107,3 +107,17 @@ export const acceptabilityRule = (id: string): AcceptabilityRule => {
   if (!rule) throw new Error(`Unknown acceptability rule: ${id}`);
   return rule;
 };
+
+/* -------------------------------------------------------------------------- */
+/* Attendance                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Whether the analyst was on site the day the analysis is recorded against.
+ *
+ * A cheap check that catches an expensive class of problem: data recorded
+ * under the name of somebody who was not there. It is asked of every review,
+ * which is why it sits at the top of every parameter rather than inside one.
+ */
+export const HRMS_SOP = "FU7-QA-GEN-080 RULE-EMP-06 / CROSS-09";
+export const HRMS_SOURCE = "HRMS System";

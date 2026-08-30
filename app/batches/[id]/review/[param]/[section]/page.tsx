@@ -14,6 +14,8 @@ import { RightPanel } from "@/components/layout/RightPanel";
 import { BottomNavBar } from "@/components/layout/BottomNavBar";
 import { CompliantRow } from "@/components/review/CompliantRow";
 import { ConditionalPassRow } from "@/components/review/ConditionalPassRow";
+import { BatchIntegrity } from "@/components/review/BatchIntegrity";
+import { CorrectionHistory } from "@/components/review/CorrectionHistory";
 import { FlaggedCard } from "@/components/review/FlaggedCard";
 import {
   PaperLogbookSection,
@@ -35,7 +37,7 @@ const headingFor = (parameterName: string, sectionName: string): string => {
 export default function ReviewWorkspacePage() {
   const router = useRouter();
   const params = useParams<{ id: string; param: string; section: string }>();
-  const { profile, sectionStatus } = useReview();
+  const { profile, sectionStatus, correctionHistory } = useReview();
   const pdf = usePdfViewer();
 
   /**
@@ -82,6 +84,9 @@ export default function ReviewWorkspacePage() {
   );
   const compliant = section.items.filter((item) => resultFor(item) === "COMPLIANT");
   const reviewed = sectionStatus(section.id) === "REVIEWED";
+
+  const materialChecklist =
+    batch.domain === "RAW_MATERIAL" || batch.domain === "PACKING_MATERIAL";
 
   /* Derived rather than set per section, so the note appears wherever a
      two-module standard record does and cannot fall out of step with it. */
@@ -154,6 +159,24 @@ export default function ReviewWorkspacePage() {
           </div>
 
           <div className="px-6 py-5">
+            <CorrectionHistory history={correctionHistory(batch.arNumber)} />
+
+            <BatchIntegrity batch={batch} />
+
+            {/*
+              Raw and packing material are not reviewed to Format 1 or 2 —
+              they run on the corporate material checklist, and the reviewer
+              should know which document they are working to before they read
+              a single result.
+            */}
+            {materialChecklist ? (
+              <div className="mb-4 rounded-md border border-navy-accent/30 bg-blue-50 px-4 py-2.5 text-xs leading-relaxed text-navy">
+                Raw Material and Packing Material reviews use the Material
+                Release/Reject Review Checklist per CQA-CP-GEN-042. This
+                checklist governs the overall review format for these domains.
+              </div>
+            ) : null}
+
             {section.standaloneInstrument ? (
               <StandaloneInstrumentHeader
                 instrument={section.standaloneInstrument}
