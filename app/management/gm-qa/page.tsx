@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -17,6 +17,7 @@ import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { PendingReasonChart } from "@/components/dashboard/Charts";
+import { PendingReasonDrilldown } from "@/components/dashboard/PendingReasonDrilldown";
 import { cn } from "@/lib/utils";
 
 /**
@@ -33,6 +34,9 @@ import { cn } from "@/lib/utils";
 export default function GmQaDashboardPage() {
   const router = useRouter();
   const { profile } = useReview();
+
+  /* One reason open at a time. Clicking the open one closes it. */
+  const [pending, setPending] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profile) router.replace("/");
@@ -52,13 +56,32 @@ export default function GmQaDashboardPage() {
       <TopNav />
 
       <main className="flex-1 px-6 py-7 lg:px-10">
-        <header className="mb-5">
-          <h1 className="text-[28px] leading-tight font-bold tracking-tight text-slate-900">
-            QA Operations Dashboard
-          </h1>
-          <p className="mt-1 text-sm text-source-text">
-            {SITE_NAME} · August 2026
-          </p>
+        <header className="mb-5 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-[28px] leading-tight font-bold tracking-tight text-slate-900">
+              QA Operations Dashboard
+            </h1>
+            <p className="mt-1 text-sm text-source-text">
+              {SITE_NAME} · August 2026
+            </p>
+          </div>
+
+          {/*
+            Solid rather than outlined: for this role the queue is the job,
+            and the rest of the page is the context it is done in.
+          */}
+          <div className="shrink-0 sm:text-right">
+            <button
+              type="button"
+              onClick={() => router.push("/authorise")}
+              className="cursor-pointer rounded-md bg-navy px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-navy-mid focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none"
+            >
+              Go to Authorisation Queue <span aria-hidden="true">&rarr;</span>
+            </button>
+            <p className="mt-1.5 text-[13px] text-source-text">
+              {AWAITING_AUTHORISATION_COUNT} batches awaiting your authorisation
+            </p>
+          </div>
         </header>
 
         {/* Row 1 — where every sample in the building currently sits. */}
@@ -156,9 +179,21 @@ export default function GmQaDashboardPage() {
           </div>
         </div>
 
-        {/* Row 3 — what is holding the queued work. */}
+        {/* Row 3 — what is holding the queued work, and which samples. */}
         <div className="mb-5">
-          <PendingReasonChart />
+          <PendingReasonChart
+            selected={pending}
+            onSelect={(reason) =>
+              setPending((current) => (current === reason ? null : reason))
+            }
+          />
+
+          {pending ? (
+            <PendingReasonDrilldown
+              reason={pending}
+              onClose={() => setPending(null)}
+            />
+          ) : null}
         </div>
 
         {/* Row 4 — investigations open against the site. */}
@@ -249,21 +284,6 @@ export default function GmQaDashboardPage() {
               </tbody>
             </table>
           </div>
-        </div>
-
-        {/* Row 6 — the queue, one click away and deliberately not the loudest
-            thing on the page. */}
-        <div className="mb-5">
-          <button
-            type="button"
-            onClick={() => router.push("/authorise")}
-            className="cursor-pointer rounded-md border border-navy-accent px-5 py-2.5 text-sm font-medium text-navy-accent transition-colors duration-150 hover:bg-navy-accent hover:text-white focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none"
-          >
-            Go to Authorisation Queue <span aria-hidden="true">&rarr;</span>
-          </button>
-          <p className="mt-1.5 text-[13px] text-source-text">
-            {AWAITING_AUTHORISATION_COUNT} batches awaiting your authorisation
-          </p>
         </div>
 
         <p className="mt-5 text-center text-[13px] text-slate-400">

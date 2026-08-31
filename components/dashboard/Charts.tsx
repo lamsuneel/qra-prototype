@@ -208,7 +208,13 @@ export function ExceptionChart({
  * is queued, this says what is holding it — which is the part a GM-QA can
  * actually do something about.
  */
-export function PendingReasonChart() {
+export function PendingReasonChart({
+  selected,
+  onSelect,
+}: {
+  selected?: string | null;
+  onSelect?: (reason: string) => void;
+} = {}) {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-5">
       <div className="text-base font-semibold text-slate-900">
@@ -216,6 +222,7 @@ export function PendingReasonChart() {
       </div>
       <div className="mt-1 mb-3 text-[13px] text-slate-400">
         Samples not yet analysed, by what is holding them
+        {onSelect ? " · select a bar for the samples behind it" : null}
       </div>
 
       <div className="h-52 w-full">
@@ -251,10 +258,32 @@ export function PendingReasonChart() {
             />
             <Bar
               dataKey="samples"
-              fill="#4472C4"
               radius={[0, 3, 3, 0]}
               maxBarSize={18}
+              onClick={
+                onSelect
+                  ? (entry) => {
+                      /* recharts hands back the rectangle, with the row it
+                         was drawn from on its payload. */
+                      const reason = (
+                        entry as unknown as { payload?: { reason?: string } }
+                      )?.payload?.reason;
+                      if (reason) onSelect(reason);
+                    }
+                  : undefined
+              }
+              className={onSelect ? "cursor-pointer" : undefined}
             >
+              {PENDING_BY_REASON.map((point) => (
+                <Cell
+                  key={point.reason}
+                  /* The selected bar darkens and takes an outline, so the
+                     panel below is never ambiguous about which one it is. */
+                  fill={point.reason === selected ? "#1F3864" : "#4472C4"}
+                  stroke={point.reason === selected ? "#1F3864" : undefined}
+                  strokeWidth={point.reason === selected ? 2 : 0}
+                />
+              ))}
               <LabelList
                 dataKey="samples"
                 position="right"

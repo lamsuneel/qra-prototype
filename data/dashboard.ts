@@ -480,3 +480,152 @@ export const EXCEPTION_DRILLDOWN: Record<string, ExceptionDetail[]> = {
     },
   ],
 };
+
+/* -------------------------------------------------------------------------- */
+/* Pending analysis drill-down                                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The samples behind each reason on the pending chart.
+ *
+ * Thirty-four samples held by instrument downtime is a number a GM-QA can do
+ * nothing with. Which instruments, since when, and whether an engineer is
+ * already booked — that is the part they can act on, and it is what decides
+ * whether the number falls next week or does not.
+ *
+ * Only the oldest few are listed; the rest are counted. A GM-QA reading this
+ * is deciding where to push, not working a queue.
+ */
+export interface PendingSample {
+  arNumber: string;
+  product: string;
+  domain: string;
+  pendingSince: string;
+  daysPending: number;
+  note: string;
+}
+
+export interface PendingReasonDetail {
+  /** The oldest samples, shown in full. */
+  samples: PendingSample[];
+  /** Everything under this reason, including the ones not listed. */
+  total: number;
+}
+
+/** Over a week held is a different conversation from a few days. */
+export const PENDING_ESCALATION_DAYS = 7;
+export const PENDING_WATCH_DAYS = 3;
+
+export const PENDING_DRILLDOWN: Record<string, PendingReasonDetail> = {
+  "Instrument downtime": {
+    total: 34,
+    samples: [
+      {
+        arNumber: "07-FP-26-0089",
+        product: "Ciprofloxacin 500mg",
+        domain: "FP",
+        pendingSince: "25-Aug-2026",
+        daysPending: 6,
+        note: "HPLC-002 under maintenance — parts ordered",
+      },
+      {
+        arNumber: "07-RM-26-4401",
+        product: "Paracetamol API",
+        domain: "RM",
+        pendingSince: "24-Aug-2026",
+        daysPending: 7,
+        note: "KF Titrator KFA2004 — sensor replacement",
+      },
+      {
+        arNumber: "07-ST-26-0078",
+        product: "Metformin 500mg",
+        domain: "Stability",
+        pendingSince: "22-Aug-2026",
+        daysPending: 9,
+        note: "LCMS offline — engineer visit scheduled",
+      },
+      {
+        arNumber: "07-PM-26-8801",
+        product: "Aluminium foil",
+        domain: "PM",
+        pendingSince: "28-Aug-2026",
+        daysPending: 3,
+        note: "FTIR FTR2001 — calibration due",
+      },
+    ],
+  },
+
+  "OOS investigation": {
+    total: 12,
+    samples: [
+      {
+        arNumber: "07-FP-26-0122",
+        product: "Amoxicillin 250mg",
+        domain: "FP",
+        pendingSince: "28-Aug-2026",
+        daysPending: 3,
+        note: "OOS-2026-0089 — LCMS genotoxic impurity. Phase 1 investigation in progress",
+      },
+      {
+        arNumber: "07-ST-26-0089",
+        product: "Amoxicillin 250mg",
+        domain: "Stability",
+        pendingSince: "26-Aug-2026",
+        daysPending: 5,
+        note: "OOS-2026-0091 — Known Impurity B OOT. Root cause under investigation",
+      },
+      {
+        arNumber: "07-RM-26-4417",
+        product: "Amoxicillin Trihydrate",
+        domain: "RM",
+        pendingSince: "27-Aug-2026",
+        daysPending: 4,
+        note: "FTIR identity failure — reanalysis pending",
+      },
+    ],
+  },
+
+  "Reagent unavailability": {
+    total: 8,
+    samples: [
+      {
+        arNumber: "07-FP-26-0095",
+        product: "Atorvastatin 10mg",
+        domain: "FP",
+        pendingSince: "29-Aug-2026",
+        daysPending: 2,
+        note: "Acetonitrile LC-MS grade — stock depleted. Order placed",
+      },
+      {
+        arNumber: "07-RM-26-4409",
+        product: "Metformin API",
+        domain: "RM",
+        pendingSince: "27-Aug-2026",
+        daysPending: 4,
+        note: "Karl Fischer Reagent — awaiting delivery",
+      },
+    ],
+  },
+
+  "Analyst unavailability": {
+    total: 5,
+    samples: [
+      {
+        arNumber: "07-FP-26-0091",
+        product: "Amoxicillin 500mg",
+        domain: "FP",
+        pendingSince: "30-Aug-2026",
+        daysPending: 1,
+        note: "Analyst on approved leave — reassignment pending QC section in-charge",
+      },
+      {
+        arNumber: "07-ST-26-0085",
+        product: "Ciprofloxacin 500mg",
+        domain: "Stability",
+        pendingSince: "29-Aug-2026",
+        daysPending: 2,
+        note: "Analyst on training — returns 02-Sep-2026",
+      },
+    ],
+  },
+};
