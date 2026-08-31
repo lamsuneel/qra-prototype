@@ -102,18 +102,25 @@ export const exceptionContributors = (
   );
 
 /**
- * Where a parameter should open: its first section carrying anything the
+ * Where a review should open: the first section carrying anything the
  * reviewer has to deal with — a flag, an unusable result, a condition to
- * confirm, or a comparison QRA could not make.
+ * confirm, or a comparison QRA could not make. Falls back to the first
+ * section when everything in scope is clean.
  *
- * Read from the data rather than from session state, so the sidebar does not
+ * Given a parameter it answers for that parameter, which is what the sidebar
+ * asks; given none it answers for the batch, which is what search asks. One
+ * rule, so the two cannot drift apart.
+ *
+ * Read from the data rather than from session state, so the target does not
  * move under the reviewer as they work through a section.
  */
 export const firstUnresolvedSection = (
   batch: Batch,
-  parameterId: string,
+  parameterId?: string,
 ): Section | undefined => {
-  const sections = sectionsForParameter(batch, parameterId);
+  const sections = parameterId
+    ? sectionsForParameter(batch, parameterId)
+    : reviewableSections(batch);
 
   return (
     sections.find((section) =>

@@ -1,5 +1,10 @@
-import { ALL_BATCHES, flaggedItemsInBatch, orderedSections, sectionSlug } from "./index";
-import { DOMAIN_META, resultFor, type Batch, type Domain } from "@/types";
+import {
+  ALL_BATCHES,
+  firstUnresolvedSection,
+  flaggedItemsInBatch,
+  sectionSlug,
+} from "./index";
+import { DOMAIN_META, type Batch, type Domain } from "@/types";
 
 /**
  * Search index over every batch in every domain.
@@ -52,16 +57,9 @@ export interface SearchResult {
   haystack: string;
 }
 
-/**
- * The section a reviewer should land on: the first one carrying an exception,
- * or the first section of the batch when nothing is flagged.
- */
-export const entryPointFor = (batch: Batch): string => {
-  const sections = orderedSections(batch);
-  const target =
-    sections.find((section) => section.items.some((item) => resultFor(item) === "FLAGGED")) ??
-    sections[0];
-
+/** Where opening a search result should land. */
+const hrefFor = (batch: Batch): string => {
+  const target = firstUnresolvedSection(batch);
   if (!target) return `/batches/${batch.arNumber}/summary`;
 
   return `/batches/${batch.arNumber}/review/${target.parameter}/${sectionSlug(target)}`;
@@ -79,7 +77,9 @@ const build = (): SearchResult[] =>
       domainName: meta.name,
       exceptions: flaggedItemsInBatch(batch),
       analyst: batch.analyst,
-      href: entryPointFor(batch),
+      /* Opening a result lands where the work is — the same rule the
+         sidebar uses when a parameter is clicked. */
+      href: hrefFor(batch),
       haystack: [
         batch.arNumber,
         batch.product,
