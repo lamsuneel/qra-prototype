@@ -78,6 +78,12 @@ export interface CompliantSpec {
   severity?: "HARD_INVALID";
   acceptability?: { id: string; found: string; condition: string };
   borderLimit?: BorderLimit;
+  verification?: {
+    warning: string;
+    prefill: string;
+    placeholder: string;
+    blocking: string;
+  };
   exceptionType?: string;
   reference?: string;
   statusText?: string;
@@ -121,6 +127,7 @@ export const compliant = (spec: CompliantSpec): CheckItem => ({
   severity: spec.severity,
   acceptability: spec.acceptability,
   borderLimit: spec.borderLimit,
+  verification: spec.verification,
   exceptionType: spec.exceptionType,
   reference: spec.reference,
   statusText: spec.statusText ?? "Active",
@@ -164,6 +171,12 @@ export interface FlaggedSpec {
   severity?: "HARD_INVALID";
   acceptability?: { id: string; found: string; condition: string };
   borderLimit?: BorderLimit;
+  verification?: {
+    warning: string;
+    prefill: string;
+    placeholder: string;
+    blocking: string;
+  };
   exceptionType?: string;
   reference?: string;
   expected: string;
@@ -198,6 +211,7 @@ export const flagged = (spec: FlaggedSpec): CheckItem => ({
   severity: spec.severity,
   acceptability: spec.acceptability,
   borderLimit: spec.borderLimit,
+  verification: spec.verification,
   exceptionType: spec.exceptionType,
   reference: spec.reference,
   expected: spec.expected,

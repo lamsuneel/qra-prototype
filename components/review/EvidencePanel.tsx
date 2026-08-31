@@ -400,6 +400,10 @@ export function EvidencePanel({
 
       {flagged || invalid ? (
         children
+      ) : item.verification ? (
+        <p className="mt-2.5 rounded-[5px] bg-warn-bg px-3 py-2 text-[11px] leading-relaxed font-medium text-warn-text">
+          <span aria-hidden="true">&#9888;</span> {item.verification.warning}
+        </p>
       ) : border ? (
         /* Amber for the opposite reason to the one below: nothing is missing,
            the result is simply close enough to its limit that the trend is

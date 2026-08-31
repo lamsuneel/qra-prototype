@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   exceptionContributors,
+  firstUnresolvedSection,
   isException,
   orderedSections,
   sectionSlug,
@@ -101,7 +102,10 @@ export function ReviewSidebar({
                   setBlocked(parameter.name);
                   return;
                 }
-                go(parameter.id, sections[0] ? sectionSlug(sections[0]) : sectionId);
+                /* Open where the work is, not on the attendance row that
+                   leads every parameter and is almost always clean. */
+                const target = firstUnresolvedSection(batch, parameter.id);
+                go(parameter.id, target ? sectionSlug(target) : sectionId);
               }}
               className={cn(
                 "flex w-full cursor-pointer items-center gap-2 border-l-[3px] px-3.5 py-[7px] text-left transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none",

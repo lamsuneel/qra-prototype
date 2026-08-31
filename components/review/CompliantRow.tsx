@@ -113,7 +113,11 @@ export function CompliantRow({
               </span>
             </div>
 
-            {border ? (
+            {item.verification ? (
+              <div className="mt-0.5 text-[11px] font-medium text-warn-text">
+                {item.verification.warning}
+              </div>
+            ) : border ? (
               <div className="mt-0.5 text-[11px] font-medium text-warn-text">
                 Within {formatDistance(border.distance)}
                 {item.borderLimit?.unit} of the {border.edge} specification
@@ -190,11 +194,14 @@ export function CompliantRow({
             tone="unverified"
             heading="Reviewer observation"
             placeholder={
-              border
+              item.verification?.placeholder ??
+              (border
                 ? "Record the stability or trend evaluation for this result..."
-                : VERIFICATION_PLACEHOLDER
+                : VERIFICATION_PLACEHOLDER)
             }
-            prefill={border ? "" : VERIFICATION_PREFILL}
+            prefill={
+              item.verification?.prefill ?? (border ? "" : VERIFICATION_PREFILL)
+            }
           />
         </div>
       ) : null}

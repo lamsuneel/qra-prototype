@@ -47,10 +47,17 @@ export const attendanceCheck = (
       ? "The HRMS attendance record covers the day the analysis is recorded against"
       : "QRA could not retrieve an HRMS record for the day of analysis",
     /* No record fetched is not the same as absent. It is amber, and the
-       reviewer checks HRMS themselves. */
-    requiresQuantityCheck: !verified,
-    prescribedQty: undefined,
-    actualQty: verified ? "Present" : undefined,
+       reviewer opens HRMS themselves — which is a different question from a
+       missing prescribed quantity, so it asks in its own words. */
+    verification: verified
+      ? undefined
+      : {
+          warning: `Verify attendance in HRMS: no record retrieved for ${analyst} on ${date}`,
+          prefill:
+            "Analyst attendance manually verified against HRMS system — confirmed present on date of analysis.",
+          placeholder: "Confirm attendance verified in HRMS...",
+          blocking: `Confirm analyst attendance verification for “${analyst}” before marking this section reviewed.`,
+        },
   });
 
 /* -------------------------------------------------------------------------- */

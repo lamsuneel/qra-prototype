@@ -101,6 +101,27 @@ export const exceptionContributors = (
       .map((item) => ({ section: section.name, item: item.label })),
   );
 
+/**
+ * Where a parameter should open: its first section carrying anything the
+ * reviewer has to deal with — a flag, an unusable result, a condition to
+ * confirm, or a comparison QRA could not make.
+ *
+ * Read from the data rather than from session state, so the sidebar does not
+ * move under the reviewer as they work through a section.
+ */
+export const firstUnresolvedSection = (
+  batch: Batch,
+  parameterId: string,
+): Section | undefined => {
+  const sections = sectionsForParameter(batch, parameterId);
+
+  return (
+    sections.find((section) =>
+      section.items.some((item) => resultFor(item) !== "COMPLIANT"),
+    ) ?? sections[0]
+  );
+};
+
 /** Sections belonging to one test parameter, in display order. */
 export const sectionsForParameter = (
   batch: Batch,

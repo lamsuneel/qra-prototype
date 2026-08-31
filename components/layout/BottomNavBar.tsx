@@ -79,7 +79,8 @@ export function BottomNavBar({
             } ${allWantNotes ? "your note" : "your attention"} — ${blocker.label}.`
           : blockerResult === "FLAGGED"
             ? `Open the flagged entry “${blocker.label}” and add your observation note to continue.`
-            : `Confirm your worksheet verification of “${blocker.label}” to continue.`
+            : (blocker.verification?.blocking ??
+            `Confirm your worksheet verification of “${blocker.label}” to continue.`)
     : null;
 
   const goTo = (target: Section) =>

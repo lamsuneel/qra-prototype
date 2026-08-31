@@ -244,6 +244,23 @@ export interface CheckItem {
   borderLimit?: BorderLimit;
 
   /**
+   * An entry QRA could not conclude for a reason of its own, with the words
+   * that reason needs. Without this every amber entry has to be amber for the
+   * same reason as a chemical with a missing prescribed quantity, and says
+   * so — which is wrong about attendance, and would be wrong about anything
+   * else QRA cannot fetch.
+   */
+  verification?: {
+    /** The line on the collapsed row. */
+    warning: string;
+    /** What the reviewer is being asked to confirm, in the note field. */
+    prefill: string;
+    placeholder: string;
+    /** What the bottom bar says while this entry is holding the section. */
+    blocking: string;
+  };
+
+  /**
    * An entry the rule set accepts provided a stated condition holds. The
    * reviewer confirms the condition; nothing is written, because there is
    * nothing to describe — either the method says so or it does not.
@@ -639,6 +656,9 @@ export const resultFor = (item: CheckItem): ItemResult => {
   if (item.requiresQuantityCheck && !(item.prescribedQty && item.actualQty)) {
     return "NEEDS_VERIFICATION";
   }
+
+  /* Something else QRA could not conclude, carrying its own explanation. */
+  if (item.verification) return "NEEDS_VERIFICATION";
 
   /* Passes, but close enough to the limit that the trend has to be read
      before anyone decides what happens to the batch. */
