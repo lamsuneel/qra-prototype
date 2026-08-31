@@ -27,37 +27,55 @@ const UNDER_SLA = "#375623";
 export function CycleTimeChart() {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-5">
-      <div className="text-[13px] font-semibold text-slate-900">Cycle Time Trend</div>
+      <div className="text-base font-semibold text-slate-900">
+        Cycle Time Trend
+      </div>
       <div className="mt-1 mb-4 text-[11px] text-slate-400">
-        Days from review opened to authorisation · {SLA_TARGET_DAYS.toFixed(1)}-day SLA
+        Days from review opened to authorisation · {SLA_TARGET_DAYS.toFixed(1)}
+        -day SLA
       </div>
 
       <div className="h-52 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={CYCLE_TIME_TREND} margin={{ top: 16, right: 8, bottom: 4, left: -22 }}>
+          <BarChart
+            data={CYCLE_TIME_TREND}
+            margin={{ top: 16, right: 8, bottom: 4, left: -22 }}
+          >
             <CartesianGrid stroke="#F3F4F6" vertical={false} />
             <XAxis
               dataKey="month"
-              tick={{ fontSize: 11, fill: "#9E9E9E" }}
+              tick={{ fontSize: 12, fill: "#9E9E9E" }}
               tickLine={false}
               axisLine={{ stroke: "#E5E7EB" }}
             />
             <YAxis
               domain={[0, 4]}
-              tick={{ fontSize: 11, fill: "#9E9E9E" }}
+              tick={{ fontSize: 12, fill: "#9E9E9E" }}
               tickLine={false}
               axisLine={false}
             />
             <Tooltip
               cursor={{ fill: "#F8FAFF" }}
-              contentStyle={{ fontSize: 12, borderRadius: 6, borderColor: "#E5E7EB" }}
-              formatter={(value) => [`${Number(value).toFixed(1)} days`, "Cycle time"]}
+              contentStyle={{
+                fontSize: 12,
+                borderRadius: 6,
+                borderColor: "#E5E7EB",
+              }}
+              formatter={(value) => [
+                `${Number(value).toFixed(1)} days`,
+                "Cycle time",
+              ]}
             />
             <ReferenceLine
               y={SLA_TARGET_DAYS}
               stroke="#C00000"
               strokeDasharray="5 3"
-              label={{ value: "2d SLA", fontSize: 10, fill: "#C00000", position: "insideTopLeft" }}
+              label={{
+                value: "2d SLA",
+                fontSize: 10,
+                fill: "#C00000",
+                position: "insideTopLeft",
+              }}
             />
             <Bar dataKey="days" radius={[3, 3, 0, 0]} maxBarSize={44}>
               <LabelList
@@ -84,14 +102,28 @@ export function CycleTimeChart() {
   );
 }
 
-export function ExceptionChart() {
+/**
+ * Exceptions by test parameter, and a way into them.
+ *
+ * A count says how often something happened. It does not say whether that is
+ * one product misbehaving or six unrelated ones, which is the question that
+ * decides whether anything needs doing — so the bars open.
+ */
+export function ExceptionChart({
+  selected,
+  onSelect,
+}: {
+  selected?: string | null;
+  onSelect?: (category: string) => void;
+}) {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-5">
-      <div className="text-[13px] font-semibold text-slate-900">
+      <div className="text-base font-semibold text-slate-900">
         Exceptions by Test Parameter
       </div>
-      <div className="mt-1 mb-4 text-[11px] text-slate-400">
+      <div className="mt-1 mb-3 text-[13px] text-slate-400">
         This month across all domains
+        {onSelect ? " · select a bar for the batches behind it" : null}
       </div>
 
       <div className="h-52 w-full">
@@ -104,7 +136,7 @@ export function ExceptionChart() {
             <CartesianGrid stroke="#F3F4F6" horizontal={false} />
             <XAxis
               type="number"
-              tick={{ fontSize: 11, fill: "#9E9E9E" }}
+              tick={{ fontSize: 12, fill: "#9E9E9E" }}
               tickLine={false}
               axisLine={{ stroke: "#E5E7EB" }}
             />
@@ -114,17 +146,53 @@ export function ExceptionChart() {
               /* Wide enough that the labels the Recurring Issues table uses
                  read on one line here too. */
               width={232}
-              tick={{ fontSize: 10, fill: "#595959" }}
+              tick={{ fontSize: 12, fill: "#595959" }}
               tickLine={false}
               axisLine={false}
             />
             <Tooltip
               cursor={{ fill: "#F8FAFF" }}
-              contentStyle={{ fontSize: 12, borderRadius: 6, borderColor: "#E5E7EB" }}
+              contentStyle={{
+                fontSize: 12,
+                borderRadius: 6,
+                borderColor: "#E5E7EB",
+              }}
               formatter={(value) => [`${Number(value)}`, "Exceptions"]}
             />
-            <Bar dataKey="count" fill="#4472C4" radius={[0, 3, 3, 0]} maxBarSize={18}>
-              <LabelList dataKey="count" position="right" fontSize={10} fill="#374151" />
+            <Bar
+              dataKey="count"
+              radius={[0, 3, 3, 0]}
+              maxBarSize={18}
+              onClick={
+                onSelect
+                  ? (entry) => {
+                      /* recharts hands back the rectangle, with the row it
+                         was drawn from on its payload. */
+                      const category = (
+                        entry as unknown as { payload?: { category?: string } }
+                      )?.payload?.category;
+                      if (category) onSelect(category);
+                    }
+                  : undefined
+              }
+              className={onSelect ? "cursor-pointer" : undefined}
+            >
+              {EXCEPTIONS_BY_PARAMETER.map((point) => (
+                <Cell
+                  key={point.category}
+                  /* The selected bar darkens and takes an outline, so the
+                     panel below is never ambiguous about which one it is. */
+                  fill={point.category === selected ? "#1F3864" : "#4472C4"}
+                  stroke={point.category === selected ? "#1F3864" : undefined}
+                  strokeWidth={point.category === selected ? 2 : 0}
+                />
+              ))}
+              <LabelList
+                dataKey="count"
+                position="right"
+                fontSize={12}
+                fill="#374151"
+              />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
@@ -143,10 +211,10 @@ export function ExceptionChart() {
 export function PendingReasonChart() {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-5">
-      <div className="text-[13px] font-semibold text-slate-900">
+      <div className="text-base font-semibold text-slate-900">
         Pending Analysis — Reason Breakdown
       </div>
-      <div className="mt-1 mb-4 text-[11px] text-slate-400">
+      <div className="mt-1 mb-3 text-[13px] text-slate-400">
         Samples not yet analysed, by what is holding them
       </div>
 
@@ -160,7 +228,7 @@ export function PendingReasonChart() {
             <CartesianGrid stroke="#F3F4F6" horizontal={false} />
             <XAxis
               type="number"
-              tick={{ fontSize: 11, fill: "#9E9E9E" }}
+              tick={{ fontSize: 12, fill: "#9E9E9E" }}
               tickLine={false}
               axisLine={{ stroke: "#E5E7EB" }}
             />
@@ -168,17 +236,31 @@ export function PendingReasonChart() {
               type="category"
               dataKey="reason"
               width={232}
-              tick={{ fontSize: 10, fill: "#595959" }}
+              tick={{ fontSize: 12, fill: "#595959" }}
               tickLine={false}
               axisLine={false}
             />
             <Tooltip
               cursor={{ fill: "#F8FAFF" }}
-              contentStyle={{ fontSize: 12, borderRadius: 6, borderColor: "#E5E7EB" }}
+              contentStyle={{
+                fontSize: 12,
+                borderRadius: 6,
+                borderColor: "#E5E7EB",
+              }}
               formatter={(value) => [`${Number(value)}`, "Samples"]}
             />
-            <Bar dataKey="samples" fill="#4472C4" radius={[0, 3, 3, 0]} maxBarSize={18}>
-              <LabelList dataKey="samples" position="right" fontSize={10} fill="#374151" />
+            <Bar
+              dataKey="samples"
+              fill="#4472C4"
+              radius={[0, 3, 3, 0]}
+              maxBarSize={18}
+            >
+              <LabelList
+                dataKey="samples"
+                position="right"
+                fontSize={12}
+                fill="#374151"
+              />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

@@ -52,26 +52,26 @@ export default function GmQaDashboardPage() {
       <TopNav />
 
       <main className="flex-1 px-6 py-7 lg:px-10">
-        <header className="mb-6">
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+        <header className="mb-5">
+          <h1 className="text-[28px] leading-tight font-bold tracking-tight text-slate-900">
             QA Operations Dashboard
           </h1>
-          <p className="mt-1 text-[13px] text-source-text">
+          <p className="mt-1 text-sm text-source-text">
             {SITE_NAME} · August 2026
           </p>
         </header>
 
         {/* Row 1 — where every sample in the building currently sits. */}
-        <div className="mb-5 grid gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mb-5 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {PIPELINE_KPIS.map((kpi) => (
             <div
               key={kpi.title}
-              className="rounded-lg border border-slate-200 bg-white px-5 py-4.5"
+              className="rounded-lg border border-slate-200 bg-white p-4"
             >
-              <div className="mb-2 text-[11px] font-medium tracking-wide text-source-text uppercase">
+              <div className="mb-2 text-xs font-medium tracking-[0.05em] text-source-text uppercase">
                 {kpi.title}
               </div>
-              <div className="text-[28px] leading-none font-bold text-navy tabular-nums">
+              <div className="text-4xl leading-none font-bold text-navy tabular-nums">
                 {kpi.value}
               </div>
             </div>
@@ -80,23 +80,35 @@ export default function GmQaDashboardPage() {
 
         {/* Row 2 — samples already past their pull date. */}
         <div className="mb-5 rounded-lg border border-slate-200 bg-white p-5">
-          <h2 className="text-[13px] font-semibold text-slate-900">
+          <h2 className="text-base font-semibold text-slate-900">
             {STABILITY_WINDOW_STATUS.title}
           </h2>
-          <div className="mt-1 mb-3.5 text-[11px] text-slate-400">
+          <div className="mt-1 mb-3 text-[13px] text-slate-400">
             {STABILITY_WINDOW_STATUS.subheading}
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-xs">
+            <table className="w-full border-collapse text-sm">
               <thead>
-                <tr className="border-b border-slate-100 text-left text-slate-400">
-                  <th className="py-1.5 font-medium">AR Number</th>
-                  <th className="py-1.5 font-medium">Product</th>
-                  <th className="py-1.5 font-medium">Stage</th>
-                  <th className="py-1.5 font-medium">Scheduled Date</th>
-                  <th className="py-1.5 text-right font-medium">Days Overdue</th>
-                  <th className="py-1.5 font-medium">Action Required</th>
+                <tr className="border-b border-slate-200 text-left text-slate-500">
+                  <th className="py-2 text-xs font-semibold tracking-[0.05em] uppercase">
+                    AR Number
+                  </th>
+                  <th className="py-2 text-xs font-semibold tracking-[0.05em] uppercase">
+                    Product
+                  </th>
+                  <th className="py-2 text-xs font-semibold tracking-[0.05em] uppercase">
+                    Stage
+                  </th>
+                  <th className="py-2 text-xs font-semibold tracking-[0.05em] uppercase">
+                    Scheduled Date
+                  </th>
+                  <th className="py-2 text-right text-xs font-semibold tracking-[0.05em] uppercase">
+                    Days Overdue
+                  </th>
+                  <th className="py-2 text-xs font-semibold tracking-[0.05em] uppercase">
+                    Action Required
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -116,7 +128,7 @@ export default function GmQaDashboardPage() {
                       <td className="py-2 text-right">
                         <span
                           className={cn(
-                            "inline-flex items-center rounded-full px-2 py-[2px] text-[11px] font-semibold tabular-nums",
+                            "inline-flex items-center rounded-full px-2 py-[2px] text-xs font-semibold tabular-nums",
                             escalate
                               ? "bg-flagged-bg text-flagged-text"
                               : "bg-warn-bg text-warn-text",
@@ -154,35 +166,47 @@ export default function GmQaDashboardPage() {
           {QUALITY_EVENTS.map((event) => (
             <div
               key={event.title}
-              className="rounded-lg border border-slate-200 bg-white px-5 py-4.5"
+              className="rounded-lg border border-slate-200 bg-white p-4"
             >
-              <div className="mb-2 text-[11px] font-medium tracking-wide text-source-text uppercase">
+              <div className="mb-2 text-xs font-medium tracking-[0.05em] text-source-text uppercase">
                 {event.title}
               </div>
-              <div className="mb-1.5 text-[28px] leading-none font-bold text-navy tabular-nums">
+              <div className="mb-1.5 text-4xl leading-none font-bold text-navy tabular-nums">
                 {event.value}
               </div>
-              <div className="text-xs text-source-text">{event.detail}</div>
+              <div className="text-[13px] text-source-text">{event.detail}</div>
             </div>
           ))}
         </div>
 
         {/* Row 5 — how far the month's work has got, domain by domain. */}
         <div className="mb-5 rounded-lg border border-slate-200 bg-white p-5">
-          <h2 className="mb-3.5 text-[13px] font-semibold text-slate-900">
+          <h2 className="mb-3 text-base font-semibold text-slate-900">
             Domain Release Progress — August 2026
           </h2>
 
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-xs">
+            <table className="w-full border-collapse text-sm">
               <thead>
-                <tr className="border-b border-slate-100 text-left text-slate-400">
-                  <th className="py-1.5 font-medium">Domain</th>
-                  <th className="py-1.5 text-right font-medium">Samples In</th>
-                  <th className="py-1.5 text-right font-medium">Completed</th>
-                  <th className="py-1.5 text-right font-medium">Pending</th>
-                  <th className="py-1.5 text-right font-medium">% Complete</th>
-                  <th className="py-1.5 text-right font-medium">Avg Days</th>
+                <tr className="border-b border-slate-200 text-left text-slate-500">
+                  <th className="py-2 text-xs font-semibold tracking-[0.05em] uppercase">
+                    Domain
+                  </th>
+                  <th className="py-2 text-right text-xs font-semibold tracking-[0.05em] uppercase">
+                    Samples In
+                  </th>
+                  <th className="py-2 text-right text-xs font-semibold tracking-[0.05em] uppercase">
+                    Completed
+                  </th>
+                  <th className="py-2 text-right text-xs font-semibold tracking-[0.05em] uppercase">
+                    Pending
+                  </th>
+                  <th className="py-2 text-right text-xs font-semibold tracking-[0.05em] uppercase">
+                    % Complete
+                  </th>
+                  <th className="py-2 text-right text-xs font-semibold tracking-[0.05em] uppercase">
+                    Avg Days
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -209,7 +233,7 @@ export default function GmQaDashboardPage() {
                       <td className="py-2 text-right">
                         <span
                           className={cn(
-                            "inline-flex items-center rounded-full px-2 py-[2px] text-[11px] font-semibold tabular-nums",
+                            "inline-flex items-center rounded-full px-2 py-[2px] text-xs font-semibold tabular-nums",
                             tone,
                           )}
                         >
@@ -233,16 +257,16 @@ export default function GmQaDashboardPage() {
           <button
             type="button"
             onClick={() => router.push("/authorise")}
-            className="cursor-pointer rounded-md border border-navy-accent px-5 py-2.5 text-[13px] font-medium text-navy-accent transition-colors duration-150 hover:bg-navy-accent hover:text-white focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none"
+            className="cursor-pointer rounded-md border border-navy-accent px-5 py-2.5 text-sm font-medium text-navy-accent transition-colors duration-150 hover:bg-navy-accent hover:text-white focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             Go to Authorisation Queue <span aria-hidden="true">&rarr;</span>
           </button>
-          <p className="mt-1.5 text-[11px] text-source-text">
+          <p className="mt-1.5 text-[13px] text-source-text">
             {AWAITING_AUTHORISATION_COUNT} batches awaiting your authorisation
           </p>
         </div>
 
-        <p className="mt-5 text-center text-[11px] text-slate-400">
+        <p className="mt-5 text-center text-[13px] text-slate-400">
           {MANAGEMENT_FOOTER_NOTE}
         </p>
       </main>

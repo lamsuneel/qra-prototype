@@ -256,3 +256,227 @@ export const DOMAIN_RELEASE_PROGRESS: ReleaseProgressRow[] = [
 
 /** What is actually waiting on the GM-QA's signature. */
 export const AWAITING_AUTHORISATION_COUNT = 23;
+
+/* -------------------------------------------------------------------------- */
+/* Exception drill-down                                                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The batches behind each bar on the exceptions chart.
+ *
+ * A count tells the CQO how often something happens; it does not tell them
+ * whether it is one product misbehaving or six unrelated ones, which is the
+ * question that decides whether anything needs doing. So the bar opens.
+ */
+export interface ExceptionDetail {
+  arNumber: string;
+  product: string;
+  domain: string;
+  detail: string;
+  reviewerNote: string;
+  status: "Open" | "Closed";
+}
+
+export const EXCEPTION_DRILLDOWN: Record<string, ExceptionDetail[]> = {
+  "Related Substances": [
+    {
+      arNumber: "07-FP-26-0122",
+      product: "Amoxicillin 250mg",
+      domain: "FP",
+      detail: "Known Impurity B 0.21% vs NMT 0.20%",
+      reviewerNote: "Reviewed — found satisfactory",
+      status: "Open",
+    },
+    {
+      arNumber: "07-ST-26-0089",
+      product: "Amoxicillin 250mg",
+      domain: "Stability",
+      detail: "RS OOT at 36M — increasing trend",
+      reviewerNote: "Reviewed — found satisfactory",
+      status: "Open",
+    },
+    {
+      arNumber: "07-RM-26-4417",
+      product: "Amoxicillin Trihydrate API",
+      domain: "RM",
+      detail: "FTIR correlation 0.942 vs 0.980 minimum",
+      reviewerNote: "Exception noted — investigation initiated",
+      status: "Open",
+    },
+    {
+      arNumber: "07-FP-26-0118",
+      product: "Metformin 500mg",
+      domain: "FP",
+      detail: "Unknown impurity at RRT 1.42 — 0.11% vs NMT 0.10%",
+      reviewerNote: "Exception noted — investigation initiated",
+      status: "Closed",
+    },
+    {
+      arNumber: "07-ST-26-0041",
+      product: "Metformin 500mg",
+      domain: "Stability",
+      detail: "Total impurities rising across 18M accelerated",
+      reviewerNote: "Reviewed — found satisfactory",
+      status: "Open",
+    },
+    {
+      arNumber: "07-RM-26-4402",
+      product: "Paracetamol API",
+      domain: "RM",
+      detail: "4-aminophenol 0.048% vs NMT 0.050%",
+      reviewerNote: "Reviewed — found satisfactory",
+      status: "Closed",
+    },
+    {
+      arNumber: "07-FP-26-0115",
+      product: "Atorvastatin 10mg",
+      domain: "FP",
+      detail: "Degradant at RRT 0.88 above reporting threshold",
+      reviewerNote: "Deviation raised",
+      status: "Closed",
+    },
+    {
+      arNumber: "07-ST-26-0102",
+      product: "Atorvastatin 10mg",
+      domain: "Stability",
+      detail: "Known Impurity C trending upward at 24M long-term",
+      reviewerNote: "Reviewed — found satisfactory",
+      status: "Open",
+    },
+  ],
+
+  "Standards — expired or inactive": [
+    {
+      arNumber: "07-FP-26-0122",
+      product: "Amoxicillin 250mg",
+      domain: "FP",
+      detail: "Acetonitrile inactivated entry",
+      reviewerNote: "Reviewed — found satisfactory",
+      status: "Open",
+    },
+    {
+      arNumber: "07-RM-26-4417",
+      product: "Amoxicillin Trihydrate API",
+      domain: "RM",
+      detail: "Triethylamine inactivation pending second approval",
+      reviewerNote: "Exception noted — investigation initiated",
+      status: "Open",
+    },
+    {
+      arNumber: "07-FP-26-0119",
+      product: "Metformin 500mg",
+      domain: "FP",
+      detail: "Working standard WS-2024-33 used one day past expiry",
+      reviewerNote: "Deviation raised",
+      status: "Closed",
+    },
+    {
+      arNumber: "07-PM-26-8819",
+      product: "HDPE Bottle 60ml",
+      domain: "PM",
+      detail: "Reference standard record not linked to the usage entry",
+      reviewerNote: "Reviewed — found satisfactory",
+      status: "Closed",
+    },
+    {
+      arNumber: "07-ST-26-0089",
+      product: "Amoxicillin 250mg",
+      domain: "Stability",
+      detail: "Standard potency taken from a superseded eLIMS record",
+      reviewerNote: "Exception noted — investigation initiated",
+      status: "Open",
+    },
+  ],
+
+  "LCMS — genotoxic impurity": [
+    {
+      arNumber: "07-FP-26-0122",
+      product: "Amoxicillin 250mg",
+      domain: "FP",
+      detail: "0.08 ppm vs ICH M7 NMT 0.05 ppm",
+      reviewerNote: "Reviewed — found satisfactory",
+      status: "Open",
+    },
+    {
+      arNumber: "07-FP-26-0116",
+      product: "Metformin 500mg",
+      domain: "FP",
+      detail: "NDMA 0.031 ppm vs NMT 0.032 ppm — border limit",
+      reviewerNote: "Reviewed — found satisfactory",
+      status: "Closed",
+    },
+    {
+      arNumber: "07-RM-26-4409",
+      product: "Metformin HCl API",
+      domain: "RM",
+      detail: "Mesylate ester detected above the reporting threshold",
+      reviewerNote: "Exception noted — investigation initiated",
+      status: "Open",
+    },
+  ],
+
+  "KF — determination count": [
+    {
+      arNumber: "07-FP-26-0122",
+      product: "Amoxicillin 250mg",
+      domain: "FP",
+      detail: "2 determinations performed vs 1 permitted",
+      reviewerNote: "Reviewed — found satisfactory",
+      status: "Open",
+    },
+    {
+      arNumber: "07-IPFP-26-0122",
+      product: "Amoxicillin 250mg compression",
+      domain: "IPFP",
+      detail: "Determination started with COND BUSY — result invalid",
+      reviewerNote: "PNC-2026-0089 raised",
+      status: "Open",
+    },
+    {
+      arNumber: "07-RM-26-4411",
+      product: "Paracetamol API",
+      domain: "RM",
+      detail: "3 determinations recorded, no instrument error documented",
+      reviewerNote: "Deviation raised",
+      status: "Closed",
+    },
+  ],
+
+  "Instruments — calibration gap": [
+    {
+      arNumber: "07-FP-26-0122",
+      product: "Amoxicillin 250mg",
+      domain: "FP",
+      detail: "UV Spectrophotometer calibration overdue",
+      reviewerNote: "Reviewed — found satisfactory",
+      status: "Open",
+    },
+    {
+      arNumber: "07-FP-26-0121",
+      product: "Ciprofloxacin 500mg",
+      domain: "FP",
+      detail: "Sonicator daily verification recorded after first use",
+      reviewerNote: "Exception noted — investigation initiated",
+      status: "Closed",
+    },
+  ],
+
+  "Chemicals — inactivated entry": [
+    {
+      arNumber: "07-FP-26-0122",
+      product: "Amoxicillin 250mg",
+      domain: "FP",
+      detail: "Acetonitrile inactivated — Initiated status",
+      reviewerNote: "Reviewed — found satisfactory",
+      status: "Open",
+    },
+    {
+      arNumber: "07-RM-26-4417",
+      product: "Amoxicillin Trihydrate API",
+      domain: "RM",
+      detail: "Triethylamine inactivated, second approval outstanding",
+      reviewerNote: "Exception noted — investigation initiated",
+      status: "Open",
+    },
+  ],
+};

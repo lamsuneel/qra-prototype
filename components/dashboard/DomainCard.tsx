@@ -65,8 +65,12 @@ export function DomainCard({
           · {summary.needsReviewCount} needs review
         </span>
         <span className="ml-auto inline-flex items-center gap-1 text-[11px]">
-          <span className={cn("size-1.5 rounded-full", DOT[summary.slaStatus])} />
-          <span className={DOT[summary.slaStatus].split(" ")[1]}>{summary.slaNote}</span>
+          <span
+            className={cn("size-1.5 rounded-full", DOT[summary.slaStatus])}
+          />
+          <span className={DOT[summary.slaStatus].split(" ")[1]}>
+            {summary.slaNote}
+          </span>
         </span>
       </div>
 
