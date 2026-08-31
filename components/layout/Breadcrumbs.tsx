@@ -15,7 +15,7 @@ export const roleRoot = (role: UserRole): Crumb =>
   role === "REVIEWER"
     ? { label: "QA Dashboard", href: "/dashboard" }
     : role === "APPROVER"
-      ? { label: "Authorisation Queue", href: "/authorise" }
+      ? { label: "QA Operations Dashboard", href: "/management/gm-qa" }
       : { label: "Batch Review Performance", href: "/management" };
 
 /**

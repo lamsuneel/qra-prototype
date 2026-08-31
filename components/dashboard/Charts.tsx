@@ -13,7 +13,12 @@ import {
   YAxis,
 } from "recharts";
 
-import { CYCLE_TIME_TREND, EXCEPTIONS_BY_PARAMETER, SLA_TARGET_DAYS } from "@/data/dashboard";
+import {
+  CYCLE_TIME_TREND,
+  EXCEPTIONS_BY_PARAMETER,
+  PENDING_BY_REASON,
+  SLA_TARGET_DAYS,
+} from "@/data/dashboard";
 
 const OVER_SLA = "#C55A11";
 const UNDER_SLA = "#375623";
@@ -120,6 +125,60 @@ export function ExceptionChart() {
             />
             <Bar dataKey="count" fill="#4472C4" radius={[0, 3, 3, 0]} maxBarSize={18}>
               <LabelList dataKey="count" position="right" fontSize={10} fill="#374151" />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Why samples are sitting rather than moving.
+ *
+ * Read alongside the pipeline counts above it: the counts say how much work
+ * is queued, this says what is holding it — which is the part a GM-QA can
+ * actually do something about.
+ */
+export function PendingReasonChart() {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-5">
+      <div className="text-[13px] font-semibold text-slate-900">
+        Pending Analysis — Reason Breakdown
+      </div>
+      <div className="mt-1 mb-4 text-[11px] text-slate-400">
+        Samples not yet analysed, by what is holding them
+      </div>
+
+      <div className="h-52 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={PENDING_BY_REASON}
+            layout="vertical"
+            margin={{ top: 4, right: 24, bottom: 4, left: 4 }}
+          >
+            <CartesianGrid stroke="#F3F4F6" horizontal={false} />
+            <XAxis
+              type="number"
+              tick={{ fontSize: 11, fill: "#9E9E9E" }}
+              tickLine={false}
+              axisLine={{ stroke: "#E5E7EB" }}
+            />
+            <YAxis
+              type="category"
+              dataKey="reason"
+              width={232}
+              tick={{ fontSize: 10, fill: "#595959" }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <Tooltip
+              cursor={{ fill: "#F8FAFF" }}
+              contentStyle={{ fontSize: 12, borderRadius: 6, borderColor: "#E5E7EB" }}
+              formatter={(value) => [`${Number(value)}`, "Samples"]}
+            />
+            <Bar dataKey="samples" fill="#4472C4" radius={[0, 3, 3, 0]} maxBarSize={18}>
+              <LabelList dataKey="samples" position="right" fontSize={10} fill="#374151" />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

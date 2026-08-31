@@ -32,6 +32,14 @@ export default function AuthoriseListPage() {
       <TopNav />
 
       <main className="flex-1 px-6 py-7 lg:px-10">
+        <button
+          type="button"
+          onClick={() => router.push("/management/gm-qa")}
+          className="mb-3 inline-flex cursor-pointer items-center gap-1.5 text-xs text-source-text transition-colors duration-150 hover:text-navy hover:underline"
+        >
+          <span aria-hidden="true">&larr;</span> Back to Dashboard
+        </button>
+
         <h1 className="mb-5 text-xl font-bold tracking-tight text-slate-900">
           Reviews Awaiting Authorisation
         </h1>
