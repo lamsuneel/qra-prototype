@@ -18,6 +18,7 @@ import { TopNav } from "@/components/layout/TopNav";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { PendingReasonChart } from "@/components/dashboard/Charts";
 import { PendingReasonDrilldown } from "@/components/dashboard/PendingReasonDrilldown";
+import { downloadOperationsReport } from "@/lib/gm-qa-report";
 import { cn } from "@/lib/utils";
 
 /**
@@ -66,18 +67,37 @@ export default function GmQaDashboardPage() {
             </p>
           </div>
 
-          {/*
-            Solid rather than outlined: for this role the queue is the job,
-            and the rest of the page is the context it is done in.
-          */}
           <div className="shrink-0 sm:text-right">
-            <button
-              type="button"
-              onClick={() => router.push("/authorise")}
-              className="cursor-pointer rounded-md bg-navy px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-navy-mid focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none"
-            >
-              Go to Authorisation Queue <span aria-hidden="true">&rarr;</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+              {/*
+                Outlined, and to the left: taking the month away as a file is
+                something this role does once, and the queue is what they came
+                for. Weight follows that.
+              */}
+              <button
+                type="button"
+                onClick={() =>
+                  downloadOperationsReport(`${profile.name} — GM-QA`)
+                }
+                className="cursor-pointer rounded-md border border-navy-accent px-4 py-2 text-sm font-medium text-navy-accent transition-colors duration-150 hover:bg-navy-accent hover:text-white focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none"
+              >
+                Download Operations Report{" "}
+                <span aria-hidden="true">&darr;</span>
+              </button>
+
+              {/*
+                Solid rather than outlined: for this role the queue is the job,
+                and the rest of the page is the context it is done in.
+              */}
+              <button
+                type="button"
+                onClick={() => router.push("/authorise")}
+                className="cursor-pointer rounded-md bg-navy px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-navy-mid focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none"
+              >
+                Go to Authorisation Queue <span aria-hidden="true">&rarr;</span>
+              </button>
+            </div>
+
             <p className="mt-1.5 text-[13px] text-source-text">
               {AWAITING_AUTHORISATION_COUNT} batches awaiting your authorisation
             </p>
