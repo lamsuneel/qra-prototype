@@ -203,9 +203,9 @@ export const buildAuditReport = (generatedBy: string): jsPDF => {
     layout,
     ["Metric", "Value", "Target", "Status"],
     [
-      ["Avg Cycle Time", "1.8 days", "≤ 2.0 days", "On target"],
-      ["Right First Time", "94.2%", "≥ 95%", "Below target"],
-      ["SLA Compliance", "97.8%", "≥ 98%", "Below target"],
+      ["Avg Cycle Time", "1.8 days", "<= 2.0 days", "On target"],
+      ["Right First Time", "94.2%", ">= 95%", "Below target"],
+      ["SLA Compliance", "97.8%", ">= 98%", "Below target"],
       ["Batches Reviewed", "47", "—", "—"],
     ],
     [70, 34, 34, 36],
@@ -252,7 +252,7 @@ export const buildAuditReport = (generatedBy: string): jsPDF => {
   const [first, second, third] = RECURRING_ISSUES;
   paragraph(
     layout,
-    `${first.issue} accounts for ${first.share} of all ${totalExceptions} review exceptions raised this month, ahead of ${second.issue.toLowerCase()} at ${second.share} and ${third.issue.toLowerCase()} at ${third.share}. Together these three account for ${
+    `${first.issue} accounts for ${first.share} of all ${totalExceptions} review exceptions raised this month, ahead of ${second.issue} at ${second.share} and ${third.issue} at ${third.share}. Together these three account for ${
       first.occurrences + second.occurrences + third.occurrences
     } of ${totalExceptions}. The concentration in related substances points at method and stability behaviour rather than at isolated handling errors; the standards and chemicals findings are records questions, where the material was fit and its traceability was incomplete.`,
   );
