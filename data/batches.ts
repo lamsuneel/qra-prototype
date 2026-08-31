@@ -1850,7 +1850,9 @@ const batchA: Batch = {
   product: "Ciprofloxacin 500mg Tablet",
   batchNumber: "CIP-2026-0198",
   domain: "FINISHED_PRODUCT",
-  specVersion: "v2.1",
+  /* The finished-product specification in force this month, the same one the
+     certificate footer and the authorisation dialog name. */
+  specVersion: "v3.2",
   specCurrent: true,
   slaDeadline: "02-Aug-2026 12:00",
   slaStatus: "amber",

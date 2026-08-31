@@ -4,12 +4,15 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { getBatch, reviewableSections } from "@/data";
+import { coaSummaryFor } from "@/data/coa";
 import { resultFor } from "@/types";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { BatchStatusBadge } from "@/components/review/Badges";
+import { SpecificationVersion } from "@/components/authorise/SpecificationVersion";
+import { CoaSummaryTable } from "@/components/authorise/CoaSummary";
 
 /**
  * The approver sees exceptions only — never the full section checklists.
@@ -18,13 +21,8 @@ import { BatchStatusBadge } from "@/components/review/Badges";
 export default function AuthoriseDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const {
-    profile,
-    noteFor,
-    batchStatus,
-    authoriseReview,
-    returnToReviewer,
-  } = useReview();
+  const { profile, noteFor, batchStatus, authoriseReview, returnToReviewer } =
+    useReview();
 
   const [confirming, setConfirming] = useState(false);
   const [returnMode, setReturnMode] = useState(false);
@@ -51,6 +49,8 @@ export default function AuthoriseDetailPage() {
       .filter((item) => resultFor(item) === "FLAGGED")
       .map((item) => ({ section, item })),
   );
+
+  const coa = coaSummaryFor(batch);
 
   const confirmAuthorise = () => {
     authoriseReview(batch.arNumber);
@@ -86,10 +86,16 @@ export default function AuthoriseDetailPage() {
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
           <div className="sticky top-0 z-10 flex flex-wrap items-center gap-4 border-b-2 border-slate-200 bg-slate-50 px-6 py-4">
             <div>
-              <div className="mb-1 text-xs text-slate-400">Reviewing submission</div>
+              <div className="mb-1 text-xs text-slate-400">
+                Reviewing submission
+              </div>
               <div className="flex flex-wrap items-center gap-2.5">
-                <span className="text-base font-bold text-navy">{batch.arNumber}</span>
-                <span className="text-[13px] text-source-text">{batch.product}</span>
+                <span className="text-base font-bold text-navy">
+                  {batch.arNumber}
+                </span>
+                <span className="text-[13px] text-source-text">
+                  {batch.product}
+                </span>
                 <BatchStatusBadge status={status} />
               </div>
             </div>
@@ -125,7 +131,8 @@ export default function AuthoriseDetailPage() {
           <div className="px-6 py-5">
             <div className="mb-4 text-xs font-bold tracking-wider text-flagged-text uppercase">
               {exceptions.length}{" "}
-              {exceptions.length === 1 ? "exception" : "exceptions"} requiring attention
+              {exceptions.length === 1 ? "exception" : "exceptions"} requiring
+              attention
             </div>
 
             <div className="flex flex-col gap-4">
@@ -142,7 +149,9 @@ export default function AuthoriseDetailPage() {
                       {section.parameter.toUpperCase()} — {section.name}
                     </span>
                   </div>
-                  <p className="mb-2 text-[13px] text-slate-700">{item.flagReason}</p>
+                  <p className="mb-2 text-[13px] text-slate-700">
+                    {item.flagReason}
+                  </p>
                   <p className="rounded-[5px] border-l-[3px] border-slate-300 bg-slate-50 px-3 py-2 text-xs text-source-text italic">
                     {noteFor(item.id)
                       ? `"${noteFor(item.id)}"`
@@ -191,6 +200,40 @@ export default function AuthoriseDetailPage() {
                 </div>
               </div>
             ) : null}
+
+            {/*
+              Below the exceptions, and deliberately not above them: the
+              approver's attention belongs on what went wrong first. These
+              answer the two questions that follow — was it judged against the
+              right specification, and what about everything that did not flag.
+            */}
+            <section className="mt-7">
+              <div className="mb-2.5 text-xs font-bold tracking-wider text-flagged-text uppercase">
+                Specification version
+              </div>
+              <SpecificationVersion
+                version={batch.specVersion}
+                current={batch.specCurrent}
+                source="Caliber LIMS"
+              />
+            </section>
+
+            {coa ? (
+              <section className="mt-7">
+                <div className="mb-1 text-xs font-bold tracking-wider text-flagged-text uppercase">
+                  COA summary — all test parameters
+                </div>
+                <p className="mb-3 text-xs text-source-text">
+                  Results vs specification at time of review. Authorisation
+                  constitutes confirmation that all parameters have been
+                  reviewed.
+                </p>
+                <CoaSummaryTable
+                  summary={coa}
+                  specification={`FP Specification ${batch.specVersion}`}
+                />
+              </section>
+            ) : null}
           </div>
         </div>
       </main>
@@ -198,16 +241,32 @@ export default function AuthoriseDetailPage() {
       {confirming ? (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-lg bg-white p-7 shadow-2xl">
-            <h2 className="mb-2 text-base font-bold text-slate-900">Authorise Review?</h2>
-            <p className="mb-1.5 text-[13px] leading-relaxed text-source-text">
-              You are authorising the review of{" "}
-              <strong className="text-slate-700">{batch.arNumber}</strong> ({batch.product})
-              with {exceptions.length} documented{" "}
-              {exceptions.length === 1 ? "exception" : "exceptions"}.
+            <h2 className="mb-2 text-base font-bold text-slate-900">
+              Authorise Review — {batch.arNumber}
+            </h2>
+            <p className="mb-2.5 text-[13px] leading-relaxed text-source-text">
+              You are authorising the analytical batch review for{" "}
+              <strong className="text-slate-700">{batch.product}</strong>. This
+              constitutes confirmation that:
             </p>
-            <p className="mb-5 text-xs text-slate-400">
-              This creates an authorisation record and makes the review record available
-              for export.
+            {/*
+              Spelled out rather than summarised: a signature that says "I
+              confirm" without saying what is being confirmed is the thing
+              audits pull apart.
+            */}
+            <ul className="mb-3 list-disc space-y-1 pl-5 text-[13px] leading-relaxed text-source-text">
+              <li>
+                All test parameters meet the specification or exceptions have
+                been reviewed and noted
+              </li>
+              <li>
+                The analysis was performed against the current specification
+                version ({batch.specVersion})
+              </li>
+              <li>The evidence record is complete and retrievable</li>
+            </ul>
+            <p className="mb-5 text-xs font-semibold text-flagged-text">
+              This action cannot be undone.
             </p>
             <div className="flex justify-end gap-2.5">
               <button
@@ -222,7 +281,7 @@ export default function AuthoriseDetailPage() {
                 onClick={confirmAuthorise}
                 className="cursor-pointer rounded-md bg-navy px-5 py-2 text-[13px] font-semibold text-white transition-colors duration-150 hover:bg-navy-mid"
               >
-                Confirm Authorisation
+                Authorise Review
               </button>
             </div>
           </div>
