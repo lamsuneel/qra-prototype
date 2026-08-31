@@ -1863,21 +1863,7 @@ const batchC: Batch = {
   slaDeadline: "29-Jul-2026 14:00",
   slaStatus: "red",
   slaLabel: "SLA Breached",
-  /*
-   * Sent back once and returned. The status says where it has been; the
-   * history says what for, because the figures that were corrected are the
-   * ones the next reviewer should look at hardest.
-   */
-  status: "RETURNED_FOR_CORRECTION",
-  corrections: [
-    {
-      returnedOn: "27-Aug-2026",
-      returnedBy: "Arjun Mehta",
-      reason:
-        "Working standard quantity to be corrected — the worksheet prescribes 25 mg and the weight slip records 24.1 mg, with no REQUEST entry against the difference.",
-      correctedOn: "29-Aug-2026",
-    },
-  ],
+  status: "NEEDS_REVIEW",
   assignedTo: null,
   analyst: "Amit Patel",
   lastActivity: "2 days ago",

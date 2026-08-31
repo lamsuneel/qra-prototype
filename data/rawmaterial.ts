@@ -44,18 +44,18 @@ const RM_PARAMETERS: TestParameter[] = [
     stpReference: "STP-RM-PSD-001",
   },
   {
-    id: "anions",
-    name: "Chloride and Sulphate",
-    shortName: "Ion Chromatography",
-    methodType: "Ion chromatography",
-    stpReference: "STP-RM-IC-004",
-  },
-  {
     id: "metals",
     name: "Heavy Metals",
     shortName: "Heavy Metals",
     methodType: "ICP-MS",
     stpReference: "STP-RM-ICP-003",
+  },
+  {
+    id: "anions",
+    name: "Ion Chromatography",
+    shortName: "Ion Chromatography",
+    methodType: "Ion chromatography",
+    stpReference: "STP-RM-IC-004",
   },
 ];
 
@@ -158,7 +158,7 @@ const MASTERSIZER: StandaloneInstrument = {
 };
 
 const MAGICNET_AUDIT = `MAGIC NET 4.2 - ION CHROMATOGRAPHY AUDIT TRAIL
-Instrument      : IC-2024-002 (Metrohm 940 Professional IC Vario)
+Instrument      : IC-2002 (Metrohm 940 Professional IC Vario)
 Software        : Magic Net 4.2
 Report exported : 12-Aug-2026 09:05:44
 Exported by     : M.NAIR (Analyst)
@@ -166,9 +166,9 @@ Exported by     : M.NAIR (Analyst)
 11-Aug-2026 13:02:11  LOGIN         M.NAIR
 11-Aug-2026 13:04:38  METHOD LOAD   RM-IC-ANIONS-AMXAPI (v2) - locked
 11-Aug-2026 13:06:20  SUPPRESSOR    Regenerated, conductivity 0.9 uS/cm
-11-Aug-2026 13:12:47  INJECTION #001 Standard - chloride 5.0 / sulphate 5.0 ppm
+11-Aug-2026 13:12:47  INJECTION #001 Standard - sulphate 0.020 % w/w
 11-Aug-2026 13:26:02  INJECTION #002 Sample AMXAPI-2026-0088
-11-Aug-2026 13:39:18  RESULT        Chloride 112 ppm / Sulphate 68 ppm
+11-Aug-2026 13:39:18  RESULT        Sulphate 0.012 % w/w
 11-Aug-2026 13:52:30  LOGOUT        M.NAIR
 11-Aug-2026 13:52:41  NO DELETIONS  No injections deleted or reprocessed
 11-Aug-2026 13:52:41  FOLDER        Saved to Aug-2026 monthly project only
@@ -178,11 +178,11 @@ END OF AUDIT TRAIL`;
 const MAGICNET: StandaloneInstrument = {
   name: "Magic Net",
   version: "4.2",
-  source: "Magic Net 4.2",
+  source: "Caliber LIMS",
   analyst: "Meena Nair",
   loginAt: "11-Aug-2026 13:02",
   logoutAt: "11-Aug-2026 13:52",
-  pdfFilename: "MagicNet_IC2024002_AMXAPI-2026-0088_11Aug2026.pdf",
+  pdfFilename: "MagicNet_IC2002_AMXAPI-2026-0088_11Aug2026.pdf",
   auditTrail: MAGICNET_AUDIT,
 };
 
@@ -924,74 +924,35 @@ const sections: Section[] = [
   ),
 
   /*
-   * Chloride and sulphate on the ion chromatograph. Both are corrosion risks
-   * to the stainless steel the material is processed in, which is why the
-   * limits are as tight as they are for an API that is not itself a salt.
+   * Sulphate on the ion chromatograph. The limit is set on what sulphate does
+   * downstream rather than on the molecule: carried into the synthesis it
+   * forms insoluble salts that report as an unknown impurity later.
    */
   section(
     "anions",
-    "Ion Chromatograph",
+    "IC Results — Logbook",
     1,
     [
       compliant({
         prefix: P,
         sopReference: "STP-RM-IC-004",
-        label: "Chloride content",
-        reference: "Duplicate injections",
-        statusText: "Within limits",
-        checkDescription:
-          "QRA read the chloride result from Magic Net and compared it against STP-RM-IC-004. Chloride attacks the stainless steel the material is processed in, so the limit is set on the equipment rather than on the molecule.",
-        expected: "Not more than 200 ppm — STP-RM-IC-004",
-        actual: "112 ppm (mean of two injections)",
-        expectedSource: "STP-RM-IC-004",
-        source: "Magic Net 4.2",
-        comparison: "Result read against the specification limit",
-      }),
-      compliant({
-        prefix: P,
-        sopReference: "STP-RM-IC-004",
         label: "Sulphate content",
-        reference: "Duplicate injections",
+        reference: "IC-2002 · run of 11-Aug-2026",
         statusText: "Within limits",
         checkDescription:
-          "QRA read the sulphate result from Magic Net and compared it against STP-RM-IC-004. Sulphate carried into the synthesis forms insoluble salts that report as an unknown impurity downstream.",
-        expected: "Not more than 150 ppm — STP-RM-IC-004",
-        actual: "68 ppm (mean of two injections)",
+          "QRA read the sulphate result from Magic Net via LIMS and compared it against STP-RM-IC-004. Sulphate carried into the synthesis forms insoluble salts that report as an unknown impurity downstream, which is why the limit sits where it does.",
+        expected: "Not more than 0.020 % w/w — STP-RM-IC-004",
+        actual: "0.012 % w/w",
         expectedSource: "STP-RM-IC-004",
-        source: "Magic Net 4.2",
+        source: "Magic Net 4.2 — Caliber LIMS",
         comparison: "Result read against the specification limit",
-        table: {
-          caption: "Anions by ion chromatography — 11-Aug-2026",
-          columns: ["Analyte", "Injection 1", "Injection 2", "Mean", "Limit"],
-          rows: [
-            { cells: ["Chloride", "111 ppm", "113 ppm", "112 ppm", "NMT 200 ppm"] },
-            { cells: ["Sulphate", "67 ppm", "69 ppm", "68 ppm", "NMT 150 ppm"] },
-          ],
-        },
-      }),
-      compliant({
-        prefix: P,
-        sopReference: "FU7-QA-GEN-080 §4.5.2",
-        label: "Ion Chromatograph IC-2024-002",
-        reference: "Cal. due 04-Feb-2027",
-        statusText: "Calibrated",
-        checkDescription:
-          "QRA read the calibration record for IC-2024-002. A suppressor drifting out of calibration shifts the conductivity baseline, and the peak areas the result is integrated from move with it.",
-        expected: "Calibration due date after date of use — SOP-INST-004",
-        actual: "IC-2024-002 — calibrated 04-Aug-2026, due 04-Feb-2027",
-        expectedSource: "SOP-INST-004",
-        source: "Caliber LIMS",
         details: [
-          { label: "Instrument ID", value: "IC-2024-002" },
+          { label: "Instrument ID", value: "IC-2002" },
           { label: "Make and model", value: "Metrohm 940 Professional IC Vario" },
           { label: "Software", value: "Magic Net 4.2" },
-          { label: "Calibration status", value: "Calibrated — within interval" },
-          { label: "Last calibrated", value: "04-Aug-2026" },
-          { label: "Calibration due", value: "04-Feb-2027" },
-          {
-            label: "Suppressor",
-            value: "Regenerated before the run, conductivity 0.9 µS/cm",
-          },
+          { label: "Calibration status", value: "Current — within interval" },
+          { label: "Last calibrated", value: "10-May-2026" },
+          { label: "Calibration due", value: "15-Nov-2026" },
           { label: "Record held in", value: "Caliber LIMS" },
         ],
       }),
@@ -1003,10 +964,90 @@ const sections: Section[] = [
      non-CDS instruments here — so the six questions are read off the report. */
   section(
     "anions",
-    "Ion Chromatography Audit Trail",
+    "IC Audit Trail",
     2,
     nonCdsAuditTrail(P, "Magic Net", "Magic Net 4.2", "Injection #001 – #002"),
   ),
+];
+
+/* -------------------------------------------------------------------------- */
+/* A batch that has already been round the correction loop                    */
+/* -------------------------------------------------------------------------- */
+
+const CORRECTED_PARAMETERS: TestParameter[] = [
+  {
+    id: "assay",
+    name: "Assay (HPLC)",
+    shortName: "Assay",
+    methodType: "HPLC",
+    stpReference: "STP-RM-ASSAY-002",
+  },
+];
+
+/**
+ * Everything here is clean, which is the point: the correction was made. What
+ * a reviewer cannot see from clean data is which figures were touched, and
+ * that is exactly what they should be looking at hardest — so the batch
+ * carries the exchange that produced them.
+ */
+const correctedSections: Section[] = [
+  section("assay", "Chemicals", 1, [
+    compliant({
+      prefix: P,
+      label: "Methanol HPLC grade",
+      reference: "Lot MET-2025-118",
+      requiresQuantityCheck: true,
+      prescribedQty: "500 mL",
+      actualQty: "500 mL",
+      quantityComparison: "MATCH",
+      expected: "Active entry, within expiry — SOP-CHEM-003",
+      actual: "Methanol HPLC grade — Lot MET-2025-118 — active, expiry 31-Mar-2027",
+      expectedSource: "SOP-CHEM-003",
+      source: "Caliber LIMS",
+    }),
+    compliant({
+      prefix: P,
+      label: "Water for HPLC",
+      reference: "Lot WH-2025-0442",
+      requiresQuantityCheck: true,
+      prescribedQty: "1.0 L",
+      actualQty: "1.0 L",
+      quantityComparison: "MATCH",
+      expected: "Active entry, within expiry — SOP-CHEM-003",
+      actual: "Water for HPLC — Lot WH-2025-0442 — active, expiry 30-Jun-2027",
+      expectedSource: "SOP-CHEM-003",
+      source: "Caliber LIMS",
+    }),
+  ]),
+  section("assay", "Standards", 2, [
+    compliant({
+      prefix: P,
+      label: "Working Standard — Paracetamol",
+      reference: "WST-2024-091",
+      usageSource: "Caliber LIMS — Reference Standard Record",
+      potencySource: "Caliber LIMS — eLIMS Reference Standard Audit Trail",
+      requiresQuantityCheck: true,
+      prescribedQty: "50 mg ± 2 mg",
+      actualQty: "50.2 mg",
+      quantityComparison: "WITHIN TOLERANCE",
+      statusText: "Corrected",
+      checkDescription:
+        "QRA read the working standard lot against the usage record. This is the entry the batch was sent back for: the wrong lot number was recorded against a correct weighing, so the result was right and its traceability was not.",
+      expected: "Active lot, expiry on or after analysis date — SOP-STD-002",
+      actual: "WST-2024-091 — active, expiry 30-Sep-2027, potency 99.8 %",
+      expectedSource: "SOP-STD-002",
+      source: "Caliber LIMS",
+      comparison:
+        "Lot number in the usage record now matches the standard actually weighed",
+      details: [
+        { label: "Standard number", value: "WST-2024-091" },
+        { label: "Previously recorded as", value: "WST-2024-089 — corrected 29-Aug-2026" },
+        { label: "Assigned potency", value: "99.8 % on the anhydrous basis" },
+        { label: "Status in LIMS", value: "Active" },
+        { label: "Expiry date", value: "30-Sep-2027" },
+      ],
+    }),
+  ]),
 ];
 
 export const RAW_MATERIAL_BATCHES: Batch[] = [
@@ -1037,5 +1078,44 @@ export const RAW_MATERIAL_BATCHES: Batch[] = [
       "Magic Net 4.2",
       "Paper Logbook",
     ],
+  },
+  {
+    id: "07-RM-26-4418",
+    arNumber: "07-RM-26-4418",
+    product: "Paracetamol 500mg Tablet",
+    batchNumber: "PCM-2026-0114",
+    domain: "RAW_MATERIAL",
+    specVersion: "v2.1",
+    specCurrent: true,
+    slaDeadline: "02-Sep-2026 16:00",
+    slaStatus: "green",
+    slaLabel: "Within SLA",
+    /*
+     * Sent back, corrected, and resubmitted. The status is what the reviewer
+     * needs to see first; the history below it is what they need to read.
+     */
+    status: "RETURNED_FOR_CORRECTION",
+    limsStatus: "Under QC Review",
+    corrections: [
+      {
+        returnedOn: "28-Aug-2026",
+        returnedBy: "Priya Sharma",
+        reason:
+          "Working standard lot number incorrect — WST-2024-089 entered but WST-2024-091 was used. Correct the entry in LIMS and resubmit.",
+        correctedOn: "29-Aug-2026",
+        correctionNote:
+          "Working standard lot number updated to WST-2024-091. Usage record corrected in LIMS. Resubmitting for review.",
+      },
+    ],
+    assignedTo: "arjun-mehta",
+    analyst: "Priya Sharma",
+    lastActivity: "29-Aug-2026 · 15:40",
+    parameters: CORRECTED_PARAMETERS,
+    sections: withAttendance(
+      correctedSections,
+      "Priya Sharma",
+      "26-Aug-2026",
+    ),
+    dataSources: ["Caliber LIMS", "HRMS System"],
   },
 ];

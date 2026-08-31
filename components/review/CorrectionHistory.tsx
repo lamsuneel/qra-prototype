@@ -36,6 +36,11 @@ export function CorrectionHistory({ history }: { history: CorrectionRecord[] }) 
                 ? `Correction submitted on ${entry.correctedOn}`
                 : "Awaiting correction from the lab"}
             </div>
+            {entry.correctionNote ? (
+              <div className="mt-0.5 text-source-text">
+                Correction: <span className="italic">{entry.correctionNote}</span>
+              </div>
+            ) : null}
           </li>
         ))}
       </ol>

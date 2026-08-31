@@ -90,6 +90,8 @@ export type SourceSystem =
   | "Mastersizer 3000"
   | "Qtegra ICP"
   | "Magic Net 4.2"
+  /* The chromatograph produces the result; LIMS is where it is read. */
+  | "Magic Net 4.2 — Caliber LIMS"
   | "Axicon Barcode Verifier"
   | "LabSolutions UV"
   | "iCDAS 1.2"
@@ -449,6 +451,8 @@ export interface CorrectionRecord {
   returnedBy: string;
   reason: string;
   correctedOn?: string;
+  /** What the lab said when it sent the batch back. */
+  correctionNote?: string;
 }
 
 export interface DomainSummary {

@@ -48,6 +48,11 @@ export default function SummaryPage() {
 
   const status = batchStatus(batch.arNumber);
   const ready = allSectionsReviewed(batch.arNumber);
+
+  /* A batch is submittable when it has not been submitted yet — which
+     includes one that went back to the lab and has come again. */
+  const submittable =
+    status === "NEEDS_REVIEW" || status === "RETURNED_FOR_CORRECTION";
   const authorised = status === "REVIEW_AUTHORISED";
 
   const submit = () => {
@@ -191,10 +196,10 @@ export default function SummaryPage() {
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
-              disabled={!ready || status !== "NEEDS_REVIEW"}
+              disabled={!ready || !submittable}
               onClick={submit}
               className={`rounded-md px-6 py-2.5 text-sm font-semibold transition-colors duration-150 ${
-                ready && status === "NEEDS_REVIEW"
+                ready && submittable
                   ? "cursor-pointer bg-navy text-white hover:bg-navy-mid"
                   : "cursor-not-allowed bg-slate-200 text-slate-400 opacity-40"
               }`}
