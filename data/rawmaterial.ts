@@ -930,7 +930,7 @@ const sections: Section[] = [
    */
   section(
     "anions",
-    "IC Results — Logbook",
+    "IC Results",
     1,
     [
       compliant({
