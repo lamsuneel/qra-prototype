@@ -46,7 +46,17 @@ export default function DashboardPage() {
 
         <div className="mb-8 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
           {summaries.map((summary) => (
-            <DomainCard key={summary.domain} summary={summary} />
+            <DomainCard
+              key={summary.domain}
+              summary={summary}
+              /* Microbiology parameters are raised against the FP and
+                 Stability AR numbers they belong to, and reviewed here. */
+              note={
+                summary.domain === "MICROBIOLOGY"
+                  ? "Parameters reviewed under FP and Stability AR numbers"
+                  : undefined
+              }
+            />
           ))}
 
           {/*
@@ -55,11 +65,6 @@ export default function DashboardPage() {
             reaches the batch lists, the search index or the management
             breakdown as an empty shell.
           */}
-          <ComingSoonCard
-            name="Microbiology"
-            abbreviation="MB"
-            note="Parameters reviewed under FP and Stability AR numbers"
-          />
           <ComingSoonCard name="Hold Study" abbreviation="HS" />
           <ComingSoonCard name="Semi-Finished Product" abbreviation="SFP" />
           <ComingSoonCard name="Protocol for RA Submission" abbreviation="RA" />

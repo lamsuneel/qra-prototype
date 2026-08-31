@@ -11,7 +11,14 @@ const DOT: Record<string, string> = {
   red: "bg-flagged-text text-flagged-text",
 };
 
-export function DomainCard({ summary }: { summary: DomainSummary }) {
+export function DomainCard({
+  summary,
+  note,
+}: {
+  summary: DomainSummary;
+  /** Only where there is something true to say about the domain's scope. */
+  note?: string;
+}) {
   const router = useRouter();
   const meta = DOMAIN_META[summary.domain];
 
@@ -62,6 +69,12 @@ export function DomainCard({ summary }: { summary: DomainSummary }) {
           <span className={DOT[summary.slaStatus].split(" ")[1]}>{summary.slaNote}</span>
         </span>
       </div>
+
+      {note ? (
+        <div className="mt-2.5 border-t border-slate-100 pt-2.5 text-[11px] leading-relaxed text-slate-400">
+          {note}
+        </div>
+      ) : null}
     </button>
   );
 }

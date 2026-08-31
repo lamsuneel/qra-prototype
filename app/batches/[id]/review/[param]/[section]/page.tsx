@@ -88,6 +88,11 @@ export default function ReviewWorkspacePage() {
   const materialChecklist =
     batch.domain === "RAW_MATERIAL" || batch.domain === "PACKING_MATERIAL";
 
+  /* Microbiology is reviewed to Format 2, not Format 1 — a different
+     checklist with different check items, so the reviewer should know which
+     document they are working to before they read a result. */
+  const microbiologyChecklist = batch.domain === "MICROBIOLOGY";
+
   /* Derived rather than set per section, so the note appears wherever a
      two-module standard record does and cannot fall out of step with it. */
   const twoModuleStandards = section.items.some(
@@ -169,6 +174,14 @@ export default function ReviewWorkspacePage() {
               should know which document they are working to before they read
               a single result.
             */}
+            {microbiologyChecklist ? (
+              <div className="mb-4 rounded-md border border-navy-accent/30 bg-blue-50 px-4 py-2.5 text-xs leading-relaxed text-navy">
+                Review checklist: Format 2 (Microbiological Data Review
+                Checklist). Out-of-limit results are reported as OOL in this
+                domain.
+              </div>
+            ) : null}
+
             {materialChecklist ? (
               <div className="mb-4 rounded-md border border-navy-accent/30 bg-blue-50 px-4 py-2.5 text-xs leading-relaxed text-navy">
                 Raw Material and Packing Material reviews use the Material

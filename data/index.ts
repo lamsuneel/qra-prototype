@@ -1,5 +1,6 @@
 import { FINISHED_PRODUCT_BATCHES } from "./batches";
 import { IPFP_BATCHES } from "./ipfp";
+import { MICROBIOLOGY_BATCHES } from "./microbiology";
 import { PACKING_MATERIAL_BATCHES } from "./packing";
 import { RAW_MATERIAL_BATCHES } from "./rawmaterial";
 import { STABILITY_BATCHES } from "./stability";
@@ -36,6 +37,7 @@ export const ALL_BATCHES: Batch[] = [
   ...PACKING_MATERIAL_BATCHES,
   ...IPFP_BATCHES,
   ...STABILITY_BATCHES,
+  ...MICROBIOLOGY_BATCHES,
 ].map(scopeSectionIds);
 
 /**
@@ -205,4 +207,5 @@ export {
   PACKING_MATERIAL_BATCHES,
   IPFP_BATCHES,
   STABILITY_BATCHES,
+  MICROBIOLOGY_BATCHES,
 };

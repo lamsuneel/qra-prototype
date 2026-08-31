@@ -19,7 +19,8 @@ export type Domain =
   | "RAW_MATERIAL"
   | "PACKING_MATERIAL"
   | "IPFP"
-  | "STABILITY";
+  | "STABILITY"
+  | "MICROBIOLOGY";
 
 export type BatchStatus =
   | "NEEDS_REVIEW"
@@ -141,6 +142,12 @@ export const DOMAINS: DomainMeta[] = [
     name: "Stability",
     abbreviation: "STB",
     slug: "stability",
+  },
+  {
+    id: "MICROBIOLOGY",
+    name: "Microbiology",
+    abbreviation: "MB",
+    slug: "microbiology",
   },
 ];
 
