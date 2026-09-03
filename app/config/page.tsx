@@ -17,6 +17,7 @@ import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Breadcrumbs, roleRoot } from "@/components/layout/Breadcrumbs";
+import { DocumentLink } from "@/components/common/DocumentLink";
 
 /** Read only. No buttons that change anything, no forms, no edit affordances. */
 export default function ConfigPage() {
@@ -75,13 +76,20 @@ export default function ConfigPage() {
               row.status,
             ])}
             monoColumn={0}
+            linkColumn={0}
           />
 
           <ConfigTable
             title="STPs Configured"
             headings={["STP Reference", "Method Name", "Domain", "Status"]}
-            rows={STPS.map((row) => [row.reference, row.method, row.domain, row.status])}
+            rows={STPS.map((row) => [
+              row.reference,
+              row.method,
+              row.domain,
+              row.status,
+            ])}
             monoColumn={0}
+            linkColumn={0}
           />
 
           <ConfigTable
@@ -129,9 +137,11 @@ export default function ConfigPage() {
                   <tr key={rule.check} className="border-b border-slate-50">
                     <td className="px-4 py-2 text-slate-700">{rule.check}</td>
                     <td className="px-4 py-2 font-mono text-[11px] text-navy-mid">
-                      {rule.sourceDocument}
+                      <DocumentLink reference={rule.sourceDocument} />
                     </td>
-                    <td className="px-4 py-2 text-source-text">{rule.comparison}</td>
+                    <td className="px-4 py-2 text-source-text">
+                      {rule.comparison}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -148,11 +158,14 @@ function ConfigTable({
   headings,
   rows,
   monoColumn,
+  linkColumn,
 }: {
   title: string;
   headings: string[];
   rows: string[][];
   monoColumn?: number;
+  /** The column holding a document reference, where one is published. */
+  linkColumn?: number;
 }) {
   return (
     <section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
@@ -164,7 +177,10 @@ function ConfigTable({
           <thead>
             <tr className="border-b border-slate-100 text-left text-slate-400">
               {headings.map((heading) => (
-                <th key={heading} className="px-4 py-2 font-medium whitespace-nowrap">
+                <th
+                  key={heading}
+                  className="px-4 py-2 font-medium whitespace-nowrap"
+                >
                   {heading}
                 </th>
               ))}
@@ -182,7 +198,11 @@ function ConfigTable({
                         : "px-4 py-2 text-slate-700"
                     }
                   >
-                    {cell}
+                    {index === linkColumn ? (
+                      <DocumentLink reference={cell} />
+                    ) : (
+                      cell
+                    )}
                   </td>
                 ))}
               </tr>

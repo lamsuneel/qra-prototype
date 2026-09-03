@@ -8,6 +8,7 @@ import { DOMAIN_META, resultFor } from "@/types";
 import { useReview } from "@/context/ReviewContext";
 import { TopNav } from "@/components/layout/TopNav";
 import { PageTitle } from "@/components/layout/PageTitle";
+import { DocumentLink } from "@/components/common/DocumentLink";
 import { ReviewSidebar } from "@/components/layout/ReviewSidebar";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { RightPanel } from "@/components/layout/RightPanel";
@@ -45,9 +46,10 @@ export default function ReviewWorkspacePage() {
    * default because the reviewer has to act on them; the default is derived
    * rather than set in an effect, so switching section resets it for free.
    */
-  const [opened, setOpened] = useState<{ section: string; item: string | null } | null>(
-    null,
-  );
+  const [opened, setOpened] = useState<{
+    section: string;
+    item: string | null;
+  } | null>(null);
 
   const batch = getBatch(params.id);
 
@@ -63,7 +65,8 @@ export default function ReviewWorkspacePage() {
 
   const sections = sectionsForParameter(batch, params.param);
   const section =
-    sections.find((entry) => sectionSlug(entry) === params.section) ?? sections[0];
+    sections.find((entry) => sectionSlug(entry) === params.section) ??
+    sections[0];
   const parameter = batch.parameters.find((entry) => entry.id === params.param);
 
   if (!section || !parameter) return null;
@@ -71,7 +74,9 @@ export default function ReviewWorkspacePage() {
   /* Action first, worst first: a result that cannot be used at all, then the
      flags, then anything QRA could not conclude, then the entries that need
      nothing from the reviewer. */
-  const invalid = section.items.filter((item) => resultFor(item) === "HARD_INVALID");
+  const invalid = section.items.filter(
+    (item) => resultFor(item) === "HARD_INVALID",
+  );
   const flagged = [
     ...invalid,
     ...section.items.filter((item) => resultFor(item) === "FLAGGED"),
@@ -82,7 +87,9 @@ export default function ReviewWorkspacePage() {
   const unverified = section.items.filter(
     (item) => resultFor(item) === "NEEDS_VERIFICATION",
   );
-  const compliant = section.items.filter((item) => resultFor(item) === "COMPLIANT");
+  const compliant = section.items.filter(
+    (item) => resultFor(item) === "COMPLIANT",
+  );
   const reviewed = sectionStatus(section.id) === "REVIEWED";
 
   const materialChecklist =
@@ -106,7 +113,9 @@ export default function ReviewWorkspacePage() {
   );
 
   const openId =
-    opened && opened.section === section.id ? opened.item : (flagged[0]?.id ?? null);
+    opened && opened.section === section.id
+      ? opened.item
+      : (flagged[0]?.id ?? null);
 
   const toggle = (id: string) =>
     setOpened({ section: section.id, item: openId === id ? null : id });
@@ -131,13 +140,18 @@ export default function ReviewWorkspacePage() {
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <ReviewSidebar batch={batch} parameterId={parameter.id} sectionId={section.id} />
+        <ReviewSidebar
+          batch={batch}
+          parameterId={parameter.id}
+          sectionId={section.id}
+        />
 
         <div className="flex-1 overflow-y-auto">
           <div className="sticky top-0 z-10 flex flex-wrap items-center gap-3 border-b border-slate-200 bg-white px-6 py-3">
             <div>
               <div className="mb-0.5 text-xs text-slate-400">
-                Specification {batch.specVersion} · {parameter.stpReference}
+                Specification {batch.specVersion} ·{" "}
+                <DocumentLink reference={parameter.stpReference} tooltip />
               </div>
               <div className="flex flex-wrap items-center gap-2.5">
                 <span className="text-sm font-bold text-slate-900">
@@ -160,7 +174,9 @@ export default function ReviewWorkspacePage() {
                 ) : null}
               </div>
             </div>
-            <span className="ml-auto text-xs text-source-text">{batch.arNumber}</span>
+            <span className="ml-auto text-xs text-source-text">
+              {batch.arNumber}
+            </span>
           </div>
 
           <div className="px-6 py-5">
@@ -199,15 +215,15 @@ export default function ReviewWorkspacePage() {
 
             {manualEntry ? (
               <div className="mb-4 rounded-md border border-navy-accent/30 bg-blue-50 px-4 py-2.5 text-xs leading-relaxed text-navy">
-                SST values entered manually into Caliber LIMS by analyst. Source: LIMS
-                worksheet.
+                SST values entered manually into Caliber LIMS by analyst.
+                Source: LIMS worksheet.
               </div>
             ) : null}
 
             {twoModuleStandards ? (
               <div className="mb-4 rounded-md border border-navy-accent/30 bg-blue-50 px-4 py-2.5 text-xs leading-relaxed text-navy">
-                Reference standard data is sourced from two Caliber LIMS modules.
-                Both are required for a complete review.
+                Reference standard data is sourced from two Caliber LIMS
+                modules. Both are required for a complete review.
               </div>
             ) : null}
 
@@ -235,8 +251,8 @@ export default function ReviewWorkspacePage() {
               <>
                 <div className="mb-2 border-b border-condition-text/25 pb-1.5 text-[10px] font-semibold tracking-wider text-condition-text uppercase">
                   {conditional.length}{" "}
-                  {conditional.length === 1 ? "entry is" : "entries are"} acceptable
-                  once you confirm the condition
+                  {conditional.length === 1 ? "entry is" : "entries are"}{" "}
+                  acceptable once you confirm the condition
                 </div>
                 <div className="mb-5 flex flex-col">
                   {conditional.map((item) => (
@@ -255,8 +271,8 @@ export default function ReviewWorkspacePage() {
               <>
                 <div className="mb-2 border-b border-warn-text/25 pb-1.5 text-[10px] font-semibold tracking-wider text-warn-text uppercase">
                   {unverified.length}{" "}
-                  {unverified.length === 1 ? "entry needs" : "entries need"} verification
-                  against the worksheet
+                  {unverified.length === 1 ? "entry needs" : "entries need"}{" "}
+                  verification against the worksheet
                 </div>
                 <div className="mb-5 flex flex-col">
                   {unverified.map((item) => (
@@ -275,7 +291,9 @@ export default function ReviewWorkspacePage() {
               <>
                 <div className="mb-2 border-b border-slate-100 pb-1.5 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
                   {section.name} — {compliant.length}{" "}
-                  {compliant.length === 1 ? "compliant entry" : "compliant entries"}
+                  {compliant.length === 1
+                    ? "compliant entry"
+                    : "compliant entries"}
                 </div>
                 <div className="flex flex-col">
                   {compliant.map((item) => (

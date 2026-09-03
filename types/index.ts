@@ -31,9 +31,7 @@ export type BatchStatus =
   | "RETURNED_FOR_CORRECTION";
 
 export type InactivationStatus =
-  | "Initiated"
-  | "Pending Second Approval"
-  | "Approved";
+  "Initiated" | "Pending Second Approval" | "Approved";
 
 /** The seven stages a batch moves through in LIMS. */
 export type LimsStatus =
@@ -550,6 +548,8 @@ export interface SopRow {
   description: string;
   appliesTo: string;
   status: string;
+  /** Where the controlled copy lives. Absent until the site publishes one. */
+  url?: string;
 }
 
 export interface StpRow {
@@ -557,6 +557,8 @@ export interface StpRow {
   method: string;
   domain: string;
   status: string;
+  /** Where the controlled copy lives. Absent until the site publishes one. */
+  url?: string;
 }
 
 export interface RegulatoryRow {

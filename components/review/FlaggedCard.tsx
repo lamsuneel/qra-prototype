@@ -3,6 +3,7 @@
 import type { CheckItem } from "@/types";
 import { resultFor } from "@/types";
 import { useReview } from "@/context/ReviewContext";
+import { DocumentLink } from "@/components/common/DocumentLink";
 import { cn } from "@/lib/utils";
 import { CalibrationBadge, InactivationBadge, SourceBadge } from "./Badges";
 import {
@@ -176,7 +177,10 @@ export function FlaggedCard({
             </p>
             {item.flagId ? (
               <p className="mt-1 text-[11px] text-source-text">
-                {item.flagId} · Source: {item.sopReference}
+                {item.flagId} · Source:{" "}
+                {item.sopReference ? (
+                  <DocumentLink reference={item.sopReference} tooltip />
+                ) : null}
               </p>
             ) : null}
           </div>

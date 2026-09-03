@@ -2,6 +2,7 @@
 
 import type { CheckItem } from "@/types";
 import { useReview } from "@/context/ReviewContext";
+import { DocumentLink } from "@/components/common/DocumentLink";
 import { cn } from "@/lib/utils";
 import { SourceBadge } from "./Badges";
 import { EvidencePanel, evidenceKind } from "./EvidencePanel";
@@ -128,7 +129,11 @@ export function ConditionalPassRow({
         </label>
 
         <div className="mt-2 text-[11px] text-slate-400">
-          Source: {rule.id} — {item.sopReference ?? "APL-CP-F-QCCI-GEN-0013"}
+          Source: {rule.id} —{" "}
+          <DocumentLink
+            reference={item.sopReference ?? "APL-CP-F-QCCI-GEN-0013"}
+            tooltip
+          />
         </div>
       </div>
     </div>

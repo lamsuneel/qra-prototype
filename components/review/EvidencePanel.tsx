@@ -5,6 +5,7 @@ import {
   quantityComparison,
   resultFor,
 } from "@/types";
+import { DocumentLink } from "@/components/common/DocumentLink";
 import { SourceBadge } from "./Badges";
 import { EvidenceTable } from "./EvidenceTable";
 import { AuditTrailTimeline } from "./AuditTrailTimeline";
@@ -98,7 +99,7 @@ function Column({
 }: {
   heading: string;
   value: string;
-  lines: { label: string; value: string }[];
+  lines: { label: string; value: React.ReactNode }[];
   /** The recorded value carries more weight than the requirement beside it. */
   emphasis?: boolean;
 }) {
@@ -163,7 +164,7 @@ export function EvidencePanel({
     : null;
   const calibration = item.reference?.match(CAL_DUE)?.[1];
 
-  const actualLines: { label: string; value: string }[] = [];
+  const actualLines: { label: string; value: React.ReactNode }[] = [];
   if (item.reference && !calibration) {
     actualLines.push({ label: "Reference", value: item.reference });
   }
@@ -222,7 +223,14 @@ export function EvidencePanel({
           value={item.expected}
           lines={
             item.expectedSource
-              ? [{ label: "Source", value: item.expectedSource }]
+              ? [
+                  {
+                    label: "Source",
+                    value: (
+                      <DocumentLink reference={item.expectedSource} tooltip />
+                    ),
+                  },
+                ]
               : []
           }
         />
@@ -393,7 +401,7 @@ export function EvidencePanel({
       {item.sopReference ? (
         <div className="mt-2.5 border-t border-slate-200/70 pt-2 text-[11px] text-slate-400">
           <span className="font-medium">Regulatory source: </span>
-          {item.sopReference}
+          <DocumentLink reference={item.sopReference} tooltip />
           {item.flagId ? <span> · {item.flagId}</span> : null}
         </div>
       ) : null}
