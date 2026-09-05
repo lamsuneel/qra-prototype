@@ -15,7 +15,8 @@ export function V3InsightCard({
   tag: string;
   title: string;
   body: string;
-  action: { label: string; onClick: () => void };
+  /** Omitted where the reading is worth stating but leads nowhere. */
+  action?: { label: string; onClick: () => void };
 }) {
   return (
     <article className="rounded-[12px] border border-[var(--v3-aira-border)] bg-[var(--v3-aira-bg)] p-4">
@@ -25,16 +26,18 @@ export function V3InsightCard({
       <h3 className="mb-1.5 text-[13px] font-semibold text-[var(--v3-text-primary)]">
         {title}
       </h3>
-      <p className="mb-2.5 text-[11px] leading-[1.5] text-[var(--v3-aira-text)]">
+      <p className="text-[11px] leading-[1.5] text-[var(--v3-aira-text)]">
         {body}
       </p>
-      <button
-        type="button"
-        onClick={action.onClick}
-        className="cursor-pointer text-[11px] text-[var(--v3-aira-name)] hover:underline"
-      >
-        {action.label} &rarr;
-      </button>
+      {action ? (
+        <button
+          type="button"
+          onClick={action.onClick}
+          className="mt-2.5 cursor-pointer text-[11px] text-[var(--v3-aira-name)] hover:underline"
+        >
+          {action.label} &rarr;
+        </button>
+      ) : null}
     </article>
   );
 }

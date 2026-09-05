@@ -23,6 +23,7 @@ import { DarkTopbar } from "@/components/dark/DarkTopbar";
 import { V3KpiCard } from "@/components/dark/KpiCard";
 import { V3Badge } from "@/components/dark/Badge";
 import { V3ExceptionBars } from "@/components/dark/ExceptionBars";
+import { V3AiraHeading, V3InsightCard } from "@/components/dark/InsightCard";
 import { V3_THEME_CSS, V3_TONE, type V3Tone } from "@/components/dark/theme";
 
 /* The design's two faces, scoped to the v3 subtree. */
@@ -87,6 +88,22 @@ export default function V3OperationsPage() {
   const escalated = STABILITY_OUT_OF_WINDOW.filter(
     (row) => row.daysOverdue > STABILITY_WINDOW_STATUS.escalationDays,
   ).length;
+
+  /* Why samples are sitting. The largest single reason, against everything
+     else put together — a queue with one cause is a different problem from
+     a queue with four. */
+  const heldTotal = PENDING_BY_REASON.reduce((t, row) => t + row.samples, 0);
+  const topReason = [...PENDING_BY_REASON].sort(
+    (a, b) => b.samples - a.samples,
+  )[0];
+
+  /* Turnaround, slowest domain against fastest. Both figures are already in
+     the table at the foot of the page; the gap between them is not. */
+  const byPace = [...DOMAIN_RELEASE_PROGRESS].sort(
+    (a, b) => Number.parseFloat(b.avgDays) - Number.parseFloat(a.avgDays),
+  );
+  const slowest = byPace[0];
+  const fastest = byPace[byPace.length - 1];
 
   return (
     <div
@@ -349,6 +366,50 @@ export default function V3OperationsPage() {
             </table>
           </section>
         ) : null}
+
+        {/* Row 3b — what AIRA noticed --------------------------------- */}
+        <V3AiraHeading
+          title="&#10022; AIRA Insights"
+          subtitle="Evidence-backed signals requiring attention"
+        />
+
+        <div className="mb-6 grid grid-cols-3 gap-3">
+          <V3InsightCard
+            tag="Pattern detected"
+            title={`${topReason.reason} holds ${topReason.samples} of ${heldTotal} pending samples`}
+            body={`${topReason.reason} accounts for ${Math.round(
+              (topReason.samples / heldTotal) * 100,
+            )}% of everything waiting — more than the other ${
+              PENDING_BY_REASON.length - 1
+            } reasons combined. The queue has one cause rather than four, so it clears on one fix.`}
+            action={{
+              label: `Show the ${topReason.samples} held samples`,
+              onClick: () => setDrilldown(topReason.reason),
+            }}
+          />
+
+          <V3InsightCard
+            tag="Throughput signal"
+            title={`${slowest.domain} releases in ${slowest.avgDays} — the slowest domain`}
+            body={`${slowest.domain} takes ${slowest.avgDays} to release against ${fastest.avgDays} for ${fastest.domain}, on ${slowest.pending} samples still pending at ${slowest.percentComplete}% complete. The gap is turnaround, not volume.`}
+          />
+
+          <V3InsightCard
+            tag="Awaiting you"
+            title={`${AWAITING_AUTHORISATION_COUNT} batches at the authorisation gate`}
+            body={`${AWAITING_AUTHORISATION_COUNT} batches have cleared QA review and sit at manager approval${
+              escalated > 0
+                ? `, while ${escalated} stability ${
+                    escalated === 1 ? "sample is" : "samples are"
+                  } past the ${STABILITY_WINDOW_STATUS.escalationDays}-day escalation threshold`
+                : ""
+            }. This is the only step the queue cannot clear without you.`}
+            action={{
+              label: "Go to authorisation queue",
+              onClick: () => router.push("/legacy/authorise"),
+            }}
+          />
+        </div>
 
         {/* Row 4 — how far each domain has got through the month ---------- */}
         <section className="rounded-[12px] border border-[var(--v3-border-default)] bg-[var(--v3-bg-card)] p-5">

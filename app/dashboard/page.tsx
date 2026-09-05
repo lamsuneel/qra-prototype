@@ -19,6 +19,7 @@ import { DarkTopbar } from "@/components/dark/DarkTopbar";
 import { V3KpiCard } from "@/components/dark/KpiCard";
 import { V3DomainCard } from "@/components/dark/DomainCard";
 import { V3ActivityRow } from "@/components/dark/ActivityRow";
+import { V3AiraHeading, V3InsightCard } from "@/components/dark/InsightCard";
 import {
   AlertCircleIcon,
   ClockIcon,
@@ -143,6 +144,17 @@ export default function V3DashboardPage() {
   const worstFlagged = worstDomain
     ? leadBatchFor(worstDomain.domain)
     : undefined;
+
+  /* The batch carrying the most conditions to confirm. Not the same batch as
+     the worst flagged one: a flag stops the batch, a condition is work still
+     to do, and they pile up in different places. */
+  const worstAdvisory = [...ALL_BATCHES].sort(
+    (a, b) => advisoryItemsInBatch(b) - advisoryItemsInBatch(a),
+  )[0];
+
+  const breachedCount = ALL_BATCHES.filter(
+    (batch) => batch.slaStatus === "red",
+  ).length;
 
   const recent = DEMO_PATH.map((ar) =>
     ALL_BATCHES.find((batch) => batch.arNumber === ar),
@@ -285,6 +297,90 @@ export default function V3DashboardPage() {
               />
             );
           })}
+        </div>
+
+        {/* Row 2b — what AIRA noticed --------------------------------- */}
+        <V3AiraHeading
+          title="&#10022; AIRA Insights"
+          subtitle="Evidence-backed signals requiring attention"
+        />
+
+        <div className="mb-8 grid grid-cols-3 gap-3">
+          <V3InsightCard
+            tag="Pattern detected"
+            title={
+              worstDomain
+                ? `${DOMAIN_META[worstDomain.domain as Domain].name} carries ${
+                    worstDomain.flaggedCount
+                  } of ${blockingTotal} open flags`
+                : "No flags open across any domain"
+            }
+            body={
+              worstDomain
+                ? `${worstDomain.flaggedCount} of the ${blockingTotal} flags open across the estate sit in ${
+                    DOMAIN_META[worstDomain.domain as Domain].name
+                  }, over ${worstDomain.batchCount} ${
+                    worstDomain.batchCount === 1 ? "batch" : "batches"
+                  }. Clearing that domain clears most of the board.`
+                : "Every batch under review is free of blocking entries."
+            }
+            action={
+              worstFlagged
+                ? {
+                    label: `Open ${worstFlagged.arNumber}`,
+                    onClick: () =>
+                      router.push(`/review/${worstFlagged.arNumber}`),
+                  }
+                : undefined
+            }
+          />
+
+          <V3InsightCard
+            tag="Needs verification"
+            title={`${advisoryTotal} entries need a condition confirmed`}
+            body={
+              worstAdvisory
+                ? `${advisoryTotal} entries passed on value but carry a condition NeuraTrace could not confirm from the record. ${
+                    worstAdvisory.arNumber
+                  } holds ${advisoryItemsInBatch(
+                    worstAdvisory,
+                  )} of them — the most of any batch. None of these block release; all of them need a reviewer to say so.`
+                : "Every entry either passed outright or is already flagged."
+            }
+            action={
+              worstAdvisory
+                ? {
+                    label: `Open ${worstAdvisory.arNumber}`,
+                    onClick: () =>
+                      router.push(`/review/${worstAdvisory.arNumber}`),
+                  }
+                : undefined
+            }
+          />
+
+          <V3InsightCard
+            tag="Potential concern"
+            title={
+              breachedCount > 0
+                ? `${breachedCount} ${
+                    breachedCount === 1 ? "batch is" : "batches are"
+                  } past the review SLA`
+                : "Every batch is inside its review SLA"
+            }
+            body={
+              breached
+                ? `${breachedCount} of ${ALL_BATCHES.length} batches under review are past their SLA, ${breached.arNumber} (${breached.product}) among them — ${breached.slaLabel}.`
+                : `All ${ALL_BATCHES.length} batches under review are inside their SLA window.`
+            }
+            action={
+              breached
+                ? {
+                    label: `Open ${breached.arNumber}`,
+                    onClick: () => router.push(`/review/${breached.arNumber}`),
+                  }
+                : undefined
+            }
+          />
         </div>
 
         {/* Row 3 — the batches themselves */}
