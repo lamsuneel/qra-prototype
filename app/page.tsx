@@ -1,5 +1,7 @@
 "use client";
 
+// NeuraTrace v1.0 — neuratrace-app.vercel.app
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Inter, JetBrains_Mono } from "next/font/google";
