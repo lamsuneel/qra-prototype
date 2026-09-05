@@ -541,76 +541,82 @@ function Workspace({
           />
         </V3ReviewNavigator>
 
-        <main className="min-w-0 flex-1 overflow-y-auto p-5">
-          {/* Breadcrumb */}
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard")}
-              className="cursor-pointer text-[11px] text-[var(--v3-accent)] transition-opacity duration-[120ms] hover:opacity-80"
-            >
-              &larr; Dashboard
-            </button>
-            <span className="text-[11px] text-[var(--v3-text-muted)]">
-              &rsaquo;
-            </span>
-            <span className="text-[11px] font-semibold tracking-[0.06em] text-[var(--v3-text-secondary)] uppercase">
-              {parameter.shortName}
-            </span>
-            <span className="text-[11px] text-[var(--v3-text-muted)]">
-              &rsaquo;
-            </span>
-            <span className="text-[11px] font-semibold tracking-[0.06em] text-[var(--v3-text-secondary)] uppercase">
-              {activeSection.name}
-            </span>
-            <span className="text-[11px] text-[var(--v3-text-muted)]">
-              &rsaquo;
-            </span>
-            <span className="text-[11px] text-[var(--v3-text-secondary)]">
-              {activeItem.exceptionType ?? activeItem.label}
-            </span>
-            <V3Badge tone={tone}>{V3_RESULT_LABEL[verdict]}</V3Badge>
-            <span className="flex-1" />
-            {activeItem.flagId ? (
-              <span className="font-mono text-[11px] text-[var(--v3-text-muted)]">
-                {activeItem.flagId}
+        <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          {/* Batch-level, so it sits above the section rather than in it,
+              and stays put while the section content scrolls. */}
+          <V3BatchIntegrityBar batch={batch} />
+
+          <div className="min-h-0 flex-1 overflow-y-auto p-5">
+            {/* Breadcrumb */}
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard")}
+                className="cursor-pointer text-[11px] text-[var(--v3-accent)] transition-opacity duration-[120ms] hover:opacity-80"
+              >
+                &larr; Dashboard
+              </button>
+              <span className="text-[11px] text-[var(--v3-text-muted)]">
+                &rsaquo;
               </span>
+              <span className="text-[11px] font-semibold tracking-[0.06em] text-[var(--v3-text-secondary)] uppercase">
+                {parameter.shortName}
+              </span>
+              <span className="text-[11px] text-[var(--v3-text-muted)]">
+                &rsaquo;
+              </span>
+              <span className="text-[11px] font-semibold tracking-[0.06em] text-[var(--v3-text-secondary)] uppercase">
+                {activeSection.name}
+              </span>
+              <span className="text-[11px] text-[var(--v3-text-muted)]">
+                &rsaquo;
+              </span>
+              <span className="text-[11px] text-[var(--v3-text-secondary)]">
+                {activeItem.exceptionType ?? activeItem.label}
+              </span>
+              <V3Badge tone={tone}>{V3_RESULT_LABEL[verdict]}</V3Badge>
+              <span className="flex-1" />
+              {activeItem.flagId ? (
+                <span className="font-mono text-[11px] text-[var(--v3-text-muted)]">
+                  {activeItem.flagId}
+                </span>
+              ) : null}
+            </div>
+
+            {flaggedEntries.length > 0 ? (
+              <>
+                <div className="mb-2 text-[11px] font-semibold text-[var(--v3-blocking)]">
+                  FLAGGED &mdash; Action Required
+                </div>
+                {flaggedEntries.map(renderEntry)}
+              </>
+            ) : null}
+
+            {advisoryEntries.length > 0 ? (
+              <div className="mt-4">
+                <div className="mb-2 text-[11px] font-semibold tracking-[0.06em] text-[var(--v3-advisory)] uppercase">
+                  {advisoryEntries.length}{" "}
+                  {advisoryEntries.length === 1
+                    ? "entry needs"
+                    : "entries need"}{" "}
+                  a second look
+                </div>
+                {advisoryEntries.map(renderEntry)}
+              </div>
+            ) : null}
+
+            {compliantEntries.length > 0 ? (
+              <div className="mt-4">
+                <div className="mb-2 text-[11px] tracking-[0.06em] text-[var(--v3-text-secondary)] uppercase">
+                  {activeSection.name} &mdash; {compliantEntries.length}{" "}
+                  {compliantEntries.length === 1
+                    ? "compliant entry"
+                    : "compliant entries"}
+                </div>
+                {compliantEntries.map(renderEntry)}
+              </div>
             ) : null}
           </div>
-
-          {flaggedEntries.length > 0 ? (
-            <>
-              <div className="mb-2 text-[11px] font-semibold text-[var(--v3-blocking)]">
-                FLAGGED &mdash; Action Required
-              </div>
-              {flaggedEntries.map(renderEntry)}
-            </>
-          ) : null}
-
-          {advisoryEntries.length > 0 ? (
-            <div className="mt-4">
-              <div className="mb-2 text-[11px] font-semibold tracking-[0.06em] text-[var(--v3-advisory)] uppercase">
-                {advisoryEntries.length}{" "}
-                {advisoryEntries.length === 1 ? "entry needs" : "entries need"}{" "}
-                a second look
-              </div>
-              {advisoryEntries.map(renderEntry)}
-            </div>
-          ) : null}
-
-          {compliantEntries.length > 0 ? (
-            <div className="mt-4">
-              <div className="mb-2 text-[11px] tracking-[0.06em] text-[var(--v3-text-secondary)] uppercase">
-                {activeSection.name} &mdash; {compliantEntries.length}{" "}
-                {compliantEntries.length === 1
-                  ? "compliant entry"
-                  : "compliant entries"}
-              </div>
-              {compliantEntries.map(renderEntry)}
-            </div>
-          ) : null}
-
-          <V3BatchIntegrityBar batch={batch} />
         </main>
 
         <V3FindingPanel
