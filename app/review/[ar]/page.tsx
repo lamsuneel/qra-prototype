@@ -374,6 +374,16 @@ function Workspace({ batch }: { batch: Batch }) {
         <main className="min-w-0 flex-1 overflow-y-auto p-5">
           {/* Breadcrumb */}
           <div className="mb-4 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard")}
+              className="cursor-pointer text-[11px] text-[var(--v3-accent)] transition-opacity duration-[120ms] hover:opacity-80"
+            >
+              &larr; Dashboard
+            </button>
+            <span className="text-[11px] text-[var(--v3-text-muted)]">
+              &rsaquo;
+            </span>
             <span className="text-[11px] font-semibold tracking-[0.06em] text-[var(--v3-text-secondary)] uppercase">
               {parameter.shortName}
             </span>

@@ -86,15 +86,16 @@ const URGENCY: Record<SlaStatus, number> = { red: 0, amber: 1, green: 2 };
 /**
  * The batch a domain opens on.
  *
- * The dark review workspace takes a single batch, so a domain has to name
- * one. It names the batch a reviewer would reach for first: worst SLA, then
- * most flags — the same order the Recent Reviews list is sorted in.
+ * Flags first, then SLA — deliberately not the order Recent Reviews uses.
+ * That list answers "what is most urgent"; a domain card answers the count
+ * printed on its own face, which is a flag count. Sorting by SLA here opened
+ * Finished Product's one clean batch from a card reading "9 flagged".
  */
 const leadBatchFor = (domain: Domain): Batch | undefined =>
   [...batchesForDomain(domain)].sort(
     (a, b) =>
-      URGENCY[a.slaStatus] - URGENCY[b.slaStatus] ||
-      flaggedItemsInBatch(b) - flaggedItemsInBatch(a),
+      flaggedItemsInBatch(b) - flaggedItemsInBatch(a) ||
+      URGENCY[a.slaStatus] - URGENCY[b.slaStatus],
   )[0];
 
 const MONTHS = [
