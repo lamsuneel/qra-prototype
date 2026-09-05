@@ -8,7 +8,6 @@ import {
   getBatch,
   isException,
   orderedSections,
-  sectionSlug,
   sectionsForParameter,
   sourcesUsedIn,
 } from "@/data";
@@ -33,6 +32,8 @@ import { V3DocumentRow } from "@/components/dark/DocumentRow";
 import { V3FindingPanel } from "@/components/dark/FindingPanel";
 import { V3ReviewerAction } from "@/components/dark/ReviewerAction";
 import { V3StatusBar } from "@/components/dark/StatusBar";
+import { V3SectionEntryCard } from "@/components/dark/SectionEntryCard";
+import { V3BatchIntegrityBar } from "@/components/dark/BatchIntegrityBar";
 import { AiraGlyph } from "@/components/dark/Icons";
 import { draftObservation, evidenceRowsFor } from "@/components/dark/evidence";
 import {
@@ -183,6 +184,9 @@ function Workspace({
   );
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [savedId, setSavedId] = useState<string | null>(null);
+  /* Which entry's evidence is open. One at a time: the list is the view
+     now, and two open tables push the rest of the section off the screen. */
+  const [openId, setOpenId] = useState<string | null>(null);
 
   /* Where the reviewer is standing. Derived from the id rather than held as
      an object, so a section list rebuilt on every render cannot leave the
@@ -254,70 +258,86 @@ function Workspace({
 
   const verdict = resultFor(activeItem);
   const tone = V3_RESULT_TONE[verdict];
-  const needsNote = verdict === "FLAGGED" || verdict === "NEEDS_VERIFICATION";
   const recorded = isNoted(activeItem.id);
-  const draft = drafts[activeItem.id] ?? noteFor(activeItem.id);
-  const reason =
-    activeItem.flagReason ??
-    activeItem.checkDescription ??
-    activeItem.comparison ??
-    activeItem.expected;
-  const ruleUrl = activeItem.sopReference
-    ? documentUrl(activeItem.sopReference)
-    : undefined;
+  const reasonFor = (entry: CheckItem) =>
+    entry.flagReason ??
+    entry.checkDescription ??
+    entry.comparison ??
+    entry.expected;
+  const ruleUrlFor = (entry: CheckItem) =>
+    entry.sopReference ? documentUrl(entry.sopReference) : undefined;
 
   const outstanding = activeSection.items.filter(
     (item) => resultFor(item) === "FLAGGED" && !isNoted(item.id),
   ).length;
   const sectionReviewed = sectionStatus(activeSection.id) === "REVIEWED";
 
-  /* Every document this finding traces back to, each named once. */
-  const documents = [
-    {
-      reference: parameter.stpReference,
-      description: `Test method — ${parameter.name} by ${parameter.methodType}`,
-    },
-    ...(activeItem.sopReference
-      ? [
-          {
-            reference: activeItem.sopReference,
-            description: "Rule this check answers to",
-          },
-        ]
-      : []),
-    ...(activeItem.expectedSource
-      ? [
-          {
-            reference: activeItem.expectedSource,
-            description: "Source of the expectation",
-          },
-        ]
-      : []),
-  ].filter(
-    (document, index, list) =>
-      list.findIndex((other) => other.reference === document.reference) ===
-      index,
+  /* The section, split the way a reviewer works it: what stops the batch,
+     what needs a second look, and what came back clean. Invalid entries lead
+     the flagged group -- they are not a result at all. */
+  const flaggedEntries = [
+    ...activeSection.items.filter(
+      (entry) => resultFor(entry) === "HARD_INVALID",
+    ),
+    ...activeSection.items.filter((entry) => resultFor(entry) === "FLAGGED"),
+  ];
+  const advisoryEntries = activeSection.items.filter((entry) =>
+    ["CONDITIONAL_PASS", "NEEDS_VERIFICATION"].includes(resultFor(entry)),
   );
+  const compliantEntries = activeSection.items.filter(
+    (entry) => resultFor(entry) === "COMPLIANT",
+  );
+
+  /* Every document this finding traces back to, each named once. */
+  const documentsFor = (entry: CheckItem) =>
+    [
+      {
+        reference: parameter.stpReference,
+        description: `Test method — ${parameter.name} by ${parameter.methodType}`,
+      },
+      ...(entry.sopReference
+        ? [
+            {
+              reference: entry.sopReference,
+              description: "Rule this check answers to",
+            },
+          ]
+        : []),
+      ...(entry.expectedSource
+        ? [
+            {
+              reference: entry.expectedSource,
+              description: "Source of the expectation",
+            },
+          ]
+        : []),
+    ].filter(
+      (document, index, list) =>
+        list.findIndex((other) => other.reference === document.reference) ===
+        index,
+    );
 
   const instrument = activeSection.standaloneInstrument;
   const logbook = activeSection.paperLogbook;
 
-  const worksheet: { label: string; value: string }[] = [
+  const worksheetFor = (
+    entry: CheckItem,
+  ): { label: string; value: string }[] => [
     {
       label: "Test parameter",
       value: `${parameter.name} · ${parameter.methodType}`,
     },
     { label: "Method reference", value: parameter.stpReference },
-    { label: "Expected condition", value: activeItem.expected },
-    ...(activeItem.requiresQuantityCheck
+    { label: "Expected condition", value: entry.expected },
+    ...(entry.requiresQuantityCheck
       ? [
           {
             label: "Prescribed quantity",
-            value: activeItem.prescribedQty ?? "Not recorded on the worksheet",
+            value: entry.prescribedQty ?? "Not recorded on the worksheet",
           },
           {
             label: "Quantity used",
-            value: activeItem.actualQty ?? "Not recorded",
+            value: entry.actualQty ?? "Not recorded",
           },
         ]
       : []),
@@ -330,6 +350,120 @@ function Workspace({
         ]
       : []),
   ];
+
+  /* One entry, with everything it traces back to folded inside it. The
+     evidence table that used to be the whole screen is now this. */
+  const renderEntry = (entry: CheckItem) => {
+    const entryVerdict = resultFor(entry);
+    const entryNeedsNote =
+      entryVerdict === "FLAGGED" || entryVerdict === "NEEDS_VERIFICATION";
+    const entryRule = ruleUrlFor(entry);
+
+    return (
+      <V3SectionEntryCard
+        key={entry.id}
+        item={entry}
+        verdict={entryVerdict}
+        expanded={openId === entry.id}
+        recorded={isNoted(entry.id)}
+        onToggle={() => {
+          /* Opening an entry also selects it, so the finding panel beside
+             the list is always about the entry being read. */
+          setSelectedId(entry.id);
+          setOpenId((current) => (current === entry.id ? null : entry.id));
+        }}
+      >
+        <div className="mb-3 flex gap-2.5 rounded-[8px] border border-[var(--v3-aira-border)] bg-[var(--v3-aira-bg)] p-3">
+          <span className="mt-0.5 shrink-0 text-[var(--v3-aira)]">
+            <AiraGlyph size={14} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <span className="mb-1 block text-[9px] font-bold tracking-[0.08em] text-[var(--v3-aira)] uppercase">
+              AIRA analysis
+            </span>
+            <p className="text-[12px] leading-[1.6] text-[var(--v3-aira-text)]">
+              {reasonFor(entry)}
+            </p>
+            {entryRule ? (
+              <div className="mt-2 flex justify-end">
+                <a
+                  href={entryRule}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-[4px] border border-[var(--v3-aira-border)] px-2.5 py-1 text-[10px] text-[var(--v3-aira-name)] transition-colors duration-[120ms] hover:bg-[var(--v3-aira-bg)]"
+                >
+                  View rule details &rarr;
+                </a>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <span className="mb-2 block text-[9px] font-medium tracking-[0.08em] text-[var(--v3-text-secondary)] uppercase">
+          Evidence from source
+        </span>
+        <V3EvidenceTable rows={evidenceRowsFor(entry)} />
+
+        <span className="mt-3 mb-2 block text-[9px] font-medium tracking-[0.08em] text-[var(--v3-text-secondary)] uppercase">
+          Supporting documents
+        </span>
+        <div className="flex flex-col gap-2">
+          {documentsFor(entry).map((document) => (
+            <V3DocumentRow
+              key={document.reference}
+              reference={document.reference}
+              description={document.description}
+            />
+          ))}
+          {instrument ? (
+            <V3DocumentRow
+              reference={instrument.pdfFilename}
+              description={`${instrument.name} ${instrument.version} audit trail`}
+              meta={`${instrument.analyst} · ${instrument.loginAt}`}
+            />
+          ) : null}
+        </div>
+
+        <span className="mt-3 mb-1 block text-[9px] font-medium tracking-[0.08em] text-[var(--v3-text-secondary)] uppercase">
+          Comparison with worksheet
+        </span>
+        {worksheetFor(entry).map((row) => (
+          <div
+            key={row.label}
+            className="flex items-baseline justify-between gap-3 border-b border-[var(--v3-border-subtle)] py-2 last:border-b-0"
+          >
+            <span className="shrink-0 text-[12px] text-[var(--v3-text-secondary)]">
+              {row.label}
+            </span>
+            <span className="text-right font-mono text-[11px] text-[var(--v3-text-primary)]">
+              {row.value}
+            </span>
+          </div>
+        ))}
+
+        {entryNeedsNote ? (
+          <div className="mt-3">
+            <V3ReviewerAction
+              value={drafts[entry.id] ?? noteFor(entry.id)}
+              onChange={(next) => {
+                setDrafts((current) => ({ ...current, [entry.id]: next }));
+                setSavedId(null);
+              }}
+              placeholder={placeholderFor(entry)}
+              required
+              recorded={isNoted(entry.id)}
+              onRecord={() => {
+                const text = (drafts[entry.id] ?? noteFor(entry.id)).trim();
+                if (text) setNote(entry.id, text);
+              }}
+              onSaveDraft={() => setSavedId(entry.id)}
+              saved={savedId === entry.id}
+            />
+          </div>
+        ) : null}
+      </V3SectionEntryCard>
+    );
+  };
 
   const reviewer = profile ?? PROFILES[0];
 
@@ -444,112 +578,39 @@ function Workspace({
             ) : null}
           </div>
 
-          {/* AIRA analysis */}
-          <div className="mb-4 flex gap-2.5 rounded-[8px] border border-[var(--v3-aira-border)] bg-[var(--v3-aira-bg)] p-3.5">
-            <span className="mt-0.5 shrink-0 text-[var(--v3-aira)]">
-              <AiraGlyph size={16} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <span className="mb-1.5 block text-[9px] font-bold tracking-[0.08em] text-[var(--v3-aira)] uppercase">
-                AIRA analysis
-              </span>
-              <p className="text-[12px] leading-[1.6] text-[var(--v3-aira-text)]">
-                {reason}
-              </p>
-              {ruleUrl ? (
-                <div className="mt-2 flex justify-end">
-                  <a
-                    href={ruleUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-[4px] border border-[var(--v3-aira-border)] px-2.5 py-1 text-[10px] text-[var(--v3-aira-name)] transition-colors duration-[120ms] hover:bg-[var(--v3-aira-bg)]"
-                  >
-                    View rule details &rarr;
-                  </a>
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          {/* Evidence */}
-          <section className="mb-4">
-            <span className="mb-2.5 block text-[9px] font-medium tracking-[0.08em] text-[var(--v3-text-secondary)] uppercase">
-              Evidence from source
-            </span>
-            <V3EvidenceTable rows={evidenceRowsFor(activeItem)} />
-          </section>
-
-          {/* Supporting documents */}
-          <section className="mb-4">
-            <span className="mb-2.5 block text-[9px] font-medium tracking-[0.08em] text-[var(--v3-text-secondary)] uppercase">
-              Supporting documents
-            </span>
-            <div className="flex flex-col gap-2">
-              {documents.map((document) => (
-                <V3DocumentRow
-                  key={document.reference}
-                  reference={document.reference}
-                  description={document.description}
-                />
-              ))}
-              {instrument ? (
-                <V3DocumentRow
-                  reference={instrument.pdfFilename}
-                  description={`${instrument.name} ${instrument.version} audit trail`}
-                  meta={`${instrument.analyst} · ${instrument.loginAt}`}
-                />
-              ) : null}
-            </div>
-          </section>
-
-          {/* Worksheet comparison */}
-          <section className="mb-4">
-            <span className="mb-1 block text-[9px] font-medium tracking-[0.08em] text-[var(--v3-text-secondary)] uppercase">
-              Comparison with worksheet
-            </span>
-            {worksheet.map((row) => (
-              <div
-                key={row.label}
-                className="flex items-baseline justify-between gap-3 border-b border-[var(--v3-border-subtle)] py-2 last:border-b-0"
-              >
-                <span className="shrink-0 text-[12px] text-[var(--v3-text-secondary)]">
-                  {row.label}
-                </span>
-                <span className="text-right font-mono text-[11px] text-[var(--v3-text-primary)]">
-                  {row.value}
-                </span>
+          {flaggedEntries.length > 0 ? (
+            <>
+              <div className="mb-2 text-[11px] font-semibold text-[var(--v3-blocking)]">
+                FLAGGED &mdash; Action Required
               </div>
-            ))}
-            <div className="mt-2.5 flex justify-end">
-              <button
-                type="button"
-                onClick={() =>
-                  router.push(
-                    `/legacy/batches/${batch.arNumber}/review/${parameter.id}/${sectionSlug(activeSection)}`,
-                  )
-                }
-                className="cursor-pointer rounded-[4px] border border-[var(--v3-border-strong)] px-2.5 py-1 text-[10px] text-[var(--v3-text-secondary)] transition-colors duration-[120ms] hover:text-[var(--v3-text-primary)]"
-              >
-                Open full section record &rarr;
-              </button>
-            </div>
-          </section>
+              {flaggedEntries.map(renderEntry)}
+            </>
+          ) : null}
 
-          <V3ReviewerAction
-            value={draft}
-            onChange={(next) => {
-              setDrafts((current) => ({ ...current, [activeItem.id]: next }));
-              setSavedId(null);
-            }}
-            placeholder={placeholderFor(activeItem)}
-            required={needsNote}
-            recorded={recorded}
-            onRecord={() => {
-              if (draft.trim()) setNote(activeItem.id, draft.trim());
-            }}
-            onSaveDraft={() => setSavedId(activeItem.id)}
-            saved={savedId === activeItem.id}
-          />
+          {advisoryEntries.length > 0 ? (
+            <div className="mt-4">
+              <div className="mb-2 text-[11px] font-semibold tracking-[0.06em] text-[var(--v3-advisory)] uppercase">
+                {advisoryEntries.length}{" "}
+                {advisoryEntries.length === 1 ? "entry needs" : "entries need"}{" "}
+                a second look
+              </div>
+              {advisoryEntries.map(renderEntry)}
+            </div>
+          ) : null}
+
+          {compliantEntries.length > 0 ? (
+            <div className="mt-4">
+              <div className="mb-2 text-[11px] tracking-[0.06em] text-[var(--v3-text-secondary)] uppercase">
+                {activeSection.name} &mdash; {compliantEntries.length}{" "}
+                {compliantEntries.length === 1
+                  ? "compliant entry"
+                  : "compliant entries"}
+              </div>
+              {compliantEntries.map(renderEntry)}
+            </div>
+          ) : null}
+
+          <V3BatchIntegrityBar batch={batch} />
         </main>
 
         <V3FindingPanel
