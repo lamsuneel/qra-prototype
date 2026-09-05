@@ -13,7 +13,7 @@ import type { V3Tone } from "./theme";
  */
 export function V3DomainCard({
   name,
-  slug,
+  arNumber,
   icon,
   colour,
   badge,
@@ -23,7 +23,15 @@ export function V3DomainCard({
   time,
 }: {
   name: string;
-  slug: string;
+  /**
+   * The batch this card opens.
+   *
+   * It used to be the domain's slug, pointing at the light listing page.
+   * The dark workspace reviews one batch rather than listing many, so the
+   * dashboard resolves the domain to the batch a reviewer would open first
+   * and hands that over instead.
+   */
+  arNumber: string;
   icon: React.ReactNode;
   /** The domain's status colour — edge, icon and bar all use it. */
   colour: string;
@@ -39,7 +47,7 @@ export function V3DomainCard({
   return (
     <button
       type="button"
-      onClick={() => router.push(`/legacy/batches/${slug}`)}
+      onClick={() => router.push(`/review/${arNumber}`)}
       aria-label={`Open ${name} — ${meta}`}
       className="relative w-full cursor-pointer overflow-hidden rounded-[12px] border border-[var(--v3-border-default)] border-l-[3px] bg-[var(--v3-bg-card)] p-5 text-left transition-colors duration-150 hover:bg-[var(--v3-bg-card-hover)] focus-visible:ring-2 focus-visible:ring-[var(--v3-accent)] focus-visible:outline-none"
       style={{ borderLeftColor: colour }}

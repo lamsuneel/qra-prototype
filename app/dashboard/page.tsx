@@ -83,6 +83,20 @@ const badgeFor = (
 /** Worst SLA first — what a reviewer opening the screen has to deal with. */
 const URGENCY: Record<SlaStatus, number> = { red: 0, amber: 1, green: 2 };
 
+/**
+ * The batch a domain opens on.
+ *
+ * The dark review workspace takes a single batch, so a domain has to name
+ * one. It names the batch a reviewer would reach for first: worst SLA, then
+ * most flags — the same order the Recent Reviews list is sorted in.
+ */
+const leadBatchFor = (domain: Domain): Batch | undefined =>
+  [...batchesForDomain(domain)].sort(
+    (a, b) =>
+      URGENCY[a.slaStatus] - URGENCY[b.slaStatus] ||
+      flaggedItemsInBatch(b) - flaggedItemsInBatch(a),
+  )[0];
+
 const MONTHS = [
   "January",
   "February",
@@ -116,6 +130,9 @@ export default function V3DashboardPage() {
     (a, b) => b.flaggedCount - a.flaggedCount,
   )[0];
   const breached = ALL_BATCHES.find((batch) => batch.slaStatus === "red");
+  const worstFlagged = worstDomain
+    ? leadBatchFor(worstDomain.domain)
+    : undefined;
 
   const recent = [...ALL_BATCHES]
     .sort(
@@ -170,14 +187,12 @@ export default function V3DashboardPage() {
             valueColour={V3_TONE.blocking}
             sub={`${blockingTotal} blocking · ${advisoryTotal} advisory`}
             action={
-              worstDomain
+              worstFlagged
                 ? {
                     label: "View blocking",
                     colour: V3_TONE.blocking,
                     onClick: () =>
-                      router.push(
-                        `/legacy/batches/${DOMAIN_META[worstDomain.domain].slug}`,
-                      ),
+                      router.push(`/review/${worstFlagged.arNumber}`),
                   }
                 : undefined
             }
@@ -206,8 +221,7 @@ export default function V3DashboardPage() {
                 ? {
                     label: "View breach",
                     colour: V3_TONE.advisory,
-                    onClick: () =>
-                      router.push(`/legacy/batches/${breached.arNumber}`),
+                    onClick: () => router.push(`/review/${breached.arNumber}`),
                   }
                 : undefined
             }
@@ -245,7 +259,7 @@ export default function V3DashboardPage() {
               <V3DomainCard
                 key={summary.domain}
                 name={meta.name}
-                slug={meta.slug}
+                arNumber={leadBatchFor(summary.domain)?.arNumber ?? ""}
                 icon={<Icon />}
                 colour={V3_TONE[V3_SLA_TONE[summary.slaStatus]]}
                 badge={badgeFor(
