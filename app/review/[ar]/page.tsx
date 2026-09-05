@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useMemo, useState } from "react";
-import { notFound, redirect, useRouter } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Inter, JetBrains_Mono } from "next/font/google";
 
 import {
@@ -151,7 +151,6 @@ function Workspace({
   /** The AR the reviewer actually asked for, when this is a stand-in. */
   standingIn?: string;
 }) {
-  const router = useRouter();
   const {
     noteFor,
     setNote,
@@ -472,6 +471,7 @@ function Workspace({
 
       <div className="shrink-0">
         <DarkTopbar
+          home
           notice={
             standingIn
               ? `Demo data — ${standingIn} has no full review fixture`
@@ -518,9 +518,11 @@ function Workspace({
         >
           <V3BatchSummary
             sources={sourcesUsedIn(batch)}
+            suggestionsLabel="Flagged sections"
             suggestions={exceptions.slice(0, 3).map(({ section }) => ({
               id: section.id,
               label: section.name,
+              tone: "blocking" as const,
             }))}
             onSuggest={selectSection}
           />
@@ -530,44 +532,34 @@ function Workspace({
           {/* Batch-level, so it sits above the section rather than in it,
               and stays put while the section content scrolls. */}
           <V3BatchIntegrityBar batch={batch} />
+          {/* Which parameter and section the cards below belong to. Fixed, so a
+              reviewer twenty entries down still knows where they are. */}
+          <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-[var(--v3-border-default)] bg-[var(--v3-bg-surface)] px-5 py-2.5">
+            <span className="text-[11px] font-semibold tracking-[0.06em] text-[var(--v3-text-secondary)] uppercase">
+              {parameter.shortName}
+            </span>
+            <span className="text-[11px] text-[var(--v3-text-muted)]">
+              &rsaquo;
+            </span>
+            <span className="text-[11px] font-semibold tracking-[0.06em] text-[var(--v3-text-secondary)] uppercase">
+              {activeSection.name}
+            </span>
+            <span className="text-[11px] text-[var(--v3-text-muted)]">
+              &rsaquo;
+            </span>
+            <span className="text-[11px] text-[var(--v3-text-secondary)]">
+              {activeItem.exceptionType ?? activeItem.label}
+            </span>
+            <V3Badge tone={tone}>{V3_RESULT_LABEL[verdict]}</V3Badge>
+            <span className="flex-1" />
+            {activeItem.flagId ? (
+              <span className="font-mono text-[11px] text-[var(--v3-text-muted)]">
+                {activeItem.flagId}
+              </span>
+            ) : null}
+          </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto p-5">
-            {/* Breadcrumb */}
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => router.push("/dashboard")}
-                className="cursor-pointer text-[11px] text-[var(--v3-accent)] transition-opacity duration-[120ms] hover:opacity-80"
-              >
-                Dashboard
-              </button>
-              <span className="text-[11px] text-[var(--v3-text-muted)]">
-                &rsaquo;
-              </span>
-              <span className="text-[11px] font-semibold tracking-[0.06em] text-[var(--v3-text-secondary)] uppercase">
-                {parameter.shortName}
-              </span>
-              <span className="text-[11px] text-[var(--v3-text-muted)]">
-                &rsaquo;
-              </span>
-              <span className="text-[11px] font-semibold tracking-[0.06em] text-[var(--v3-text-secondary)] uppercase">
-                {activeSection.name}
-              </span>
-              <span className="text-[11px] text-[var(--v3-text-muted)]">
-                &rsaquo;
-              </span>
-              <span className="text-[11px] text-[var(--v3-text-secondary)]">
-                {activeItem.exceptionType ?? activeItem.label}
-              </span>
-              <V3Badge tone={tone}>{V3_RESULT_LABEL[verdict]}</V3Badge>
-              <span className="flex-1" />
-              {activeItem.flagId ? (
-                <span className="font-mono text-[11px] text-[var(--v3-text-muted)]">
-                  {activeItem.flagId}
-                </span>
-              ) : null}
-            </div>
-
             {flaggedEntries.length > 0 ? (
               <>
                 <div className="mb-2 text-[11px] font-semibold text-[var(--v3-blocking)]">

@@ -35,7 +35,16 @@ export function V3SectionEntryCard({
 
   return (
     <div
-      onClick={onToggle}
+      onClick={(event) => {
+        if (
+          (event.target as HTMLElement).closest(
+            "button, a, input, textarea, select, label",
+          )
+        ) {
+          return;
+        }
+        onToggle();
+      }}
       className={`mb-2 cursor-pointer rounded-[8px] border border-l-[3px] px-4 py-3 ${
         blocking
           ? "border-[var(--v3-blocking-border)] bg-[rgba(229,83,75,0.06)]"
@@ -124,10 +133,7 @@ export function V3SectionEntryCard({
 
         <button
           type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onToggle();
-          }}
+          onClick={onToggle}
           aria-expanded={expanded}
           className="cursor-pointer rounded-[4px] border border-[var(--v3-border-strong)] px-2.5 py-1 text-[10px] text-[var(--v3-text-secondary)] transition-colors duration-[120ms] hover:text-[var(--v3-text-primary)]"
         >
@@ -136,10 +142,7 @@ export function V3SectionEntryCard({
       </div>
 
       {expanded ? (
-        <div
-          onClick={(event) => event.stopPropagation()}
-          className="mt-3 cursor-default border-t border-[var(--v3-border-subtle)] pt-3"
-        >
+        <div className="mt-3 border-t border-[var(--v3-border-subtle)] pt-3">
           {children}
         </div>
       ) : null}

@@ -137,7 +137,7 @@ function Summary({ batch }: { batch: Batch }) {
       <style dangerouslySetInnerHTML={{ __html: V3_THEME_CSS }} />
       <PageTitle title={`${batch.arNumber} — Review Summary`} />
 
-      <DarkTopbar />
+      <DarkTopbar home />
 
       <main className="mx-auto w-full max-w-[820px] flex-1 px-6 pt-8 pb-12">
         <button

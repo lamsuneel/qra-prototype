@@ -25,6 +25,7 @@ export function DarkTopbar({
   user,
   search = true,
   notice,
+  home = false,
 }: {
   /**
    * Who the bar names. Given where the screen speaks for one office rather
@@ -45,6 +46,14 @@ export function DarkTopbar({
    * error, which is what it is.
    */
   notice?: string;
+  /**
+   * Offer the way back to the signed-in desk's own screen.
+   *
+   * Global navigation, so it lives up here rather than inside a per-screen
+   * breadcrumb -- where it read as a back button wearing a separator. Off by
+   * default, since the screens it leads to should not offer it.
+   */
+  home?: boolean;
 } = {}) {
   const { profile } = useReview();
 
@@ -92,6 +101,18 @@ export function DarkTopbar({
             </span>
           </span>
         </Link>
+
+        {home ? (
+          <>
+            <div className="h-5 w-px shrink-0 bg-[var(--v3-border-strong)]" />
+            <Link
+              href={chosen?.home ?? "/dashboard"}
+              className="shrink-0 text-[11px] text-[var(--v3-accent)] transition-opacity duration-[120ms] hover:opacity-80"
+            >
+              Dashboard
+            </Link>
+          </>
+        ) : null}
 
         {search ? (
           <>

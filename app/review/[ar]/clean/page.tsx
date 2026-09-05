@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useMemo, useState } from "react";
-import { notFound, useRouter } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Inter, JetBrains_Mono } from "next/font/google";
 
 import {
@@ -28,7 +28,7 @@ import { V3BatchSummary } from "@/components/dark/BatchSummary";
 import { V3EntryCard } from "@/components/dark/EntryCard";
 import { V3FindingPanel } from "@/components/dark/FindingPanel";
 import { V3StatusBar } from "@/components/dark/StatusBar";
-import { V3_THEME_CSS, V3_TONE } from "@/components/dark/theme";
+import { V3_RESULT_TONE, V3_THEME_CSS, V3_TONE } from "@/components/dark/theme";
 
 /* The two faces this design uses, scoped to the v3 subtree. */
 const inter = Inter({ subsets: ["latin"], variable: "--v3-font-sans" });
@@ -126,7 +126,6 @@ export default function V3CleanReviewPage({
 }
 
 function Workspace({ batch }: { batch: Batch }) {
-  const router = useRouter();
   const { sectionStatus, markSectionReviewed } = useReview();
 
   const sections = useMemo(() => orderedSections(batch), [batch]);
@@ -224,7 +223,7 @@ function Workspace({ batch }: { batch: Batch }) {
       <PageTitle title={`${batch.arNumber} — ${activeSection.name}`} />
 
       <div className="shrink-0">
-        <DarkTopbar />
+        <DarkTopbar home />
       </div>
 
       <V3JourneyMap groups={groups} onSelect={selectSection} />
@@ -284,26 +283,18 @@ function Workspace({ batch }: { batch: Batch }) {
                       tone: "advisory" as const,
                     }
             }
+            suggestionsLabel="Other sections"
             suggestions={nextSections.map((section) => ({
               id: section.id,
               label: section.name,
+              tone: V3_RESULT_TONE[worstResult(section)],
             }))}
             onSuggest={selectSection}
           />
         </V3ReviewNavigator>
 
-        <main className="min-w-0 flex-1 overflow-y-auto p-5">
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard")}
-              className="cursor-pointer text-[11px] text-[var(--v3-accent)] transition-opacity duration-[120ms] hover:opacity-80"
-            >
-              Dashboard
-            </button>
-            <span className="text-[11px] text-[var(--v3-text-muted)]">
-              &rsaquo;
-            </span>
+        <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-[var(--v3-border-default)] bg-[var(--v3-bg-surface)] px-5 py-2.5">
             <span className="text-[11px] font-semibold tracking-[0.06em] text-[var(--v3-text-secondary)] uppercase">
               {parameter.shortName}
             </span>
@@ -314,50 +305,51 @@ function Workspace({ batch }: { batch: Batch }) {
               {activeSection.name}
             </span>
           </div>
-
-          <div className="mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-[15px] font-semibold text-[var(--v3-text-primary)]">
-                {activeSection.name}
-              </span>
-              {allClear ? (
-                <span
-                  aria-hidden="true"
-                  className="text-[13px] text-[var(--v3-compliant)]"
-                >
-                  &#10003;
+          <div className="min-h-0 flex-1 overflow-y-auto p-5">
+            <div className="mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-[15px] font-semibold text-[var(--v3-text-primary)]">
+                  {activeSection.name}
                 </span>
-              ) : null}
+                {allClear ? (
+                  <span
+                    aria-hidden="true"
+                    className="text-[13px] text-[var(--v3-compliant)]"
+                  >
+                    &#10003;
+                  </span>
+                ) : null}
+              </div>
+              <div
+                className="mt-1 font-mono text-[11px]"
+                style={{
+                  color: allClear
+                    ? "var(--v3-compliant)"
+                    : "var(--v3-text-secondary)",
+                }}
+              >
+                {sectionClear} of {sectionTotal} checks complete
+                {allClear ? " · All compliant" : ""}
+              </div>
             </div>
-            <div
-              className="mt-1 font-mono text-[11px]"
-              style={{
-                color: allClear
-                  ? "var(--v3-compliant)"
-                  : "var(--v3-text-secondary)",
-              }}
-            >
-              {sectionClear} of {sectionTotal} checks complete
-              {allClear ? " · All compliant" : ""}
-            </div>
-          </div>
 
-          {activeSection.items.map((item) => (
-            <V3EntryCard
-              key={item.id}
-              item={item}
-              expanded={item.id === expandedItem?.id}
-              onToggle={() =>
-                setExpandedId(item.id === expandedItem?.id ? "" : item.id)
-              }
-              reviewed={signedOff.includes(item.id)}
-              onMarkReviewed={() =>
-                setSignedOff((current) =>
-                  current.includes(item.id) ? current : [...current, item.id],
-                )
-              }
-            />
-          ))}
+            {activeSection.items.map((item) => (
+              <V3EntryCard
+                key={item.id}
+                item={item}
+                expanded={item.id === expandedItem?.id}
+                onToggle={() =>
+                  setExpandedId(item.id === expandedItem?.id ? "" : item.id)
+                }
+                reviewed={signedOff.includes(item.id)}
+                onMarkReviewed={() =>
+                  setSignedOff((current) =>
+                    current.includes(item.id) ? current : [...current, item.id],
+                  )
+                }
+              />
+            ))}
+          </div>
           <V3StatusBar
             context={`${parameter.shortName} · ${activeSection.name}`}
             counts={[
