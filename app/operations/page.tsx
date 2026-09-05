@@ -19,11 +19,11 @@ import { SITE_NAME } from "@/data/profiles";
 import { DEMO_TODAY } from "@/data/clock";
 import { downloadOperationsReport } from "@/lib/gm-qa-report";
 import { PageTitle } from "@/components/layout/PageTitle";
-import { V3Topbar } from "@/components/v3/Topbar";
-import { V3KpiCard } from "@/components/v3/KpiCard";
-import { V3Badge } from "@/components/v3/Badge";
-import { V3ExceptionBars } from "@/components/v3/ExceptionBars";
-import { V3_THEME_CSS, V3_TONE, type V3Tone } from "@/components/v3/theme";
+import { DarkTopbar } from "@/components/dark/DarkTopbar";
+import { V3KpiCard } from "@/components/dark/KpiCard";
+import { V3Badge } from "@/components/dark/Badge";
+import { V3ExceptionBars } from "@/components/dark/ExceptionBars";
+import { V3_THEME_CSS, V3_TONE, type V3Tone } from "@/components/dark/theme";
 
 /* The design's two faces, scoped to the v3 subtree. */
 const inter = Inter({ subsets: ["latin"], variable: "--v3-font-sans" });
@@ -95,7 +95,7 @@ export default function V3OperationsPage() {
       <style dangerouslySetInnerHTML={{ __html: V3_THEME_CSS }} />
       <PageTitle title="QA Operations Dashboard" />
 
-      <V3Topbar user={GM_QA} search={false} />
+      <DarkTopbar user={GM_QA} search={false} />
 
       <main className="p-7">
         {/* Page header --------------------------------------------------- */}
@@ -126,7 +126,7 @@ export default function V3OperationsPage() {
                 carries the accent. */}
             <button
               type="button"
-              onClick={() => router.push("/authorise")}
+              onClick={() => router.push("/legacy/authorise")}
               className="cursor-pointer rounded-md border border-[var(--v3-accent-border)] bg-[var(--v3-accent-bg)] px-4 py-1.5 text-[11px] font-semibold text-[var(--v3-accent)] transition-colors duration-[120ms] hover:bg-[rgba(77,158,255,0.20)] focus-visible:ring-2 focus-visible:ring-[var(--v3-accent)] focus-visible:outline-none"
             >
               Go to QA Authorisation Queue{" "}

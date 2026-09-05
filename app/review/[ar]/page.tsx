@@ -23,24 +23,24 @@ import {
   type Section,
 } from "@/types";
 import { PageTitle } from "@/components/layout/PageTitle";
-import { V3Topbar } from "@/components/v3/Topbar";
-import { V3Badge } from "@/components/v3/Badge";
-import { V3JourneyMap, type V3NodeState } from "@/components/v3/JourneyMap";
-import { V3ReviewNavigator } from "@/components/v3/ReviewNavigator";
-import { V3AiraRail } from "@/components/v3/AiraRail";
-import { V3EvidenceTable } from "@/components/v3/EvidenceTable";
-import { V3DocumentRow } from "@/components/v3/DocumentRow";
-import { V3FindingPanel } from "@/components/v3/FindingPanel";
-import { V3ReviewerAction } from "@/components/v3/ReviewerAction";
-import { V3StatusBar } from "@/components/v3/StatusBar";
-import { AiraGlyph } from "@/components/v3/Icons";
-import { draftObservation, evidenceRowsFor } from "@/components/v3/evidence";
+import { DarkTopbar } from "@/components/dark/DarkTopbar";
+import { V3Badge } from "@/components/dark/Badge";
+import { V3JourneyMap, type V3NodeState } from "@/components/dark/JourneyMap";
+import { V3ReviewNavigator } from "@/components/dark/ReviewNavigator";
+import { V3AiraRail } from "@/components/dark/AiraRail";
+import { V3EvidenceTable } from "@/components/dark/EvidenceTable";
+import { V3DocumentRow } from "@/components/dark/DocumentRow";
+import { V3FindingPanel } from "@/components/dark/FindingPanel";
+import { V3ReviewerAction } from "@/components/dark/ReviewerAction";
+import { V3StatusBar } from "@/components/dark/StatusBar";
+import { AiraGlyph } from "@/components/dark/Icons";
+import { draftObservation, evidenceRowsFor } from "@/components/dark/evidence";
 import {
   V3_RESULT_LABEL,
   V3_RESULT_TONE,
   V3_THEME_CSS,
   V3_TONE,
-} from "@/components/v3/theme";
+} from "@/components/dark/theme";
 
 /* The two faces this design uses, scoped to the v3 subtree. */
 const inter = Inter({ subsets: ["latin"], variable: "--v3-font-sans" });
@@ -311,7 +311,7 @@ function Workspace({ batch }: { batch: Batch }) {
       <PageTitle title={`${batch.arNumber} — Review Workspace`} />
 
       <div className="shrink-0">
-        <V3Topbar />
+        <DarkTopbar />
       </div>
 
       <V3JourneyMap groups={groups} onSelect={selectSection} />
@@ -479,7 +479,7 @@ function Workspace({ batch }: { batch: Batch }) {
                 type="button"
                 onClick={() =>
                   router.push(
-                    `/batches/${batch.arNumber}/review/${parameter.id}/${sectionSlug(activeSection)}`,
+                    `/legacy/batches/${batch.arNumber}/review/${parameter.id}/${sectionSlug(activeSection)}`,
                   )
                 }
                 className="cursor-pointer rounded-[4px] border border-[var(--v3-border-strong)] px-2.5 py-1 text-[10px] text-[var(--v3-text-secondary)] transition-colors duration-[120ms] hover:text-[var(--v3-text-primary)]"

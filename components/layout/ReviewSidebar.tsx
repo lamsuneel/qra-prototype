@@ -58,7 +58,7 @@ export function ReviewSidebar({
   )?.id;
 
   const go = (param: string, section: string) =>
-    router.push(`/batches/${batch.arNumber}/review/${param}/${section}`);
+    router.push(`/legacy/batches/${batch.arNumber}/review/${param}/${section}`);
 
   return (
     <nav className="w-[200px] shrink-0 overflow-y-auto border-r border-slate-200 bg-white">
@@ -85,7 +85,8 @@ export function ReviewSidebar({
         {batch.parameters.map((parameter) => {
           const sections = sectionsForParameter(batch, parameter.id);
           const flags = sections.reduce(
-            (total, section) => total + section.items.filter(isException).length,
+            (total, section) =>
+              total + section.items.filter(isException).length,
             0,
           );
           const active = parameter.id === parameterId;

@@ -15,23 +15,23 @@ import { DEMO_TODAY } from "@/data/clock";
 import { DOMAIN_META, DOMAINS, resultFor } from "@/types";
 import type { Batch, Domain, SlaStatus } from "@/types";
 import { PageTitle } from "@/components/layout/PageTitle";
-import { V3Topbar } from "@/components/v3/Topbar";
-import { V3KpiCard } from "@/components/v3/KpiCard";
-import { V3DomainCard } from "@/components/v3/DomainCard";
-import { V3ActivityRow } from "@/components/v3/ActivityRow";
+import { DarkTopbar } from "@/components/dark/DarkTopbar";
+import { V3KpiCard } from "@/components/dark/KpiCard";
+import { V3DomainCard } from "@/components/dark/DomainCard";
+import { V3ActivityRow } from "@/components/dark/ActivityRow";
 import {
   AlertCircleIcon,
   ClockIcon,
   DOMAIN_ICON,
   LayersIcon,
   TargetIcon,
-} from "@/components/v3/Icons";
+} from "@/components/dark/Icons";
 import {
   V3_SLA_TONE,
   V3_THEME_CSS,
   V3_TONE,
   type V3Tone,
-} from "@/components/v3/theme";
+} from "@/components/dark/theme";
 
 /* The design's two faces. Scoped to this subtree — the rest of the app is on
    Geist and stays there. */
@@ -132,7 +132,7 @@ export default function V3DashboardPage() {
       <style dangerouslySetInnerHTML={{ __html: V3_THEME_CSS }} />
       <PageTitle title="QA Dashboard" />
 
-      <V3Topbar />
+      <DarkTopbar />
 
       <main className="p-8">
         {/* Page header */}
@@ -176,7 +176,7 @@ export default function V3DashboardPage() {
                     colour: V3_TONE.blocking,
                     onClick: () =>
                       router.push(
-                        `/batches/${DOMAIN_META[worstDomain.domain].slug}`,
+                        `/legacy/batches/${DOMAIN_META[worstDomain.domain].slug}`,
                       ),
                   }
                 : undefined
@@ -206,7 +206,8 @@ export default function V3DashboardPage() {
                 ? {
                     label: "View breach",
                     colour: V3_TONE.advisory,
-                    onClick: () => router.push(`/batches/${breached.arNumber}`),
+                    onClick: () =>
+                      router.push(`/legacy/batches/${breached.arNumber}`),
                   }
                 : undefined
             }

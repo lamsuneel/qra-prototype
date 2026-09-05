@@ -36,7 +36,7 @@ export default function AuthoriseDetailPage() {
   }, [profile, router]);
 
   useEffect(() => {
-    if (!batch) router.replace("/authorise");
+    if (!batch) router.replace("/legacy/authorise");
   }, [batch, router]);
 
   if (!profile || profile.role === "REVIEWER" || !batch) return null;
@@ -69,7 +69,7 @@ export default function AuthoriseDetailPage() {
       <TopNav batch={batch} />
       <Breadcrumbs
         crumbs={[
-          { label: "Authorisation Queue", href: "/authorise" },
+          { label: "Authorisation Queue", href: "/legacy/authorise" },
           { label: `${batch.arNumber} ${batch.product}` },
         ]}
       />
@@ -77,7 +77,7 @@ export default function AuthoriseDetailPage() {
       <main className="flex-1 px-6 py-7 lg:px-10">
         <button
           type="button"
-          onClick={() => router.push("/authorise")}
+          onClick={() => router.push("/legacy/authorise")}
           className="mb-3 inline-flex cursor-pointer items-center gap-1.5 text-xs text-source-text transition-colors duration-150 hover:text-navy hover:underline"
         >
           <span aria-hidden="true">&larr;</span> Back to list

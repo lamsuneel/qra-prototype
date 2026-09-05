@@ -85,7 +85,7 @@ export function BottomNavBar({
 
   const goTo = (target: Section) =>
     router.push(
-      `/batches/${batch.arNumber}/review/${target.parameter}/${sectionSlug(target)}`,
+      `/legacy/batches/${batch.arNumber}/review/${target.parameter}/${sectionSlug(target)}`,
     );
 
   return (
@@ -163,7 +163,7 @@ export function BottomNavBar({
             onClick={() =>
               next
                 ? goTo(next)
-                : router.push(`/batches/${batch.arNumber}/summary`)
+                : router.push(`/legacy/batches/${batch.arNumber}/summary`)
             }
             aria-label={next ? `Next Section: ${next.name}` : "View Summary"}
             className="cursor-pointer rounded-[5px] bg-navy px-4 py-[7px] text-[13px] text-white transition-colors duration-150 hover:bg-navy-mid focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none"

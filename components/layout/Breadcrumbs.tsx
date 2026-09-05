@@ -15,8 +15,8 @@ export const roleRoot = (role: UserRole): Crumb =>
   role === "REVIEWER"
     ? { label: "QA Dashboard", href: "/legacy/dashboard" }
     : role === "APPROVER"
-      ? { label: "QA Operations Dashboard", href: "/management/gm-qa" }
-      : { label: "Batch Review Performance", href: "/management" };
+      ? { label: "QA Operations Dashboard", href: "/legacy/management/gm-qa" }
+      : { label: "Batch Review Performance", href: "/legacy/management" };
 
 /**
  * Sticky trail below the top navigation. Every screen below a dashboard shows

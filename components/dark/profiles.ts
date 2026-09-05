@@ -82,7 +82,7 @@ export const V3_PROFILES: V3Profile[] = [
 ];
 
 /** Where the choice is kept. Session, not local: closing the tab signs out. */
-export const V3_PROFILE_KEY = "v3_profile";
+export const QRA_PROFILE_KEY = "qra_profile";
 
 /**
  * The selection, or null.
@@ -94,7 +94,7 @@ export const V3_PROFILE_KEY = "v3_profile";
 export function readV3Profile(): V3Profile | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.sessionStorage.getItem(V3_PROFILE_KEY);
+    const raw = window.sessionStorage.getItem(QRA_PROFILE_KEY);
     if (!raw) return null;
     const id = (JSON.parse(raw) as { id?: unknown }).id;
     if (typeof id !== "string") return null;
@@ -125,7 +125,7 @@ export const serverV3Profile = (): V3Profile | null => null;
 export function storeV3Profile(profile: V3Profile): void {
   try {
     window.sessionStorage.setItem(
-      V3_PROFILE_KEY,
+      QRA_PROFILE_KEY,
       JSON.stringify({ id: profile.id, name: profile.name }),
     );
   } catch {

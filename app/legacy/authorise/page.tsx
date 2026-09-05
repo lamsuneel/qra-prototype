@@ -39,7 +39,7 @@ export default function AuthoriseListPage() {
       <main className="flex-1 px-6 py-7 lg:px-10">
         <button
           type="button"
-          onClick={() => router.push("/management/gm-qa")}
+          onClick={() => router.push("/legacy/management/gm-qa")}
           className="mb-3 inline-flex cursor-pointer items-center gap-1.5 text-xs text-source-text transition-colors duration-150 hover:text-navy hover:underline"
         >
           <span aria-hidden="true">&larr;</span> Back to Dashboard
@@ -80,7 +80,9 @@ export default function AuthoriseListPage() {
                 {submitted.map((batch) => (
                   <tr
                     key={batch.arNumber}
-                    onClick={() => router.push(`/authorise/${batch.arNumber}`)}
+                    onClick={() =>
+                      router.push(`/legacy/authorise/${batch.arNumber}`)
+                    }
                     className="cursor-pointer border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50"
                   >
                     <td className="px-4 py-3 text-[13px] font-semibold text-navy-mid">
@@ -104,7 +106,7 @@ export default function AuthoriseListPage() {
                         onClick={(event) => {
                           /* The row already opens the submission. */
                           event.stopPropagation();
-                          router.push(`/authorise/${batch.arNumber}`);
+                          router.push(`/legacy/authorise/${batch.arNumber}`);
                         }}
                         className="cursor-pointer rounded-[5px] bg-navy px-3.5 py-1.5 text-xs text-white transition-colors duration-150 hover:bg-navy-mid"
                       >

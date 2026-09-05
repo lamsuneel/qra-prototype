@@ -16,8 +16,8 @@ export default function LoginPage() {
 
   const choose = (profileId: string, role: string) => {
     selectProfile(profileId);
-    if (role === "APPROVER") router.push("/management/gm-qa");
-    else if (role === "CQO") router.push("/management");
+    if (role === "APPROVER") router.push("/legacy/management/gm-qa");
+    else if (role === "CQO") router.push("/legacy/management");
     else router.push("/legacy/dashboard");
   };
 

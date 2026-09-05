@@ -45,7 +45,7 @@ export default function GmQaDashboardPage() {
     /* The CQO has a view of their own; this one is the approver's. */ else if (
       profile.role === "CQO"
     ) {
-      router.replace("/management");
+      router.replace("/legacy/management");
     }
   }, [profile, router]);
 
@@ -91,7 +91,7 @@ export default function GmQaDashboardPage() {
               */}
               <button
                 type="button"
-                onClick={() => router.push("/authorise")}
+                onClick={() => router.push("/legacy/authorise")}
                 className="cursor-pointer rounded-md bg-navy px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-navy-mid focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none"
               >
                 Go to Authorisation Queue <span aria-hidden="true">&rarr;</span>

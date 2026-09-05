@@ -18,7 +18,7 @@ import { SearchIcon } from "./Icons";
  * is reachable directly during the rebuild, and a header with an empty name
  * on it would read as a bug rather than as an unauthenticated state.
  */
-export function V3Topbar({
+export function DarkTopbar({
   user,
   search = true,
 }: {

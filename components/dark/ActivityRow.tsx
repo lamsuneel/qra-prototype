@@ -31,7 +31,7 @@ export function V3ActivityRow({
   return (
     <button
       type="button"
-      onClick={() => router.push(`/batches/${arNumber}`)}
+      onClick={() => router.push(`/legacy/batches/${arNumber}`)}
       aria-label={`Open ${arNumber} ${product}`}
       className="flex w-full cursor-pointer items-center gap-3 rounded-[8px] border border-[var(--v3-border-default)] bg-[var(--v3-bg-card)] px-4 py-3 text-left transition-colors duration-150 hover:bg-[var(--v3-bg-card-hover)] focus-visible:ring-2 focus-visible:ring-[var(--v3-accent)] focus-visible:outline-none"
     >

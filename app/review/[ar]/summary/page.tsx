@@ -21,10 +21,10 @@ import {
   type Section,
 } from "@/types";
 import { PageTitle } from "@/components/layout/PageTitle";
-import { V3Topbar } from "@/components/v3/Topbar";
-import { V3Badge } from "@/components/v3/Badge";
-import { AiraGlyph } from "@/components/v3/Icons";
-import { V3_THEME_CSS, type V3Tone } from "@/components/v3/theme";
+import { DarkTopbar } from "@/components/dark/DarkTopbar";
+import { V3Badge } from "@/components/dark/Badge";
+import { AiraGlyph } from "@/components/dark/Icons";
+import { V3_THEME_CSS, type V3Tone } from "@/components/dark/theme";
 
 /* The two faces this design uses, scoped to the v3 subtree. */
 const inter = Inter({ subsets: ["latin"], variable: "--v3-font-sans" });
@@ -137,7 +137,7 @@ function Summary({ batch }: { batch: Batch }) {
       <style dangerouslySetInnerHTML={{ __html: V3_THEME_CSS }} />
       <PageTitle title={`${batch.arNumber} — Review Summary`} />
 
-      <V3Topbar />
+      <DarkTopbar />
 
       <main className="mx-auto w-full max-w-[820px] flex-1 px-6 pt-8 pb-12">
         <button

@@ -89,7 +89,7 @@ export default function SummaryPage() {
           { label: "QA Dashboard", href: "/dashboard" },
           {
             label: DOMAIN_META[batch.domain].name,
-            href: `/batches/${DOMAIN_META[batch.domain].slug}`,
+            href: `/legacy/batches/${DOMAIN_META[batch.domain].slug}`,
           },
           { label: `${batch.arNumber} ${batch.product}` },
           { label: "Review Summary" },
@@ -104,7 +104,7 @@ export default function SummaryPage() {
             const last = sections[sections.length - 1];
             if (last) {
               router.push(
-                `/batches/${batch.arNumber}/review/${last.parameter}/${sectionSlug(last)}`,
+                `/legacy/batches/${batch.arNumber}/review/${last.parameter}/${sectionSlug(last)}`,
               );
             }
           }}

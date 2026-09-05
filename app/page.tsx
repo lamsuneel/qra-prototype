@@ -7,9 +7,9 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { SITE_NAME } from "@/data/profiles";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { useReview } from "@/context/ReviewContext";
-import { V3_PROFILES, storeV3Profile } from "@/components/v3/profiles";
-import type { V3Profile } from "@/components/v3/profiles";
-import { V3_THEME_CSS } from "@/components/v3/theme";
+import { V3_PROFILES, storeV3Profile } from "@/components/dark/profiles";
+import type { V3Profile } from "@/components/dark/profiles";
+import { V3_THEME_CSS } from "@/components/dark/theme";
 
 /* The design's two faces, scoped to the v3 subtree. */
 const inter = Inter({ subsets: ["latin"], variable: "--v3-font-sans" });

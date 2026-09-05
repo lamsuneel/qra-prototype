@@ -25,7 +25,7 @@ export function DomainCard({
   return (
     <button
       type="button"
-      onClick={() => router.push(`/batches/${meta.slug}`)}
+      onClick={() => router.push(`/legacy/batches/${meta.slug}`)}
       aria-label={`Open ${meta.name} review queue — ${summary.batchCount} batches, ${summary.flaggedCount} flagged`}
       className={cn(
         "cursor-pointer rounded-lg border border-slate-200 bg-white p-5 text-left transition-all duration-150 hover:border-navy-accent hover:shadow-md focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:outline-none",

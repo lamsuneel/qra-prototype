@@ -71,7 +71,7 @@ export default function BatchListPage() {
     const first = orderedSections(batch)[0];
     if (first) {
       router.push(
-        `/batches/${batch.arNumber}/review/${first.parameter}/${sectionSlug(first)}`,
+        `/legacy/batches/${batch.arNumber}/review/${first.parameter}/${sectionSlug(first)}`,
       );
     }
   };

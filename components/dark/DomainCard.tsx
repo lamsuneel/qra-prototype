@@ -39,7 +39,7 @@ export function V3DomainCard({
   return (
     <button
       type="button"
-      onClick={() => router.push(`/batches/${slug}`)}
+      onClick={() => router.push(`/legacy/batches/${slug}`)}
       aria-label={`Open ${name} — ${meta}`}
       className="relative w-full cursor-pointer overflow-hidden rounded-[12px] border border-[var(--v3-border-default)] border-l-[3px] bg-[var(--v3-bg-card)] p-5 text-left transition-colors duration-150 hover:bg-[var(--v3-bg-card-hover)] focus-visible:ring-2 focus-visible:ring-[var(--v3-accent)] focus-visible:outline-none"
       style={{ borderLeftColor: colour }}

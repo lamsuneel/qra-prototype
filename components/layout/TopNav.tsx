@@ -63,7 +63,7 @@ export function TopNav({ batch }: { batch?: Batch }) {
         <span className="hidden h-4 w-px bg-white/15 md:inline-block" />
         <button
           type="button"
-          onClick={() => router.push("/config")}
+          onClick={() => router.push("/legacy/config")}
           className="cursor-pointer text-xs text-slate-400 transition-colors duration-150 hover:text-white hover:underline"
         >
           Site Config

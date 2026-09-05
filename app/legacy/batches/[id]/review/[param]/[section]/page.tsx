@@ -129,11 +129,11 @@ export default function ReviewWorkspacePage() {
           { label: "QA Dashboard", href: "/dashboard" },
           {
             label: DOMAIN_META[batch.domain].name,
-            href: `/batches/${DOMAIN_META[batch.domain].slug}`,
+            href: `/legacy/batches/${DOMAIN_META[batch.domain].slug}`,
           },
           {
             label: `${batch.arNumber} ${batch.product}`,
-            href: `/batches/${batch.arNumber}/summary`,
+            href: `/legacy/batches/${batch.arNumber}/summary`,
           },
           { label: `${parameter.name} — ${section.name}` },
         ]}

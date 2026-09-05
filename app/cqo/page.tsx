@@ -22,19 +22,19 @@ import { SITE_NAME } from "@/data/profiles";
 import { DEMO_TODAY } from "@/data/clock";
 import { downloadAuditReport } from "@/lib/audit-report";
 import { PageTitle } from "@/components/layout/PageTitle";
-import { V3Topbar } from "@/components/v3/Topbar";
-import { V3KpiCard } from "@/components/v3/KpiCard";
-import { V3CycleTimeChart } from "@/components/v3/CycleTimeChart";
-import { V3ExceptionBars } from "@/components/v3/ExceptionBars";
-import { V3AiraHeading, V3InsightCard } from "@/components/v3/InsightCard";
-import { V3AlertRow } from "@/components/v3/AlertRow";
+import { DarkTopbar } from "@/components/dark/DarkTopbar";
+import { V3KpiCard } from "@/components/dark/KpiCard";
+import { V3CycleTimeChart } from "@/components/dark/CycleTimeChart";
+import { V3ExceptionBars } from "@/components/dark/ExceptionBars";
+import { V3AiraHeading, V3InsightCard } from "@/components/dark/InsightCard";
+import { V3AlertRow } from "@/components/dark/AlertRow";
 import {
   AlertCircleIcon,
   ClockIcon,
   LayersIcon,
   TargetIcon,
-} from "@/components/v3/Icons";
-import { V3_THEME_CSS, V3_TONE } from "@/components/v3/theme";
+} from "@/components/dark/Icons";
+import { V3_THEME_CSS, V3_TONE } from "@/components/dark/theme";
 
 /* The design's two faces, scoped to the v3 subtree. */
 const inter = Inter({ subsets: ["latin"], variable: "--v3-font-sans" });
@@ -130,7 +130,7 @@ export default function V3CqoPage() {
       <style dangerouslySetInnerHTML={{ __html: V3_THEME_CSS }} />
       <PageTitle title="Batch Review Performance" />
 
-      <V3Topbar user={CQO} search={false} />
+      <DarkTopbar user={CQO} search={false} />
 
       <main className="p-7">
         {/* Page header --------------------------------------------------- */}
@@ -194,7 +194,8 @@ export default function V3CqoPage() {
                 ? {
                     label: "View breach",
                     colour: V3_TONE.blocking,
-                    onClick: () => router.push(`/batches/${breached.arNumber}`),
+                    onClick: () =>
+                      router.push(`/legacy/batches/${breached.arNumber}`),
                   }
                 : undefined
             }
@@ -343,7 +344,7 @@ export default function V3CqoPage() {
             }
             action={{
               label: "View stability tracker",
-              onClick: () => router.push("/management/gm-qa"),
+              onClick: () => router.push("/legacy/management/gm-qa"),
             }}
           />
         </div>
@@ -407,7 +408,7 @@ export default function V3CqoPage() {
                   description={description}
                   onOpen={
                     arNumber
-                      ? () => router.push(`/batches/${arNumber}`)
+                      ? () => router.push(`/legacy/batches/${arNumber}`)
                       : undefined
                   }
                 />

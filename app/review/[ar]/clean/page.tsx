@@ -22,14 +22,14 @@ import {
   type TestParameter,
 } from "@/types";
 import { PageTitle } from "@/components/layout/PageTitle";
-import { V3Topbar } from "@/components/v3/Topbar";
-import { V3JourneyMap, type V3NodeState } from "@/components/v3/JourneyMap";
-import { V3ReviewNavigator } from "@/components/v3/ReviewNavigator";
-import { V3AiraRail } from "@/components/v3/AiraRail";
-import { V3EntryCard } from "@/components/v3/EntryCard";
-import { V3FindingPanel } from "@/components/v3/FindingPanel";
-import { V3StatusBar } from "@/components/v3/StatusBar";
-import { V3_RESULT_TONE, V3_THEME_CSS, V3_TONE } from "@/components/v3/theme";
+import { DarkTopbar } from "@/components/dark/DarkTopbar";
+import { V3JourneyMap, type V3NodeState } from "@/components/dark/JourneyMap";
+import { V3ReviewNavigator } from "@/components/dark/ReviewNavigator";
+import { V3AiraRail } from "@/components/dark/AiraRail";
+import { V3EntryCard } from "@/components/dark/EntryCard";
+import { V3FindingPanel } from "@/components/dark/FindingPanel";
+import { V3StatusBar } from "@/components/dark/StatusBar";
+import { V3_RESULT_TONE, V3_THEME_CSS, V3_TONE } from "@/components/dark/theme";
 
 /* The two faces this design uses, scoped to the v3 subtree. */
 const inter = Inter({ subsets: ["latin"], variable: "--v3-font-sans" });
@@ -227,7 +227,7 @@ function Workspace({ batch }: { batch: Batch }) {
       <PageTitle title={`${batch.arNumber} — ${activeSection.name}`} />
 
       <div className="shrink-0">
-        <V3Topbar />
+        <DarkTopbar />
       </div>
 
       <V3JourneyMap groups={groups} onSelect={selectSection} />

@@ -23,7 +23,16 @@ import { DOMAIN_META, type Batch, type Domain } from "@/types";
  * and analyst too, so a query that is not an AR number is perfectly valid —
  * the hint exists for someone who is clearly typing one and has it wrong.
  */
-export const AR_TYPE_CODES = ["FP", "RM", "PM", "IPFP", "ST", "HS", "SFP", "PRS"] as const;
+export const AR_TYPE_CODES = [
+  "FP",
+  "RM",
+  "PM",
+  "IPFP",
+  "ST",
+  "HS",
+  "SFP",
+  "PRS",
+] as const;
 
 export const AR_NUMBER_PATTERN =
   /^\d{2}-(FP|RM|PM|IPFP|ST|HS|SFP|PRS)-\d{2}-\d{4}$/i;
@@ -60,9 +69,9 @@ export interface SearchResult {
 /** Where opening a search result should land. */
 const hrefFor = (batch: Batch): string => {
   const target = firstUnresolvedSection(batch);
-  if (!target) return `/batches/${batch.arNumber}/summary`;
+  if (!target) return `/legacy/batches/${batch.arNumber}/summary`;
 
-  return `/batches/${batch.arNumber}/review/${target.parameter}/${sectionSlug(target)}`;
+  return `/legacy/batches/${batch.arNumber}/review/${target.parameter}/${sectionSlug(target)}`;
 };
 
 const build = (): SearchResult[] =>
@@ -105,11 +114,16 @@ export const searchBatches = (query: string, limit = 6): SearchResult[] => {
   const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   if (terms.length === 0) return [];
 
-  return SEARCH_INDEX.filter((entry) =>
-    terms.every((term) => entry.haystack.includes(term)),
-  )
-    /* Exceptions first — a reviewer searching for a batch usually wants the
+  return (
+    SEARCH_INDEX.filter((entry) =>
+      terms.every((term) => entry.haystack.includes(term)),
+    )
+      /* Exceptions first — a reviewer searching for a batch usually wants the
        one with something to answer for. */
-    .sort((a, b) => b.exceptions - a.exceptions || a.arNumber.localeCompare(b.arNumber))
-    .slice(0, limit);
+      .sort(
+        (a, b) =>
+          b.exceptions - a.exceptions || a.arNumber.localeCompare(b.arNumber),
+      )
+      .slice(0, limit)
+  );
 };
