@@ -20,6 +20,8 @@ import { V3KpiCard } from "@/components/dark/KpiCard";
 import { V3DomainCard } from "@/components/dark/DomainCard";
 import { V3ActivityRow } from "@/components/dark/ActivityRow";
 import { V3AiraHeading, V3InsightCard } from "@/components/dark/InsightCard";
+import { V3AiraAgent } from "@/components/dark/AiraAgent";
+import type { AiraTopic } from "@/components/dark/AiraAgent";
 import {
   AlertCircleIcon,
   ClockIcon,
@@ -159,6 +161,80 @@ export default function V3DashboardPage() {
   const recent = DEMO_PATH.map((ar) =>
     ALL_BATCHES.find((batch) => batch.arNumber === ar),
   ).filter((batch): batch is Batch => batch !== undefined);
+
+  /* What AIRA can be asked here. Every figure is the one already rendered
+     above, so the agent restates the dashboard rather than second-guessing
+     it — and the questions are the ones this desk actually opens with. */
+  const topics: AiraTopic[] = [
+    {
+      id: "flags",
+      question: "Where are the flags?",
+      keywords: ["flag", "block", "worst", "domain", "exception"],
+      answer: worstDomain
+        ? `${blockingTotal} flags are open across ${ALL_BATCHES.length} batches. ${
+            worstDomain.flaggedCount
+          } of them sit in ${
+            DOMAIN_META[worstDomain.domain as Domain].name
+          }, over ${worstDomain.batchCount} ${
+            worstDomain.batchCount === 1 ? "batch" : "batches"
+          } — more than any other domain.`
+        : "No blocking entries are open on any batch under review.",
+      action: worstFlagged
+        ? {
+            label: `Open ${worstFlagged.arNumber}`,
+            onClick: () => router.push(`/review/${worstFlagged.arNumber}`),
+          }
+        : undefined,
+    },
+    {
+      id: "advisory",
+      question: "What needs verifying?",
+      keywords: ["verif", "advisory", "condition", "confirm", "pending"],
+      answer: worstAdvisory
+        ? `${advisoryTotal} entries passed on value but carry a condition I could not confirm from the record. ${
+            worstAdvisory.arNumber
+          } holds ${advisoryItemsInBatch(
+            worstAdvisory,
+          )} of them. None block release — each needs a reviewer to say so.`
+        : "Nothing is waiting on a condition. Every entry either passed outright or is flagged.",
+      action: worstAdvisory
+        ? {
+            label: `Open ${worstAdvisory.arNumber}`,
+            onClick: () => router.push(`/review/${worstAdvisory.arNumber}`),
+          }
+        : undefined,
+    },
+    {
+      id: "sla",
+      question: "Which batches are late?",
+      keywords: ["late", "sla", "overdue", "breach", "time", "slow"],
+      answer: breached
+        ? `${breachedCount} of ${ALL_BATCHES.length} batches are past their review SLA, including ${breached.arNumber} (${breached.product}) — ${breached.slaLabel}.`
+        : `All ${ALL_BATCHES.length} batches under review are inside their SLA window.`,
+      action: breached
+        ? {
+            label: `Open ${breached.arNumber}`,
+            onClick: () => router.push(`/review/${breached.arNumber}`),
+          }
+        : undefined,
+    },
+    {
+      id: "start",
+      question: "Where should I start?",
+      keywords: ["start", "first", "next", "priorit", "should i", "do now"],
+      answer: worstFlagged
+        ? `${worstFlagged.arNumber} (${worstFlagged.product}). It carries ${flaggedItemsInBatch(
+            worstFlagged,
+          )} flags — the most of any batch — and a flag stops release, so it is the one that decides whether this domain moves.`
+        : "Nothing is blocked. The queue is conditions to confirm rather than flags to clear.",
+      action: worstFlagged
+        ? {
+            label: `Open ${worstFlagged.arNumber}`,
+            onClick: () => router.push(`/review/${worstFlagged.arNumber}`),
+          }
+        : undefined,
+    },
+  ];
 
   return (
     <div
@@ -421,6 +497,12 @@ export default function V3DashboardPage() {
           })}
         </div>
       </main>
+
+      <V3AiraAgent
+        scope={`the QA Dashboard — ${ALL_BATCHES.length} batches across ${DOMAINS.length} domains`}
+        greeting={`I have read all ${ALL_BATCHES.length} batches under review. ${blockingTotal} flags are open and ${advisoryTotal} entries need a condition confirmed. Ask me where to start.`}
+        topics={topics}
+      />
     </div>
   );
 }

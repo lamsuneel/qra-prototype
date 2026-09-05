@@ -27,6 +27,8 @@ import { V3KpiCard } from "@/components/dark/KpiCard";
 import { V3CycleTimeChart } from "@/components/dark/CycleTimeChart";
 import { V3ExceptionBars } from "@/components/dark/ExceptionBars";
 import { V3AiraHeading, V3InsightCard } from "@/components/dark/InsightCard";
+import { V3AiraAgent } from "@/components/dark/AiraAgent";
+import type { AiraTopic } from "@/components/dark/AiraAgent";
 import { V3AlertRow } from "@/components/dark/AlertRow";
 import {
   AlertCircleIcon,
@@ -122,6 +124,94 @@ export default function V3CqoPage() {
   const worstStability = [...STABILITY_OUT_OF_WINDOW].sort(
     (a, b) => b.daysOverdue - a.daysOverdue,
   )[0];
+
+  const exceptionTotal = EXCEPTIONS_BY_PARAMETER.reduce(
+    (total, row) => total + row.count,
+    0,
+  );
+  /* Sorted rather than taken at [0]: the fixture happens to be in order,
+     and an agent that says "leads with" must not depend on that. */
+  const topException = [...EXCEPTIONS_BY_PARAMETER].sort(
+    (a, b) => b.count - a.count,
+  )[0];
+  const cycle = KPIS.find((kpi) => kpi.title === "Avg Cycle Time");
+  const rft = KPIS.find((kpi) => kpi.title === "Right First Time");
+  const openOos = MANAGEMENT_ALERTS.filter(
+    (alert) => alert.label === "OOS Open",
+  ).length;
+
+  /* What AIRA can be asked here. The three insight cards state what it found;
+     these are the questions this office asks back, answered from the same
+     tables so the two can never disagree. */
+  const topics: AiraTopic[] = [
+    {
+      id: "exceptions",
+      question: "What drives the exceptions?",
+      keywords: [
+        "exception",
+        "drive",
+        "cause",
+        "most",
+        "parameter",
+        "recurring",
+        "pattern",
+      ],
+      answer: `${exceptionTotal} exceptions were raised this month across ${EXCEPTIONS_BY_PARAMETER.length} parameters. ${topException.category} leads with ${topException.count}, on ${rsBatches.length} ${
+        rsBatches.length === 1 ? "batch" : "batches"
+      }. That is one parameter accounting for ${Math.round(
+        (topException.count / exceptionTotal) * 100,
+      )}% of everything raised.`,
+      action: {
+        label: `View ${topException.category}`,
+        onClick: () => open(topException.category),
+      },
+    },
+    {
+      id: "oos",
+      question: "What is still open?",
+      keywords: ["open", "oos", "close", "outstanding", "unresolved", "alert"],
+      answer: `${MANAGEMENT_ALERTS.length} alerts stand this month, ${openOos} of them OOS investigations awaiting close-out. ${
+        breached
+          ? `${breached.arNumber} (${breached.product}) is the one batch past its SLA.`
+          : "No batch is past its SLA."
+      }`,
+    },
+    {
+      id: "stability",
+      question: "Are we exposed on stability?",
+      keywords: [
+        "stability",
+        "expos",
+        "risk",
+        "window",
+        "overdue",
+        "escalat",
+        "oot",
+      ],
+      answer: worstStability
+        ? `${STABILITY_OUT_OF_WINDOW.length} stability samples are outside their testing window. ${worstStability.arNumber} (${worstStability.product}) is ${worstStability.daysOverdue} days overdue, past the ${STABILITY_WINDOW_STATUS.escalationDays}-day escalation threshold. Out-of-window pulls are a data-integrity exposure before they are a scheduling one — the result cannot be attributed to the timepoint on the protocol.`
+        : "Every stability sample is inside its configured testing window.",
+      action: {
+        label: "View stability tracker",
+        onClick: () => router.push("/legacy/management/gm-qa"),
+      },
+    },
+    {
+      id: "performance",
+      question: "How is the function performing?",
+      keywords: [
+        "perform",
+        "cycle",
+        "time",
+        "rft",
+        "right first",
+        "trend",
+        "kpi",
+        "doing",
+      ],
+      answer: `Cycle time is ${cycle?.value ?? "unreported"} against a ${SLA_TARGET_DAYS}-day target (${cycle?.trend ?? "no trend on record"}). Right First Time is ${rft?.value ?? "unreported"}, ${rft?.trend ?? "with no comparison on record"}. The headline is improving while ${exceptionTotal} exceptions still cluster on ${topException.category.toLowerCase()} — speed is not the constraint here.`,
+    },
+  ];
 
   return (
     <div
@@ -421,6 +511,12 @@ export default function V3CqoPage() {
           {MANAGEMENT_FOOTER_NOTE}
         </p>
       </main>
+
+      <V3AiraAgent
+        scope={`the quality function for ${MONTHS[DEMO_TODAY.getMonth()]} ${DEMO_TODAY.getFullYear()}`}
+        greeting={`I have read this month across ${ALL_BATCHES.length} batches. ${exceptionTotal} exceptions were raised and ${MANAGEMENT_ALERTS.length} alerts stand. Ask me what is behind them.`}
+        topics={topics}
+      />
     </div>
   );
 }

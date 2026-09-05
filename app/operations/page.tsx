@@ -24,6 +24,8 @@ import { V3KpiCard } from "@/components/dark/KpiCard";
 import { V3Badge } from "@/components/dark/Badge";
 import { V3ExceptionBars } from "@/components/dark/ExceptionBars";
 import { V3AiraHeading, V3InsightCard } from "@/components/dark/InsightCard";
+import { V3AiraAgent } from "@/components/dark/AiraAgent";
+import type { AiraTopic } from "@/components/dark/AiraAgent";
 import { V3_THEME_CSS, V3_TONE, type V3Tone } from "@/components/dark/theme";
 
 /* The design's two faces, scoped to the v3 subtree. */
@@ -104,6 +106,70 @@ export default function V3OperationsPage() {
   );
   const slowest = byPace[0];
   const fastest = byPace[byPace.length - 1];
+
+  const worstStability = [...STABILITY_OUT_OF_WINDOW].sort(
+    (a, b) => b.daysOverdue - a.daysOverdue,
+  )[0];
+
+  /* What AIRA can be asked here. Each answer is counted from the same table
+     it sits beside, so the agent cannot get ahead of the evidence. */
+  const topics: AiraTopic[] = [
+    {
+      id: "pending",
+      question: "Why are samples pending?",
+      keywords: ["pending", "stuck", "waiting", "backlog", "why", "held"],
+      answer: `${heldTotal} samples are held. ${topReason.samples} of them — ${Math.round(
+        (topReason.samples / heldTotal) * 100,
+      )}% — are on ${topReason.reason.toLowerCase()}, more than the other ${
+        PENDING_BY_REASON.length - 1
+      } reasons put together. The backlog has one cause, so it clears on one fix.`,
+      action: {
+        label: `Show the ${topReason.samples} held samples`,
+        onClick: () => setDrilldown(topReason.reason),
+      },
+    },
+    {
+      id: "pace",
+      question: "Which domain is slowest?",
+      keywords: [
+        "slow",
+        "fast",
+        "pace",
+        "turnaround",
+        "cycle",
+        "domain",
+        "days",
+      ],
+      answer: `${slowest.domain}, at ${slowest.avgDays} to release against ${fastest.avgDays} for ${fastest.domain}. It has ${slowest.pending} samples still pending at ${slowest.percentComplete}% complete. The gap is turnaround, not volume — ${fastest.domain} carries more samples and clears them faster.`,
+    },
+    {
+      id: "authorise",
+      question: "What is waiting on me?",
+      keywords: [
+        "me",
+        "my",
+        "waiting",
+        "approve",
+        "approval",
+        "authoris",
+        "authoriz",
+        "sign",
+      ],
+      answer: `${AWAITING_AUTHORISATION_COUNT} batches have cleared QA review and sit at manager approval. That gate is yours alone — nothing downstream of it moves until you act.`,
+      action: {
+        label: "Go to authorisation queue",
+        onClick: () => router.push("/legacy/authorise"),
+      },
+    },
+    {
+      id: "stability",
+      question: "Any stability samples overdue?",
+      keywords: ["stability", "overdue", "window", "escalat", "oot", "late"],
+      answer: worstStability
+        ? `${STABILITY_OUT_OF_WINDOW.length} stability samples are outside their testing window. The furthest behind is ${worstStability.arNumber} (${worstStability.product}, ${worstStability.stage}), ${worstStability.daysOverdue} days past its ${worstStability.scheduled} pull date. ${escalated} of the ${STABILITY_OUT_OF_WINDOW.length} are past the ${STABILITY_WINDOW_STATUS.escalationDays}-day threshold, which makes them an escalation rather than a reschedule.`
+        : "Every stability sample is inside its configured testing window.",
+    },
+  ];
 
   return (
     <div
@@ -477,6 +543,12 @@ export default function V3OperationsPage() {
           </table>
         </section>
       </main>
+
+      <V3AiraAgent
+        scope={`QA Operations — ${valueOf("Total Active Samples")} active samples`}
+        greeting={`I have read the pipeline for ${month}. ${heldTotal} samples are held and ${AWAITING_AUTHORISATION_COUNT} batches sit at your approval gate. Ask me what is holding them.`}
+        topics={topics}
+      />
     </div>
   );
 }
