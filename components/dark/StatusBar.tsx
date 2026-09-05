@@ -89,7 +89,7 @@ export function V3StatusBar({
                 : "cursor-pointer border border-[var(--v3-accent-border)] bg-[var(--v3-accent-bg)] text-[var(--v3-accent)] hover:bg-[rgba(77,158,255,0.20)]"
           }`}
         >
-          {reviewed ? "Section reviewed" : "Mark section reviewed"}
+          {reviewed ? "Reviewed" : "Mark as Reviewed"}
         </button>
       </div>
     </div>

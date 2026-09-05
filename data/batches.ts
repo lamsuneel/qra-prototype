@@ -16,11 +16,7 @@ import { SOP, acceptabilityRule } from "./rules";
 
 /** The border-limit rule, named on every entry it produces. */
 const EMP_F23 = "FU7-QA-GEN-080 EMP-F23";
-import {
-  attendanceCheck,
-  empowerAuditTrail,
-  nonCdsAuditTrail,
-} from "./checks";
+import { attendanceCheck, empowerAuditTrail, nonCdsAuditTrail } from "./checks";
 
 /**
  * Finished Product review data.
@@ -281,7 +277,8 @@ const chemicalsCompliant = () => [
     actualQty: "450 mL",
     reference: "Lot AC-2024-0441",
     expected: "Active entry, within expiry — SOP-CHEM-003",
-    actual: "Acetonitrile HPLC grade — Lot AC-2024-0441 — active, expiry 30-Nov-2026",
+    actual:
+      "Acetonitrile HPLC grade — Lot AC-2024-0441 — active, expiry 30-Nov-2026",
     expectedSource: "SOP-CHEM-003",
     details: [
       { label: "Lot number", value: "AC-2024-0441" },
@@ -322,7 +319,8 @@ const chemicalsCompliant = () => [
     quantityComparison: "WITHIN TOLERANCE",
     reference: "Lot PH-2024-0892",
     expected: "Active entry, within expiry — SOP-CHEM-003",
-    actual: "Potassium dihydrogen phosphate — Lot PH-2024-0892 — active, expiry 31-Oct-2026",
+    actual:
+      "Potassium dihydrogen phosphate — Lot PH-2024-0892 — active, expiry 31-Oct-2026",
     expectedSource: "SOP-CHEM-003",
     details: [
       { label: "Lot number", value: "PH-2024-0892" },
@@ -355,8 +353,14 @@ const standardsCompliant = () => [
       { label: "Solution prepared", value: "14-Aug-2026 08:30" },
       { label: "Validity period", value: "24 hours from preparation" },
       { label: "Analysis performed", value: "14-Aug-2026 10:45" },
-      { label: "Valid at time of analysis", value: "YES — 2h 15m into a 24 hour window" },
-      { label: "Prepared from", value: "RS-2024-18, Amoxicillin USP Reference Standard" },
+      {
+        label: "Valid at time of analysis",
+        value: "YES — 2h 15m into a 24 hour window",
+      },
+      {
+        label: "Prepared from",
+        value: "RS-2024-18, Amoxicillin USP Reference Standard",
+      },
       { label: "Assigned potency", value: "99.6 % on the anhydrous basis" },
       { label: "Status in LIMS", value: "Active" },
       { label: "Expiry date", value: "31-Oct-2026" },
@@ -379,7 +383,10 @@ const standardsCompliant = () => [
     expectedSource: "SOP-STD-002",
     details: [
       { label: "Standard number", value: "RS-2024-18" },
-      { label: "Origin", value: "United States Pharmacopeia, catalogue 1033005" },
+      {
+        label: "Origin",
+        value: "United States Pharmacopeia, catalogue 1033005",
+      },
       { label: "Assigned potency", value: "99.8 % on the anhydrous basis" },
       { label: "Status in LIMS", value: "Active" },
       { label: "Expiry date", value: "30-Nov-2026" },
@@ -399,7 +406,8 @@ const standardsCompliant = () => [
     reference: "WS-2024-41",
     statusText: "Within window",
     expected: "Used within 24 hours of first opening — SOP-STD-002 §6.2",
-    actual: "First opened 30-Jul-2026 08:05, last used 30-Jul-2026 14:32 — 6h 27m",
+    actual:
+      "First opened 30-Jul-2026 08:05, last used 30-Jul-2026 14:32 — 6h 27m",
     expectedSource: "SOP-STD-002 §6.2",
   }),
 ];
@@ -423,7 +431,10 @@ const instrumentsCompliant = () => [
         label: "Daily verification",
         value: "Recorded 30-Jul-2026 · 07:52 AM, before first use",
       },
-      { label: "Used for this test", value: "30-Jul-2026 · 08:00 AM to 08:45 AM" },
+      {
+        label: "Used for this test",
+        value: "30-Jul-2026 · 08:00 AM to 08:45 AM",
+      },
       { label: "Status in LIMS", value: "Active, no open maintenance" },
     ],
   }),
@@ -451,7 +462,8 @@ const chromatographyCompliant = (systemId: string) => [
     sopReference: SOP.CHROMATOGRAM,
     reference: "AMX-ASSAY-140826-01",
     statusText: "Reviewed",
-    expected: "Every field on the chromatogram read against the worksheet and the STP",
+    expected:
+      "Every field on the chromatogram read against the worksheet and the STP",
     actual: "24 of 24 chromatogram fields read and reconciled",
     expectedSource: SOP.CHROMATOGRAM,
     source: EMPOWER,
@@ -486,7 +498,10 @@ const chromatographyCompliant = (systemId: string) => [
       { label: "Int type", value: "BB (baseline to baseline)" },
       { label: "% known impurity", value: "0.02%" },
       { label: "% unknown impurity", value: "0.01%" },
-      { label: "Result sign-off", value: "Analyst 14-Aug-2026 · Reviewer 15-Aug-2026" },
+      {
+        label: "Result sign-off",
+        value: "Analyst 14-Aug-2026 · Reviewer 15-Aug-2026",
+      },
     ],
   }),
   compliant({
@@ -653,7 +668,12 @@ interface TitratorFacts {
  * that carry the demo findings.
  */
 const titratorRoutineChecks = (facts: TitratorFacts): CheckItem[] => {
-  const clean = (flagId: string, label: string, expected: string, actual: string) =>
+  const clean = (
+    flagId: string,
+    label: string,
+    expected: string,
+    actual: string,
+  ) =>
     compliant({
       flagId,
       sopReference: SOP.TIAMO,
@@ -750,7 +770,10 @@ const titratorRoutineChecks = (facts: TitratorFacts): CheckItem[] => {
           label: "Required order",
           value: "Determination start before weight print start (Karl Fischer)",
         },
-        { label: "Result", value: "✓ Determination started before weight print" },
+        {
+          label: "Result",
+          value: "✓ Determination started before weight print",
+        },
       ],
     }),
     clean(
@@ -969,9 +992,11 @@ const batchBSections: Section[] = [
       label: "Acetonitrile — inactivated entry detected",
       reference: "AC-7701",
       expected: "Active entries only — SOP-CHEM-003",
-      actual: "Inactivated entry AC-7701 (Acetonitrile) present in the usage record",
+      actual:
+        "Inactivated entry AC-7701 (Acetonitrile) present in the usage record",
       expectedSource: "SOP-CHEM-003",
-      comparison: "QRA found an inactivated entry in the LIMS chemical audit trail",
+      comparison:
+        "NeuraTrace found an inactivated entry in the LIMS chemical audit trail",
       flagReason:
         "An inactivated chemical entry was used in the analysis. Inactivated entries are withdrawn from use and should not appear in the usage record.",
       flagAction:
@@ -989,7 +1014,8 @@ const batchBSections: Section[] = [
       requiresQuantityCheck: true,
       prescribedQty: "250 mL",
       actualQty: "250 mL",
-      expected: "Inactivation authorised before the entry leaves service — SOP-CHEM-003 §7",
+      expected:
+        "Inactivation authorised before the entry leaves service — SOP-CHEM-003 §7",
       actual:
         "Methanol HPLC grade — Lot MET-2024-118 — inactivated 12-Jul-2026, authorised by the QC supervisor",
       expectedSource: "SOP-CHEM-003 §7",
@@ -998,7 +1024,10 @@ const batchBSections: Section[] = [
       details: [
         { label: "Lot number", value: "MET-2024-118" },
         { label: "Manufacturer", value: "Merck" },
-        { label: "Reason for inactivation", value: "Container seal integrity not assured" },
+        {
+          label: "Reason for inactivation",
+          value: "Container seal integrity not assured",
+        },
         { label: "Inactivated on", value: "12-Jul-2026" },
         { label: "Authorised by", value: "S. Deshmukh, QC Supervisor" },
         { label: "Quantity used before inactivation", value: "250 mL" },
@@ -1074,7 +1103,8 @@ const batchBSections: Section[] = [
         label: "Weighing Balance BAL-001",
         reference: "Cal. due 14-Nov-2026",
         statusText: "Calibrated",
-        expected: "Calibration current and within tolerance at date of use — SOP-INST-004",
+        expected:
+          "Calibration current and within tolerance at date of use — SOP-INST-004",
         actual:
           "BAL-001 — calibrated 14-May-2026, due 14-Nov-2026, daily check 200.0001 g against a 200 g test weight",
         expectedSource: "SOP-INST-004",
@@ -1084,10 +1114,16 @@ const batchBSections: Section[] = [
           { label: "Instrument ID", value: "BAL-001" },
           { label: "Make and model", value: "Sartorius Cubis II MSA225S" },
           { label: "Software", value: "Sartorius QApp 4.2" },
-          { label: "Calibration status", value: "Calibrated — within interval" },
+          {
+            label: "Calibration status",
+            value: "Calibrated — within interval",
+          },
           { label: "Last calibrated", value: "14-May-2026" },
           { label: "Calibration due", value: "14-Nov-2026" },
-          { label: "Daily check", value: "200.0001 g against a 200 g test weight, tolerance ± 0.2 mg" },
+          {
+            label: "Daily check",
+            value: "200.0001 g against a 200 g test weight, tolerance ± 0.2 mg",
+          },
           { label: "Record held in", value: "Caliber LIMS" },
         ],
       }),
@@ -1107,10 +1143,19 @@ const batchBSections: Section[] = [
         { label: "Solution prepared", value: "14-Aug-2026 08:15" },
         { label: "Validity period", value: "24 hours from preparation" },
         { label: "Analysis performed", value: "14-Aug-2026 11:20" },
-        { label: "Valid at time of analysis", value: "YES — 3h 05m into a 24 hour window" },
-        { label: "Origin", value: "United States Pharmacopeia, catalogue 1033005" },
+        {
+          label: "Valid at time of analysis",
+          value: "YES — 3h 05m into a 24 hour window",
+        },
+        {
+          label: "Origin",
+          value: "United States Pharmacopeia, catalogue 1033005",
+        },
         { label: "Assigned potency", value: "99.7 % on the anhydrous basis" },
-        { label: "Potency held in", value: "eLIMS Reference Standard Audit Trail" },
+        {
+          label: "Potency held in",
+          value: "eLIMS Reference Standard Audit Trail",
+        },
         { label: "Status in LIMS", value: "Active" },
         { label: "Expiry date", value: "15-Dec-2026" },
       ],
@@ -1126,12 +1171,17 @@ const batchBSections: Section[] = [
   ]),
   section("rs", "Instruments", 3, instrumentsCompliant()),
   section("rs", "Chromatography", 4, chromatographyCompliant("HPLC-001")),
-  section("rs", "Column", 5, columnCompliant("COL-2024-09", 412, 400).map((item) => ({
-    ...item,
-    result: "COMPLIANT" as const,
-    actual: "COL-2024-09 — same column as Assay, flagged there",
-    statusText: "See Assay",
-  }))),
+  section(
+    "rs",
+    "Column",
+    5,
+    columnCompliant("COL-2024-09", 412, 400).map((item) => ({
+      ...item,
+      result: "COMPLIANT" as const,
+      actual: "COL-2024-09 — same column as Assay, flagged there",
+      statusText: "See Assay",
+    })),
+  ),
 
   /* ---- Dissolution ---- */
   section("disso", "Chemicals", 1, [
@@ -1201,14 +1251,18 @@ const batchBSections: Section[] = [
       details: [
         { label: "Instrument ID", value: "UV-2024-02" },
         { label: "Make and model", value: "Shimadzu UV-1900i" },
-        { label: "Calibration status", value: "Overdue — 29 days past due at date of use" },
+        {
+          label: "Calibration status",
+          value: "Overdue — 29 days past due at date of use",
+        },
         { label: "Last calibrated", value: "01-Jan-2026" },
         { label: "Calibration due", value: "01-Jul-2026" },
         { label: "Record held in", value: "Caliber LIMS" },
       ],
       reference: "Cal. due 01-Jul-2026",
       expected: "Calibration due date after date of use — SOP-INST-004",
-      actual: "UV-2024-02 — calibration overdue since 01-Jul-2026, used 09:15 to 11:45",
+      actual:
+        "UV-2024-02 — calibration overdue since 01-Jul-2026, used 09:15 to 11:45",
       expectedSource: "SOP-INST-004",
       comparison: "Calibration due date precedes the analysis date by 29 days",
       flagReason:
@@ -1262,7 +1316,8 @@ const batchBSections: Section[] = [
         label: "Tablet Processing Workstation TPW-001",
         reference: "Cal. due 30-Sep-2026",
         statusText: "Calibrated",
-        expected: "Calibration current and within tolerance at date of use — SOP-INST-004",
+        expected:
+          "Calibration current and within tolerance at date of use — SOP-INST-004",
         actual:
           "TPW-001 — calibrated 15-Jul-2026, due 30-Sep-2026, daily check 80.2 N against an 80 N hardness reference",
         expectedSource: "SOP-INST-004",
@@ -1272,14 +1327,26 @@ const batchBSections: Section[] = [
           { label: "Instrument ID", value: "TPW-001" },
           { label: "Make and model", value: "Tablet Processing Workstation" },
           { label: "Software", value: "TPW" },
-          { label: "Records", value: "Tablet hardness, friability and disintegration" },
-          { label: "Calibration status", value: "Calibrated — within interval" },
+          {
+            label: "Records",
+            value: "Tablet hardness, friability and disintegration",
+          },
+          {
+            label: "Calibration status",
+            value: "Calibrated — within interval",
+          },
           { label: "Last calibrated", value: "15-Jul-2026" },
           { label: "Calibration due", value: "30-Sep-2026" },
-          { label: "Daily check", value: "80.2 N against an 80 N hardness reference, tolerance ± 2 N" },
+          {
+            label: "Daily check",
+            value: "80.2 N against an 80 N hardness reference, tolerance ± 2 N",
+          },
           { label: "Record held in", value: "Caliber LIMS" },
           { label: "Hardness", value: "8.2 kP — specification 6.0 to 12.0 kP" },
-          { label: "Friability", value: "0.3 % — specification not more than 1.0 %" },
+          {
+            label: "Friability",
+            value: "0.3 % — specification not more than 1.0 %",
+          },
           {
             label: "Disintegration",
             value: "8 min — specification not more than 15 min",
@@ -1309,7 +1376,8 @@ const batchBSections: Section[] = [
         label: "Dissolution bath temperature and paddle speed",
         reference: "Checked at 0, 15 and 45 minutes",
         statusText: "Within limits",
-        expected: "37 °C ± 0.5 °C and 50 rpm ± 4 % throughout the run — SOP-DISS-001 §6.2",
+        expected:
+          "37 °C ± 0.5 °C and 50 rpm ± 4 % throughout the run — SOP-DISS-001 §6.2",
         actual:
           "36.9 °C / 37.1 °C / 37.0 °C and 50 rpm at each check, transcribed from logbook LB-2026-FP-014",
         expectedSource: "SOP-DISS-001 §6.2",
@@ -1319,7 +1387,8 @@ const batchBSections: Section[] = [
         label: "Medium preparation and de-aeration",
         reference: "0.1 N HCl, 900 mL per vessel",
         statusText: "Verified",
-        expected: "Medium de-aerated and volume verified before the run — SOP-DISS-001 §5.4",
+        expected:
+          "Medium de-aerated and volume verified before the run — SOP-DISS-001 §5.4",
         actual:
           "900 mL per vessel, de-aerated by vacuum filtration, verified at 08:20 and recorded in logbook LB-2026-FP-014",
         expectedSource: "SOP-DISS-001 §5.4",
@@ -1330,7 +1399,8 @@ const batchBSections: Section[] = [
       paperLogbook: {
         reference: "Logbook LB-2026-FP-014",
         page: "Page 22",
-        description: "Dissolution bath check — read from the panel and recorded by hand",
+        description:
+          "Dissolution bath check — read from the panel and recorded by hand",
         note: "The bath on this line has no data link to LIMS and keeps no audit trail of its own, so medium temperature and paddle speed are written into the line logbook at each check point.",
       },
     },
@@ -1345,7 +1415,8 @@ const batchBSections: Section[] = [
       actualQty: "40 mL",
       reference: "Lot KFR-2024-023",
       expected: "Active entry, within expiry — SOP-CHEM-003",
-      actual: "Karl Fischer Reagent — Lot KFR-2024-023 — active, expiry 31-Aug-2026",
+      actual:
+        "Karl Fischer Reagent — Lot KFR-2024-023 — active, expiry 31-Aug-2026",
       expectedSource: "SOP-CHEM-003",
     }),
     compliant({
@@ -1355,7 +1426,8 @@ const batchBSections: Section[] = [
       actualQty: "50 mL",
       reference: "Lot MET-2024-221",
       expected: "Active entry, within expiry — SOP-CHEM-003",
-      actual: "Methanol anhydrous — Lot MET-2024-221 — active, expiry 30-Sep-2026",
+      actual:
+        "Methanol anhydrous — Lot MET-2024-221 — active, expiry 30-Sep-2026",
       expectedSource: "SOP-CHEM-003",
     }),
   ]),
@@ -1482,7 +1554,8 @@ const batchBSections: Section[] = [
         label: "Sample data live modified before titration start",
         reference: "REQUEST 2026-0774",
         statusText: "Acceptable if condition met",
-        expected: "Old and new values verified against the worksheet — PASS-TIA-03",
+        expected:
+          "Old and new values verified against the worksheet — PASS-TIA-03",
         actual:
           "Sample weight modified 08:43:55, before determination start 08:44:02 — old 24.6 mg, new 24.8 mg, REQUEST 2026-0774",
         expectedSource: SOP.TIAMO,
@@ -1501,19 +1574,46 @@ const batchBSections: Section[] = [
         reference: "COND BUSY not detected",
         statusText: "Clean start",
         expected: "Conditioning complete before the determination starts",
-        actual: "Determination #001 started at 08:44:02 with conditioning complete",
+        actual:
+          "Determination #001 started at 08:44:02 with conditioning complete",
         expectedSource: "QRA-CP-F-QCCI-GEN-0013",
-        comparison: "No COND BUSY entry between conditioning stopped and determination start",
+        comparison:
+          "No COND BUSY entry between conditioning stopped and determination start",
         source: "Tiamo 2.4",
       }),
       compliant({
         label: "Result — Karl Fischer Titration",
         auditTrailSequence: [
-          { step: 1, label: "Conditioning started", timestamp: "30-Jul-2026 08:44:02", status: "ok" },
-          { step: 2, label: "Weight added", timestamp: "30-Jul-2026 08:45:10", status: "out-of-order" },
-          { step: 3, label: "Analysis started", timestamp: "30-Jul-2026 08:45:38", status: "out-of-order" },
-          { step: 4, label: "Conditioning stopped", timestamp: "30-Jul-2026 08:51:20", status: "ok" },
-          { step: 5, label: "Finished", timestamp: "30-Jul-2026 08:52:04", status: "ok" },
+          {
+            step: 1,
+            label: "Conditioning started",
+            timestamp: "30-Jul-2026 08:44:02",
+            status: "ok",
+          },
+          {
+            step: 2,
+            label: "Weight added",
+            timestamp: "30-Jul-2026 08:45:10",
+            status: "out-of-order",
+          },
+          {
+            step: 3,
+            label: "Analysis started",
+            timestamp: "30-Jul-2026 08:45:38",
+            status: "out-of-order",
+          },
+          {
+            step: 4,
+            label: "Conditioning stopped",
+            timestamp: "30-Jul-2026 08:51:20",
+            status: "ok",
+          },
+          {
+            step: 5,
+            label: "Finished",
+            timestamp: "30-Jul-2026 08:52:04",
+            status: "ok",
+          },
         ],
         serialContinuity: { range: "Trial #001 – #002" },
         comparison: "Audit trail sequence read against the method",
@@ -1597,7 +1697,6 @@ const batchBSections: Section[] = [
     }),
   ]),
 
-
   /* MassLynx keeps an audit trail too; it is a report rather than a
      database, so the same six questions are put to the PDF. */
   section(
@@ -1616,7 +1715,8 @@ const batchBSections: Section[] = [
       actualQty: "200 mL",
       reference: "Lot ACM-2024-018",
       expected: "Active entry, within expiry — SOP-CHEM-003",
-      actual: "Acetonitrile LC-MS grade — Lot ACM-2024-018 — active, expiry 31-Jan-2027",
+      actual:
+        "Acetonitrile LC-MS grade — Lot ACM-2024-018 — active, expiry 31-Jan-2027",
       expectedSource: "SOP-CHEM-003",
     }),
     compliant({
@@ -1625,7 +1725,8 @@ const batchBSections: Section[] = [
       actualQty: "1.0 mL",
       reference: "Lot FMA-2024-007",
       expected: "Active entry, within expiry — SOP-CHEM-003",
-      actual: "Formic acid LC-MS grade — Lot FMA-2024-007 — active, expiry 30-Nov-2026",
+      actual:
+        "Formic acid LC-MS grade — Lot FMA-2024-007 — active, expiry 30-Nov-2026",
       expectedSource: "SOP-CHEM-003",
     }),
   ]),
@@ -1636,9 +1737,18 @@ const batchBSections: Section[] = [
       potencySource: "Caliber LIMS — eLIMS Reference Standard Audit Trail",
       details: [
         { label: "Standard number", value: "RS-MPTS-2024-03" },
-        { label: "Origin", value: "Sigma-Aldrich, certified reference material" },
-        { label: "Assigned potency", value: "99.2 % as methyl p-toluenesulphonate" },
-        { label: "Potency held in", value: "eLIMS Reference Standard Audit Trail" },
+        {
+          label: "Origin",
+          value: "Sigma-Aldrich, certified reference material",
+        },
+        {
+          label: "Assigned potency",
+          value: "99.2 % as methyl p-toluenesulphonate",
+        },
+        {
+          label: "Potency held in",
+          value: "eLIMS Reference Standard Audit Trail",
+        },
         { label: "Status in LIMS", value: "Active" },
         { label: "Expiry date", value: "28-Feb-2027" },
       ],
@@ -1692,7 +1802,8 @@ const batchBSections: Section[] = [
         expected: "Not more than 0.05 ppm — ICH M7 permitted daily exposure",
         actual: "0.08 ppm (mean of 3 injections: 0.081, 0.079, 0.080)",
         expectedSource: "ICH M7",
-        comparison: "Reported result exceeds the ICH M7 permitted limit by 0.03 ppm",
+        comparison:
+          "Reported result exceeds the ICH M7 permitted limit by 0.03 ppm",
         flagReason:
           "Result (0.08 ppm) exceeds ICH M7 specification limit (NMT 0.05 ppm). Source: MassLynx via Caliber LIMS.",
         flagAction:
@@ -1782,8 +1893,12 @@ const cleanAssaySections = (columnId: string, used: number): Section[] => [
  * it to Rajesh; every section is therefore already marked as reviewed.
  */
 const batchASections: Section[] = [
-  section("assay", "Chemicals", 1, chemicalsCompliant(), { status: "REVIEWED" }),
-  section("assay", "Standards", 2, standardsCompliant(), { status: "REVIEWED" }),
+  section("assay", "Chemicals", 1, chemicalsCompliant(), {
+    status: "REVIEWED",
+  }),
+  section("assay", "Standards", 2, standardsCompliant(), {
+    status: "REVIEWED",
+  }),
   section(
     "assay",
     "Instruments",
@@ -1794,7 +1909,10 @@ const batchASections: Section[] = [
         details: [
           { label: "Instrument ID", value: "BAL-2024-003" },
           { label: "Make and model", value: "Mettler Toledo XPR205" },
-          { label: "Calibration status", value: "Calibrated — within interval" },
+          {
+            label: "Calibration status",
+            value: "Calibrated — within interval",
+          },
           { label: "Last calibrated", value: "10-Apr-2026" },
           { label: "Calibration due", value: "10-Oct-2026" },
           { label: "Record held in", value: "Caliber LIMS" },
@@ -1802,7 +1920,8 @@ const batchASections: Section[] = [
         reference: "Cal. due 10-Oct-2026",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",
-        actual: "BAL-2024-003 — calibrated, due 10-Oct-2026, used 07:40 to 08:20",
+        actual:
+          "BAL-2024-003 — calibrated, due 10-Oct-2026, used 07:40 to 08:20",
         expectedSource: "SOP-INST-004",
       }),
       {
@@ -1811,7 +1930,10 @@ const batchASections: Section[] = [
           details: [
             { label: "Instrument ID", value: "SON-2024-002" },
             { label: "Make and model", value: "Elma Elmasonic P30H" },
-            { label: "Calibration status", value: "Calibrated — within interval" },
+            {
+              label: "Calibration status",
+              value: "Calibrated — within interval",
+            },
             { label: "Last calibrated", value: "18-May-2026" },
             { label: "Calibration due", value: "18-Nov-2026" },
             { label: "Record held in", value: "Caliber LIMS" },
