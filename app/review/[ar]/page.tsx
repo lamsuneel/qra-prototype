@@ -513,8 +513,8 @@ function Workspace({
               name: section.name,
               blocking: countWhere(section.items, isException),
               advisory: countWhere(section.items, isAdvisory),
+              total: section.items.length,
               active: section.id === activeSection.id,
-              reviewed: sectionStatus(section.id) === "REVIEWED",
             }),
           )}
           onSelect={selectSection}

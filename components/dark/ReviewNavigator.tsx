@@ -10,25 +10,27 @@ export interface V3NavSection {
   blocking: number;
   /** Entries to confirm rather than resolve. */
   advisory: number;
+  /** How many entries the section holds at all. */
+  total: number;
   active: boolean;
-  reviewed: boolean;
 }
 
 /**
- * What the section wants from the reviewer, in one colour.
+ * What the section's entries came back as, in one colour.
  *
- * Blocking first, then a condition to confirm, then whether it has been
- * closed. A section with nothing outstanding stays grey until it is marked:
- * the dot is a worklist, not a verdict on the data.
+ * Blocking first, then a condition to confirm, then clear. It reads the data
+ * rather than the reviewer's progress through it: a section where everything
+ * passed is green on sight, not once it has been marked. Grey is left for a
+ * section holding nothing, where there is no verdict to report.
  */
 const dotFor = (section: V3NavSection): string =>
-  section.blocking > 0
-    ? V3_TONE.blocking
-    : section.advisory > 0
-      ? V3_TONE.advisory
-      : section.reviewed
-        ? V3_TONE.compliant
-        : V3_TONE.muted;
+  section.total === 0
+    ? V3_TONE.muted
+    : section.blocking > 0
+      ? V3_TONE.blocking
+      : section.advisory > 0
+        ? V3_TONE.advisory
+        : V3_TONE.compliant;
 
 export interface V3NavStat {
   label: string;
@@ -40,9 +42,11 @@ export interface V3NavStat {
  * The left rail: what batch this is, how far through it the reviewer is, and
  * which section they are standing in.
  *
- * The section list is capped and scrolls. The parameter being reviewed can
- * carry nine sections, and a list that grows with it would push AIRA off the
- * bottom of the rail on exactly the batches where AIRA has most to say.
+ * The rail scrolls as one thing. Capping the section list instead kept AIRA
+ * in view, but it did so by pushing the progress block off the bottom on any
+ * parameter carrying more than a few sections -- the reviewer could see how
+ * far there was to go only by never looking at the sections. One bar for the
+ * whole rail costs AIRA its fixed seat and gives the rest of the rail back.
  */
 export function V3ReviewNavigator({
   context,
@@ -70,7 +74,7 @@ export function V3ReviewNavigator({
       : Math.round((progress.done / progress.total) * 100);
 
   return (
-    <nav className="flex w-[260px] shrink-0 flex-col overflow-hidden border-r border-[var(--v3-border-default)] bg-[var(--v3-bg-surface)]">
+    <nav className="flex w-[260px] shrink-0 flex-col overflow-y-auto border-r border-[var(--v3-border-default)] bg-[var(--v3-bg-surface)]">
       <div className="shrink-0 border-b border-[var(--v3-border-subtle)] px-4 py-3">
         <span className="text-[9px] font-medium tracking-[0.08em] text-[var(--v3-text-secondary)] uppercase">
           Review Navigator
@@ -110,7 +114,7 @@ export function V3ReviewNavigator({
         <div className="px-4 py-2 text-[9px] font-medium tracking-[0.08em] text-[var(--v3-text-secondary)] uppercase">
           {`${parameterName} — Sections`}
         </div>
-        <div className="max-h-[220px] overflow-y-auto">
+        <div>
           {sections.map((section) => (
             <button
               key={section.id}

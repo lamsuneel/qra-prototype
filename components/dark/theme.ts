@@ -144,6 +144,27 @@ export const V3_THEME_CSS = `
   animation: v3-fade-up 300ms ease forwards;
 }
 
+/* The panels scroll against a dark ground, and the platform draws its bar
+   for a light one. Thin, and only as present as it needs to be. */
+.v3-root * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--v3-border-strong) transparent;
+}
+.v3-root *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.v3-root *::-webkit-scrollbar-track {
+  background: transparent;
+}
+.v3-root *::-webkit-scrollbar-thumb {
+  background: var(--v3-border-strong);
+  border-radius: 4px;
+}
+.v3-root *::-webkit-scrollbar-thumb:hover {
+  background: #3a3e5c;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .v3-root *,
   .v3-flag-node {
