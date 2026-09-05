@@ -31,8 +31,8 @@ export default function AuthoriseDetailPage() {
   const batch = getBatch(params.id);
 
   useEffect(() => {
-    if (!profile) router.replace("/");
-    else if (profile.role === "REVIEWER") router.replace("/dashboard");
+    if (!profile) router.replace("/legacy");
+    else if (profile.role === "REVIEWER") router.replace("/legacy/dashboard");
   }, [profile, router]);
 
   useEffect(() => {

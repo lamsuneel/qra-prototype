@@ -42,11 +42,11 @@ export default function BatchListPage() {
   const meta = DOMAIN_BY_SLUG[params.id];
 
   useEffect(() => {
-    if (!profile) router.replace("/");
+    if (!profile) router.replace("/legacy");
   }, [profile, router]);
 
   useEffect(() => {
-    if (!meta) router.replace("/dashboard");
+    if (!meta) router.replace("/legacy/dashboard");
   }, [meta, router]);
 
   if (!profile || !meta) return null;
@@ -76,20 +76,26 @@ export default function BatchListPage() {
     }
   };
 
-  const totalFlagged = all.reduce((sum, batch) => sum + flaggedItemsInBatch(batch), 0);
+  const totalFlagged = all.reduce(
+    (sum, batch) => sum + flaggedItemsInBatch(batch),
+    0,
+  );
 
   return (
     <div className="flex min-h-dvh flex-col bg-app-bg">
       <PageTitle title={meta.name} />
       <TopNav />
       <Breadcrumbs
-        crumbs={[{ label: "QA Dashboard", href: "/dashboard" }, { label: meta.name }]}
+        crumbs={[
+          { label: "QA Dashboard", href: "/dashboard" },
+          { label: meta.name },
+        ]}
       />
 
       <main className="flex-1 px-6 py-7 lg:px-10">
         <button
           type="button"
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push("/legacy/dashboard")}
           className="mb-3 inline-flex cursor-pointer items-center gap-1.5 text-xs text-source-text transition-colors duration-150 hover:text-navy hover:underline"
         >
           <span aria-hidden="true">&larr;</span> Back to Dashboard
@@ -100,14 +106,13 @@ export default function BatchListPage() {
             {meta.name} — Review Queue
           </h1>
           <span className="text-xs text-slate-400">
-            {all.length} {all.length === 1 ? "batch" : "batches"} · {totalFlagged} flagged
+            {all.length} {all.length === 1 ? "batch" : "batches"} ·{" "}
+            {totalFlagged} flagged
           </span>
         </div>
 
         <div className="mb-4">
-          <BatchSearch
-            variant="page"
-          />
+          <BatchSearch variant="page" />
         </div>
 
         <div className="mb-5 flex border-b-2 border-slate-200">
@@ -132,16 +137,23 @@ export default function BatchListPage() {
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left">
-                {["AR Number", "Product", "Batch No.", "SLA", "Exceptions", "Status", "Last Activity", ""].map(
-                  (heading) => (
-                    <th
-                      key={heading}
-                      className="px-4 py-2.5 text-[11px] font-semibold tracking-wide text-source-text uppercase"
-                    >
-                      {heading}
-                    </th>
-                  ),
-                )}
+                {[
+                  "AR Number",
+                  "Product",
+                  "Batch No.",
+                  "SLA",
+                  "Exceptions",
+                  "Status",
+                  "Last Activity",
+                  "",
+                ].map((heading) => (
+                  <th
+                    key={heading}
+                    className="px-4 py-2.5 text-[11px] font-semibold tracking-wide text-source-text uppercase"
+                  >
+                    {heading}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -187,7 +199,10 @@ export default function BatchListPage() {
                       {batch.batchNumber}
                     </td>
                     <td className="px-4 py-3">
-                      <SLABadge status={batch.slaStatus} label={batch.slaLabel} />
+                      <SLABadge
+                        status={batch.slaStatus}
+                        label={batch.slaLabel}
+                      />
                     </td>
                     <td className="px-4 py-3">
                       <ExceptionCountPill count={flaggedItemsInBatch(batch)} />
@@ -195,7 +210,9 @@ export default function BatchListPage() {
                     <td className="px-4 py-3">
                       <BatchStatusBadge status={batchStatus(batch.arNumber)} />
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-400">{batch.lastActivity}</td>
+                    <td className="px-4 py-3 text-xs text-slate-400">
+                      {batch.lastActivity}
+                    </td>
                     <td className="px-4 py-3 text-right">
                       <button
                         type="button"
@@ -219,7 +236,10 @@ export default function BatchListPage() {
               })}
               {visible.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-[13px] text-slate-400">
+                  <td
+                    colSpan={8}
+                    className="px-4 py-8 text-center text-[13px] text-slate-400"
+                  >
                     No batches in this view.
                   </td>
                 </tr>

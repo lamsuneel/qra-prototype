@@ -80,7 +80,7 @@ export function BottomNavBar({
           : blockerResult === "FLAGGED"
             ? `Open the flagged entry “${blocker.label}” and add your observation note to continue.`
             : (blocker.verification?.blocking ??
-            `Confirm your worksheet verification of “${blocker.label}” to continue.`)
+              `Confirm your worksheet verification of “${blocker.label}” to continue.`)
     : null;
 
   const goTo = (target: Section) =>
@@ -179,7 +179,7 @@ export function BottomNavBar({
         onSubmit={(reason) => {
           requestRecheck(batch.arNumber, reason);
           setRecheckOpen(false);
-          router.push("/dashboard");
+          router.push("/legacy/dashboard");
         }}
       />
     </div>

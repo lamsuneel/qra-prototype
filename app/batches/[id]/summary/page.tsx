@@ -48,11 +48,11 @@ export default function SummaryPage() {
   const batch = getBatch(params.id);
 
   useEffect(() => {
-    if (!profile) router.replace("/");
+    if (!profile) router.replace("/legacy");
   }, [profile, router]);
 
   useEffect(() => {
-    if (!batch) router.replace("/dashboard");
+    if (!batch) router.replace("/legacy/dashboard");
   }, [batch, router]);
 
   if (!profile || !batch) return null;
@@ -77,7 +77,7 @@ export default function SummaryPage() {
 
   const submit = () => {
     submitForAuthorisation(batch.arNumber);
-    router.push("/dashboard");
+    router.push("/legacy/dashboard");
   };
 
   return (

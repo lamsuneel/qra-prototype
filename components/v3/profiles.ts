@@ -7,7 +7,7 @@
  * and its three entries are deliberately not the same people. The quality
  * function cannot be headed by an analyst who runs the tests it reviews, so
  * the CQO and the GM-QA here are their own names, matching the identities
- * the /v3/cqo and /v3/operations screens already speak for.
+ * the /cqo and /operations screens already speak for.
  */
 export interface V3Profile {
   id: string;
@@ -20,6 +20,15 @@ export interface V3Profile {
   /** The single line the top bar has room for. */
   roleLabel: string;
   badgeLabel: string;
+  /**
+   * The `data/profiles.ts` id this desk signs in as.
+   *
+   * The dark screens drill into light ones that have not been rebuilt yet —
+   * the batch pages, the authorisation queue — and those read ReviewContext,
+   * not this module. Selecting a profile has to satisfy both or the first
+   * drill-down bounces the reviewer back to the selector.
+   */
+  legacyId: string;
   /** Colour variables rather than hex: the palette lives in theme.ts. */
   avatarColour: string;
   badgeBg: string;
@@ -36,6 +45,7 @@ export const V3_PROFILES: V3Profile[] = [
     sub: "Reviewer",
     roleLabel: "QA Analyst · Reviewer",
     badgeLabel: "QA Analyst",
+    legacyId: "arjun-mehta",
     avatarColour: "var(--v3-aira)",
     badgeBg: "var(--v3-aira-bg)",
     badgeBorder: "var(--v3-aira-border)",
@@ -49,6 +59,7 @@ export const V3_PROFILES: V3Profile[] = [
     sub: "CQO",
     roleLabel: "Chief Quality Officer",
     badgeLabel: "CQO",
+    legacyId: "cqo",
     avatarColour: "var(--v3-blocking)",
     badgeBg: "var(--v3-blocking-bg)",
     badgeBorder: "var(--v3-blocking-border)",
@@ -62,6 +73,7 @@ export const V3_PROFILES: V3Profile[] = [
     sub: "Approver",
     roleLabel: "GM - Quality Assurance",
     badgeLabel: "GM-QA",
+    legacyId: "rajesh-kumar",
     avatarColour: "var(--v3-advisory)",
     badgeBg: "var(--v3-advisory-bg)",
     badgeBorder: "var(--v3-advisory-border)",

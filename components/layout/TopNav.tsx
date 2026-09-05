@@ -17,25 +17,29 @@ export function TopNav({ batch }: { batch?: Batch }) {
 
   const switchProfile = () => {
     clearProfile();
-    router.push("/");
+    router.push("/legacy");
   };
 
   return (
     <header className="flex h-[52px] shrink-0 items-center gap-3.5 bg-navy px-5">
       <button
         type="button"
-        onClick={() => router.push("/dashboard")}
+        onClick={() => router.push("/legacy/dashboard")}
         className="flex shrink-0 cursor-pointer items-center gap-2 transition-opacity duration-150 hover:opacity-80"
       >
         <span className="flex size-7 items-center justify-center rounded-[5px] bg-navy-accent text-xs font-bold text-white">
           Q
         </span>
-        <span className="text-[15px] font-bold tracking-tight text-white">QRA</span>
+        <span className="text-[15px] font-bold tracking-tight text-white">
+          QRA
+        </span>
       </button>
 
       {batch ? (
         <div className="mx-auto hidden items-center gap-1.5 rounded-md bg-white/[0.07] px-3.5 py-1 lg:flex">
-          <span className="text-[13px] font-semibold text-blue-300">{batch.arNumber}</span>
+          <span className="text-[13px] font-semibold text-blue-300">
+            {batch.arNumber}
+          </span>
           <span className="text-[13px] text-white/30">·</span>
           <span className="text-[13px] text-slate-300">{batch.product}</span>
           <span className="ml-1.5">

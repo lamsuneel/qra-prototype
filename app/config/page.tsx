@@ -26,7 +26,7 @@ export default function ConfigPage() {
   const [rulesOpen, setRulesOpen] = useState(false);
 
   useEffect(() => {
-    if (!profile) router.replace("/");
+    if (!profile) router.replace("/legacy");
   }, [profile, router]);
 
   if (!profile) return null;

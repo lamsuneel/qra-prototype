@@ -13,7 +13,7 @@ export interface Crumb {
 /** Where "home" is depends on which screen the role lands on at sign-in. */
 export const roleRoot = (role: UserRole): Crumb =>
   role === "REVIEWER"
-    ? { label: "QA Dashboard", href: "/dashboard" }
+    ? { label: "QA Dashboard", href: "/legacy/dashboard" }
     : role === "APPROVER"
       ? { label: "QA Operations Dashboard", href: "/management/gm-qa" }
       : { label: "Batch Review Performance", href: "/management" };
@@ -35,7 +35,10 @@ export function Breadcrumbs({ crumbs }: { crumbs: Crumb[] }) {
         const last = index === crumbs.length - 1;
 
         return (
-          <span key={`${crumb.label}-${index}`} className="flex items-center gap-x-2">
+          <span
+            key={`${crumb.label}-${index}`}
+            className="flex items-center gap-x-2"
+          >
             {crumb.href && !last ? (
               <button
                 type="button"
@@ -45,7 +48,9 @@ export function Breadcrumbs({ crumbs }: { crumbs: Crumb[] }) {
                 {crumb.label}
               </button>
             ) : (
-              <span className={last ? "text-slate-400" : undefined}>{crumb.label}</span>
+              <span className={last ? "text-slate-400" : undefined}>
+                {crumb.label}
+              </span>
             )}
             {last ? null : <span className="text-slate-300">&gt;</span>}
           </span>

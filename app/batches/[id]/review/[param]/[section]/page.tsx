@@ -54,11 +54,11 @@ export default function ReviewWorkspacePage() {
   const batch = getBatch(params.id);
 
   useEffect(() => {
-    if (!profile) router.replace("/");
+    if (!profile) router.replace("/legacy");
   }, [profile, router]);
 
   useEffect(() => {
-    if (!batch) router.replace("/dashboard");
+    if (!batch) router.replace("/legacy/dashboard");
   }, [batch, router]);
 
   if (!profile || !batch) return null;

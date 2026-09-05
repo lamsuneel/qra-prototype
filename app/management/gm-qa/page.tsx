@@ -40,8 +40,8 @@ export default function GmQaDashboardPage() {
   const [pending, setPending] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!profile) router.replace("/");
-    else if (profile.role === "REVIEWER") router.replace("/dashboard");
+    if (!profile) router.replace("/legacy");
+    else if (profile.role === "REVIEWER") router.replace("/legacy/dashboard");
     /* The CQO has a view of their own; this one is the approver's. */ else if (
       profile.role === "CQO"
     ) {

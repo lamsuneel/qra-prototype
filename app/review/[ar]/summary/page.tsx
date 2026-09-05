@@ -142,7 +142,7 @@ function Summary({ batch }: { batch: Batch }) {
       <main className="mx-auto w-full max-w-[820px] flex-1 px-6 pt-8 pb-12">
         <button
           type="button"
-          onClick={() => router.push(`/v3/review/${batch.arNumber}`)}
+          onClick={() => router.push(`/review/${batch.arNumber}`)}
           className="cursor-pointer text-[12px] text-[var(--v3-accent)] transition-opacity duration-[120ms] hover:opacity-80"
         >
           &larr; Back to Review
@@ -334,7 +334,7 @@ function Summary({ batch }: { batch: Batch }) {
               disabled={!ready || !submittable}
               onClick={() => {
                 submitForAuthorisation(batch.arNumber);
-                router.push("/v3/dashboard");
+                router.push("/dashboard");
               }}
               className={`rounded-[6px] border px-4 py-2 text-[11px] font-semibold transition-colors duration-[120ms] ${
                 ready && submittable
