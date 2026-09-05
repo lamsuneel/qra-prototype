@@ -11,7 +11,6 @@ import {
   sectionsForParameter,
   sourcesUsedIn,
 } from "@/data";
-import { PROFILES } from "@/data/profiles";
 import { useReview } from "@/context/ReviewContext";
 import {
   resultFor,
@@ -25,7 +24,7 @@ import { PageTitle } from "@/components/layout/PageTitle";
 import { DarkTopbar } from "@/components/dark/DarkTopbar";
 import { V3JourneyMap, type V3NodeState } from "@/components/dark/JourneyMap";
 import { V3ReviewNavigator } from "@/components/dark/ReviewNavigator";
-import { V3AiraRail } from "@/components/dark/AiraRail";
+import { V3BatchSummary } from "@/components/dark/BatchSummary";
 import { V3EntryCard } from "@/components/dark/EntryCard";
 import { V3FindingPanel } from "@/components/dark/FindingPanel";
 import { V3StatusBar } from "@/components/dark/StatusBar";
@@ -128,7 +127,7 @@ export default function V3CleanReviewPage({
 
 function Workspace({ batch }: { batch: Batch }) {
   const router = useRouter();
-  const { profile, sectionStatus, markSectionReviewed } = useReview();
+  const { sectionStatus, markSectionReviewed } = useReview();
 
   const sections = useMemo(() => orderedSections(batch), [batch]);
   const opening = useMemo(() => openOn(batch, sections), [batch, sections]);
@@ -212,13 +211,10 @@ function Workspace({ batch }: { batch: Batch }) {
   const sectionTotal = activeSection.items.length;
   const allClear = sectionClear === sectionTotal;
   const sectionReviewed = sectionStatus(activeSection.id) === "REVIEWED";
-  const remaining = ownedItems.length - passed;
 
   const nextSections = owned
     .filter((section) => section.id !== activeSection.id)
     .slice(0, 3);
-
-  const reviewer = profile ?? PROFILES[0];
 
   return (
     <div
@@ -273,15 +269,8 @@ function Workspace({ batch }: { batch: Batch }) {
           onSelect={selectSection}
           updatedAt={batch.lastActivity}
         >
-          <V3AiraRail
-            reviewer={reviewer.name.split(" ")[0]}
-            arNumber={batch.arNumber}
-            product={batch.product}
-            checksRead={ownedItems.length}
+          <V3BatchSummary
             sources={sourcesUsedIn(batch)}
-            blocking={blocking}
-            advisory={advisory}
-            gate={{ done: reviewedHere, total: owned.length }}
             banner={
               blocking > 0
                 ? undefined
@@ -294,22 +283,6 @@ function Workspace({ batch }: { batch: Batch }) {
                       label: `0 flags · ${advisory} to confirm`,
                       tone: "advisory" as const,
                     }
-            }
-            message={
-              <>
-                All{" "}
-                <span className="font-semibold text-[var(--v3-text-primary)]">
-                  {passed} checks
-                </span>{" "}
-                in {parameter.shortName} are passing. You are on{" "}
-                <span className="font-semibold text-[var(--v3-text-primary)]">
-                  {activeSection.name}
-                </span>
-                {". "}
-                {remaining > 0
-                  ? `${remaining} more ${remaining === 1 ? "check" : "checks"} in this parameter still to settle.`
-                  : "Nothing further to settle in this parameter."}
-              </>
             }
             suggestions={nextSections.map((section) => ({
               id: section.id,
@@ -326,7 +299,7 @@ function Workspace({ batch }: { batch: Batch }) {
               onClick={() => router.push("/dashboard")}
               className="cursor-pointer text-[11px] text-[var(--v3-accent)] transition-opacity duration-[120ms] hover:opacity-80"
             >
-              &larr; Dashboard
+              Dashboard
             </button>
             <span className="text-[11px] text-[var(--v3-text-muted)]">
               &rsaquo;
@@ -385,6 +358,29 @@ function Workspace({ batch }: { batch: Batch }) {
               }
             />
           ))}
+          <V3StatusBar
+            context={`${parameter.shortName} · ${activeSection.name}`}
+            counts={[
+              {
+                label: "blocking",
+                value: blocking,
+                colour: blocking > 0 ? V3_TONE.blocking : V3_TONE.muted,
+              },
+              {
+                label: "advisory",
+                value: advisory,
+                colour: advisory > 0 ? V3_TONE.advisory : V3_TONE.muted,
+              },
+              { label: "passed", value: passed, colour: V3_TONE.compliant },
+              { label: "unreviewed", value: unreviewed, colour: V3_TONE.muted },
+            ]}
+            outstanding={0}
+            reviewed={sectionReviewed}
+            clearMessage={
+              allClear ? "✓ All clear — section ready to mark" : undefined
+            }
+            onMarkReviewed={() => markSectionReviewed(activeSection.id)}
+          />
         </main>
 
         {expandedItem ? (
@@ -420,30 +416,6 @@ function Workspace({ batch }: { batch: Batch }) {
           />
         ) : null}
       </div>
-
-      <V3StatusBar
-        context={`${parameter.shortName} · ${activeSection.name}`}
-        counts={[
-          {
-            label: "blocking",
-            value: blocking,
-            colour: blocking > 0 ? V3_TONE.blocking : V3_TONE.muted,
-          },
-          {
-            label: "advisory",
-            value: advisory,
-            colour: advisory > 0 ? V3_TONE.advisory : V3_TONE.muted,
-          },
-          { label: "passed", value: passed, colour: V3_TONE.compliant },
-          { label: "unreviewed", value: unreviewed, colour: V3_TONE.muted },
-        ]}
-        outstanding={0}
-        reviewed={sectionReviewed}
-        clearMessage={
-          allClear ? "✓ All clear — section ready to mark" : undefined
-        }
-        onMarkReviewed={() => markSectionReviewed(activeSection.id)}
-      />
     </div>
   );
 }

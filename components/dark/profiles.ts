@@ -29,6 +29,14 @@ export interface V3Profile {
    * drill-down bounces the reviewer back to the selector.
    */
   legacyId: string;
+  /**
+   * The screen this desk opens on.
+   *
+   * Every profile used to land on the analyst's dashboard, so the CQO and the
+   * GM-QA signed in and were handed somebody else's screen. Their own were
+   * built and reachable by URL, just never routed to.
+   */
+  home: string;
   /** Colour variables rather than hex: the palette lives in theme.ts. */
   avatarColour: string;
   badgeBg: string;
@@ -46,6 +54,7 @@ export const V3_PROFILES: V3Profile[] = [
     roleLabel: "QA Analyst · Reviewer",
     badgeLabel: "QA Analyst",
     legacyId: "arjun-mehta",
+    home: "/dashboard",
     avatarColour: "var(--v3-aira)",
     badgeBg: "var(--v3-aira-bg)",
     badgeBorder: "var(--v3-aira-border)",
@@ -60,6 +69,7 @@ export const V3_PROFILES: V3Profile[] = [
     roleLabel: "Chief Quality Officer",
     badgeLabel: "CQO",
     legacyId: "cqo",
+    home: "/cqo",
     avatarColour: "var(--v3-blocking)",
     badgeBg: "var(--v3-blocking-bg)",
     badgeBorder: "var(--v3-blocking-border)",
@@ -74,6 +84,7 @@ export const V3_PROFILES: V3Profile[] = [
     roleLabel: "GM - Quality Assurance",
     badgeLabel: "GM-QA",
     legacyId: "rajesh-kumar",
+    home: "/operations",
     avatarColour: "var(--v3-advisory)",
     badgeBg: "var(--v3-advisory-bg)",
     badgeBorder: "var(--v3-advisory-border)",

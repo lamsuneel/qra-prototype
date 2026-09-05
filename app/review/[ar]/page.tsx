@@ -12,7 +12,6 @@ import {
   sourcesUsedIn,
 } from "@/data";
 import { documentUrl } from "@/data/config";
-import { PROFILES } from "@/data/profiles";
 import { useReview } from "@/context/ReviewContext";
 import {
   resultFor,
@@ -26,7 +25,7 @@ import { DarkTopbar } from "@/components/dark/DarkTopbar";
 import { V3Badge } from "@/components/dark/Badge";
 import { V3JourneyMap, type V3NodeState } from "@/components/dark/JourneyMap";
 import { V3ReviewNavigator } from "@/components/dark/ReviewNavigator";
-import { V3AiraRail } from "@/components/dark/AiraRail";
+import { V3BatchSummary } from "@/components/dark/BatchSummary";
 import { V3EvidenceTable } from "@/components/dark/EvidenceTable";
 import { V3DocumentRow } from "@/components/dark/DocumentRow";
 import { V3FindingPanel } from "@/components/dark/FindingPanel";
@@ -154,7 +153,6 @@ function Workspace({
 }) {
   const router = useRouter();
   const {
-    profile,
     noteFor,
     setNote,
     isNoted,
@@ -465,8 +463,6 @@ function Workspace({
     );
   };
 
-  const reviewer = profile ?? PROFILES[0];
-
   return (
     <div
       className={`v3-root ${inter.variable} ${mono.variable} flex h-dvh flex-col overflow-hidden bg-[var(--v3-bg-base)] text-[var(--v3-text-primary)]`}
@@ -520,18 +516,8 @@ function Workspace({
           onSelect={selectSection}
           updatedAt={batch.lastActivity}
         >
-          <V3AiraRail
-            reviewer={reviewer.name.split(" ")[0]}
-            arNumber={batch.arNumber}
-            product={batch.product}
-            checksRead={allItems.length}
+          <V3BatchSummary
             sources={sourcesUsedIn(batch)}
-            blocking={blocking}
-            advisory={advisory}
-            gate={{
-              done: reviewedCount(batch.arNumber),
-              total: totalSections(batch.arNumber),
-            }}
             suggestions={exceptions.slice(0, 3).map(({ section }) => ({
               id: section.id,
               label: section.name,
@@ -553,7 +539,7 @@ function Workspace({
                 onClick={() => router.push("/dashboard")}
                 className="cursor-pointer text-[11px] text-[var(--v3-accent)] transition-opacity duration-[120ms] hover:opacity-80"
               >
-                &larr; Dashboard
+                Dashboard
               </button>
               <span className="text-[11px] text-[var(--v3-text-muted)]">
                 &rsaquo;
@@ -616,6 +602,18 @@ function Workspace({
               </div>
             ) : null}
           </div>
+          <V3StatusBar
+            context={`${parameter.shortName} · ${activeSection.name}`}
+            counts={[
+              { label: "blocking", value: blocking, colour: V3_TONE.blocking },
+              { label: "advisory", value: advisory, colour: V3_TONE.advisory },
+              { label: "passed", value: passed, colour: V3_TONE.compliant },
+              { label: "unreviewed", value: unreviewed, colour: V3_TONE.muted },
+            ]}
+            outstanding={outstanding}
+            reviewed={sectionReviewed}
+            onMarkReviewed={() => markSectionReviewed(activeSection.id)}
+          />
         </main>
 
         <V3FindingPanel
@@ -631,19 +629,6 @@ function Workspace({
           }}
         />
       </div>
-
-      <V3StatusBar
-        context={`${parameter.shortName} · ${activeSection.name}`}
-        counts={[
-          { label: "blocking", value: blocking, colour: V3_TONE.blocking },
-          { label: "advisory", value: advisory, colour: V3_TONE.advisory },
-          { label: "passed", value: passed, colour: V3_TONE.compliant },
-          { label: "unreviewed", value: unreviewed, colour: V3_TONE.muted },
-        ]}
-        outstanding={outstanding}
-        reviewed={sectionReviewed}
-        onMarkReviewed={() => markSectionReviewed(activeSection.id)}
-      />
     </div>
   );
 }

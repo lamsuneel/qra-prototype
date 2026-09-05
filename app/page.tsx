@@ -47,7 +47,7 @@ export default function LoginPage() {
        authorisation screens from treating the reviewer as signed out. */
     storeV3Profile(profile);
     selectProfile(profile.legacyId);
-    router.push("/dashboard");
+    router.push(profile.home);
   };
 
   return (
