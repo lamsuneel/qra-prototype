@@ -511,9 +511,8 @@ function Workspace({
             (section) => ({
               id: section.id,
               name: section.name,
-              tone: V3_RESULT_TONE[worstResult(section)],
-              clear: countWhere(section.items, isClear),
-              total: section.items.length,
+              blocking: countWhere(section.items, isException),
+              advisory: countWhere(section.items, isAdvisory),
               active: section.id === activeSection.id,
               reviewed: sectionStatus(section.id) === "REVIEWED",
             }),

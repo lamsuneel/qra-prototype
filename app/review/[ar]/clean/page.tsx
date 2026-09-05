@@ -29,7 +29,7 @@ import { V3AiraRail } from "@/components/dark/AiraRail";
 import { V3EntryCard } from "@/components/dark/EntryCard";
 import { V3FindingPanel } from "@/components/dark/FindingPanel";
 import { V3StatusBar } from "@/components/dark/StatusBar";
-import { V3_RESULT_TONE, V3_THEME_CSS, V3_TONE } from "@/components/dark/theme";
+import { V3_THEME_CSS, V3_TONE } from "@/components/dark/theme";
 
 /* The two faces this design uses, scoped to the v3 subtree. */
 const inter = Inter({ subsets: ["latin"], variable: "--v3-font-sans" });
@@ -265,9 +265,8 @@ function Workspace({ batch }: { batch: Batch }) {
           sections={owned.map((section) => ({
             id: section.id,
             name: section.name,
-            tone: V3_RESULT_TONE[worstResult(section)],
-            clear: countWhere(section.items, isClear),
-            total: section.items.length,
+            blocking: countWhere(section.items, isException),
+            advisory: countWhere(section.items, isAdvisory),
             active: section.id === activeSection.id,
             reviewed: sectionStatus(section.id) === "REVIEWED",
           }))}
@@ -443,7 +442,6 @@ function Workspace({ batch }: { batch: Batch }) {
         clearMessage={
           allClear ? "✓ All clear — section ready to mark" : undefined
         }
-        tone="compliant"
         onMarkReviewed={() => markSectionReviewed(activeSection.id)}
       />
     </div>

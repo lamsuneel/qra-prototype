@@ -23,7 +23,6 @@ export function V3StatusBar({
   reviewed,
   onMarkReviewed,
   clearMessage,
-  tone = "accent",
 }: {
   context: string;
   counts: V3StatusCount[];
@@ -33,8 +32,6 @@ export function V3StatusBar({
   onMarkReviewed: () => void;
   /** Shown in place of the lock line when nothing is outstanding. */
   clearMessage?: string;
-  /** The colour the unlocked button carries. Green where the section is clean. */
-  tone?: "accent" | "compliant";
 }) {
   const locked = outstanding > 0;
 
@@ -81,12 +78,10 @@ export function V3StatusBar({
           type="button"
           onClick={onMarkReviewed}
           disabled={locked || reviewed}
-          className={`rounded-[5px] px-3.5 py-1.5 text-[11px] font-semibold transition-colors duration-[120ms] ${
+          className={`rounded-[5px] border px-[14px] py-[5px] text-[11px] font-semibold transition-colors duration-[120ms] ${
             locked || reviewed
-              ? "cursor-not-allowed border border-transparent bg-[var(--v3-border-default)] text-[var(--v3-text-muted)] opacity-60"
-              : tone === "compliant"
-                ? "cursor-pointer border border-[var(--v3-compliant-border)] bg-[var(--v3-compliant-bg)] text-[var(--v3-compliant)] hover:bg-[rgba(61,184,122,0.20)]"
-                : "cursor-pointer border border-[var(--v3-accent-border)] bg-[var(--v3-accent-bg)] text-[var(--v3-accent)] hover:bg-[rgba(77,158,255,0.20)]"
+              ? "cursor-not-allowed border-[var(--v3-border-strong)] bg-transparent text-[var(--v3-text-muted)] opacity-50"
+              : "cursor-pointer border-[rgba(61,184,122,0.25)] bg-[rgba(61,184,122,0.12)] text-[var(--v3-compliant)] hover:bg-[rgba(61,184,122,0.20)]"
           }`}
         >
           {reviewed ? "Reviewed" : "Mark as Reviewed"}

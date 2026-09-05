@@ -6,12 +6,29 @@ import { RefreshIcon } from "./Icons";
 export interface V3NavSection {
   id: string;
   name: string;
-  tone: V3Tone;
-  clear: number;
-  total: number;
+  /** Entries that stop the batch. The dot's first claim, and the badge. */
+  blocking: number;
+  /** Entries to confirm rather than resolve. */
+  advisory: number;
   active: boolean;
   reviewed: boolean;
 }
+
+/**
+ * What the section wants from the reviewer, in one colour.
+ *
+ * Blocking first, then a condition to confirm, then whether it has been
+ * closed. A section with nothing outstanding stays grey until it is marked:
+ * the dot is a worklist, not a verdict on the data.
+ */
+const dotFor = (section: V3NavSection): string =>
+  section.blocking > 0
+    ? V3_TONE.blocking
+    : section.advisory > 0
+      ? V3_TONE.advisory
+      : section.reviewed
+        ? V3_TONE.compliant
+        : V3_TONE.muted;
 
 export interface V3NavStat {
   label: string;
@@ -85,6 +102,51 @@ export function V3ReviewNavigator({
         ))}
       </div>
 
+      {/* The sections of the parameter the journey map is on. They sit
+          between the batch they belong to and the progress through it,
+          because that is the order the question comes in: which batch, which
+          part of it, how far. */}
+      <div className="shrink-0 border-y border-[var(--v3-border-default)]">
+        <div className="px-4 py-2 text-[9px] font-medium tracking-[0.08em] text-[var(--v3-text-secondary)] uppercase">
+          {`${parameterName} — Sections`}
+        </div>
+        <div className="max-h-[220px] overflow-y-auto">
+          {sections.map((section) => (
+            <button
+              key={section.id}
+              type="button"
+              onClick={() => onSelect(section.id)}
+              aria-current={section.active ? "true" : undefined}
+              className={`flex w-full cursor-pointer items-center gap-2 py-1.5 text-left transition-colors duration-[120ms] ${
+                section.active
+                  ? "border-l-[3px] border-[var(--v3-accent)] bg-[rgba(77,158,255,0.08)] pr-4 pl-[13px]"
+                  : "px-4 hover:bg-[var(--v3-bg-card-hover)]"
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className="size-1.5 shrink-0 rounded-full"
+                style={{ background: dotFor(section) }}
+              />
+              <span
+                className={`min-w-0 flex-1 truncate text-[12px] ${
+                  section.active
+                    ? "text-[var(--v3-accent)]"
+                    : "text-[var(--v3-text-primary)]"
+                }`}
+              >
+                {section.name}
+              </span>
+              {section.blocking > 0 ? (
+                <span className="shrink-0 rounded-[3px] bg-[rgba(229,83,75,0.15)] px-1.5 font-mono text-[9px] font-semibold text-[var(--v3-blocking)] tabular-nums">
+                  {section.blocking}
+                </span>
+              ) : null}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="shrink-0 border-b border-[var(--v3-border-subtle)] px-4 py-3">
         <span className="mb-2.5 block text-[9px] font-medium tracking-[0.08em] text-[var(--v3-text-secondary)] uppercase">
           Review Progress
@@ -134,56 +196,8 @@ export function V3ReviewNavigator({
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col border-b border-[var(--v3-border-subtle)]">
-        <div className="shrink-0 px-4 py-2 text-[9px] font-medium tracking-[0.08em] text-[var(--v3-text-secondary)] uppercase">
-          {parameterName} sections
-        </div>
-        <div className="max-h-[184px] min-h-0 flex-1 overflow-y-auto">
-          {sections.map((section) => (
-            <button
-              key={section.id}
-              type="button"
-              onClick={() => onSelect(section.id)}
-              aria-current={section.active ? "true" : undefined}
-              className={`flex w-full cursor-pointer items-center gap-2 py-1.5 text-left transition-colors duration-[120ms] hover:bg-[var(--v3-bg-card-hover)] ${
-                section.active
-                  ? "border-l-2 bg-[rgba(229,83,75,0.06)] pr-4 pl-[14px]"
-                  : "px-4"
-              }`}
-              style={
-                section.active
-                  ? { borderLeftColor: V3_TONE[section.tone] }
-                  : undefined
-              }
-            >
-              <span
-                aria-hidden="true"
-                className="size-2.5 shrink-0 rounded-full"
-                style={{ background: V3_TONE[section.tone] }}
-              />
-              <span
-                className={`min-w-0 flex-1 truncate text-[12px] ${
-                  section.active
-                    ? "font-semibold text-[var(--v3-text-primary)]"
-                    : "text-[var(--v3-text-secondary)]"
-                }`}
-              >
-                {section.name}
-              </span>
-              <span
-                className="shrink-0 font-mono text-[10px] whitespace-nowrap tabular-nums"
-                style={{
-                  color: section.active
-                    ? V3_TONE[section.tone]
-                    : "var(--v3-text-muted)",
-                }}
-              >
-                {section.clear} / {section.total}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Whatever is left over collects here, so AIRA keeps the foot. */}
+      <div className="min-h-0 flex-1" />
 
       <div className="flex shrink-0 items-center gap-1.5 px-4 py-2.5 text-[var(--v3-text-muted)]">
         <RefreshIcon />
