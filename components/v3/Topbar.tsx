@@ -1,7 +1,14 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
+
 import { PROFILES } from "@/data/profiles";
 import { useReview } from "@/context/ReviewContext";
+import {
+  readV3Profile,
+  serverV3Profile,
+  subscribeToV3Profile,
+} from "./profiles";
 import { SearchIcon } from "./Icons";
 
 /**
@@ -29,13 +36,30 @@ export function V3Topbar({
   search?: boolean;
 } = {}) {
   const { profile } = useReview();
+
+  /* sessionStorage does not exist on the server, so it is read through a
+     store with an explicit server snapshot rather than during render. The
+     server and the hydrating client both see null and draw the fallback
+     below — the same person the selector offers first — and the real choice
+     arrives once, without a mismatch to correct. */
+  const chosen = useSyncExternalStore(
+    subscribeToV3Profile,
+    readV3Profile,
+    serverV3Profile,
+  );
+
   const signedIn = profile ?? PROFILES[0];
-  const who = user ?? {
-    name: signedIn.name,
-    roleLabel: signedIn.roleLabel,
-    initials: signedIn.initials,
-    avatarColour: "var(--v3-aira)",
-  };
+
+  /* The prop wins: a screen that speaks for one office says so outright, and
+     must not be relabelled by whoever happens to have signed in. Then the v3
+     selection, then the light app's context, then the reviewer. */
+  const who = user ??
+    chosen ?? {
+      name: signedIn.name,
+      roleLabel: signedIn.roleLabel,
+      initials: signedIn.initials,
+      avatarColour: "var(--v3-aira)",
+    };
 
   return (
     <header className="sticky top-0 z-10 flex h-12 items-center justify-between border-b border-[var(--v3-border-default)] bg-[var(--v3-bg-surface)] px-6">

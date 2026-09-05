@@ -120,11 +120,36 @@ export const V3_THEME_CSS = `
   animation: v3-aira-pulse 2s ease-in-out infinite;
 }
 
+/* The profile cards arrive rather than appear. Three is few enough that a
+   stagger reads as a sequence instead of as a wait. */
+@keyframes v3-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.v3-fade-up {
+  opacity: 0;
+  animation: v3-fade-up 300ms ease forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .v3-root *,
   .v3-flag-node {
     animation: none !important;
     transition: none !important;
+  }
+
+  /* The rule above cancels the animation that would have ended at opacity 1,
+     so the starting opacity has to be undone by hand or the cards never
+     become visible at all. */
+  .v3-fade-up {
+    opacity: 1;
   }
 }
 `;
