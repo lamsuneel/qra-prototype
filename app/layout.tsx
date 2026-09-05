@@ -22,8 +22,8 @@ const geistMono = Geist_Mono({
  */
 export const metadata: Metadata = {
   title: {
-    template: "%s | QRA — Quality Review Assistant",
-    default: "QRA — Quality Review Assistant",
+    template: "%s | NeuraTrace — Quality Review Assistant",
+    default: "NeuraTrace — Quality Review Assistant",
   },
   description: "Pharmaceutical QA analytical batch release review platform",
 };

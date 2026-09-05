@@ -10,6 +10,7 @@ import {
   subscribeToV3Profile,
 } from "./profiles";
 import { SearchIcon } from "./Icons";
+import { DarkWordmark } from "./Wordmark";
 
 /**
  * The v3 top bar.
@@ -73,9 +74,7 @@ export function DarkTopbar({
     <header className="sticky top-0 z-10 flex h-12 items-center justify-between border-b border-[var(--v3-border-default)] bg-[var(--v3-bg-surface)] px-6">
       <div className="flex items-center gap-4">
         <div>
-          <div className="text-[16px] leading-none font-bold text-[var(--v3-text-primary)]">
-            QRA
-          </div>
+          <DarkWordmark className="text-[16px] leading-none font-bold" />
           <div className="mt-[3px] text-[8px] font-medium tracking-[0.08em] text-[var(--v3-text-secondary)] uppercase">
             Quality Review Assistant
           </div>

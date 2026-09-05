@@ -60,7 +60,7 @@ export const evidenceRowsFor = (item: CheckItem): V3EvidenceRow[] => {
     rows.push({
       parameter: "Comparison",
       value: item.comparison,
-      source: "QRA",
+      source: "NeuraTrace",
     });
   }
 

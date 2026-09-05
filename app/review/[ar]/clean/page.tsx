@@ -413,7 +413,8 @@ function Workspace({ batch }: { batch: Batch }) {
                     : "Mark as reviewed ✓"}
                 </button>
                 <p className="mt-2 text-center text-[9px] leading-[1.4] text-[var(--v3-text-muted)]">
-                  No action required. Marking this agrees with what QRA read.
+                  No action required. Marking this agrees with what NeuraTrace
+                  read.
                 </p>
               </>
             }

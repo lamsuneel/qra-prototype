@@ -9,6 +9,7 @@ import { PageTitle } from "@/components/layout/PageTitle";
 import { useReview } from "@/context/ReviewContext";
 import { V3_PROFILES, storeV3Profile } from "@/components/dark/profiles";
 import type { V3Profile } from "@/components/dark/profiles";
+import { DarkWordmark } from "@/components/dark/Wordmark";
 import { V3_THEME_CSS } from "@/components/dark/theme";
 
 /* The design's two faces, scoped to the v3 subtree. */
@@ -58,11 +59,9 @@ export default function LoginPage() {
       <div className="flex flex-col items-center">
         <div className="flex items-center gap-[14px]">
           <span className="flex size-[52px] shrink-0 items-center justify-center rounded-[10px] border border-[var(--v3-border-default)] bg-[var(--v3-bg-surface)] text-[20px] font-bold tracking-[-0.5px] text-[var(--v3-text-primary)]">
-            QRA
+            N<span className="text-[var(--v3-brand)]">T</span>
           </span>
-          <span className="text-[28px] font-bold tracking-[-0.6px] text-[var(--v3-text-primary)]">
-            QRA
-          </span>
+          <DarkWordmark className="text-[28px] font-bold tracking-[-0.6px]" />
         </div>
 
         <p className="mt-1.5 text-center text-[13px] tracking-[0.01em] text-[var(--v3-text-secondary)]">
@@ -145,7 +144,7 @@ export default function LoginPage() {
           <Separator />
         </div>
         <p className="text-center text-[10px] leading-[1.8] text-[var(--v3-text-muted)]">
-          QRA v3.0 &mdash; Demo Environment &middot; Not for clinical use
+          NeuraTrace v1.0 &mdash; Demo Environment &middot; Not for clinical use
           &middot; {SITE_NAME}
         </p>
       </div>

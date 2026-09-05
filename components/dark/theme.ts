@@ -63,6 +63,10 @@ export const V3_THEME_CSS = `
 
   --v3-blocking-glow: rgba(229, 83, 75, 0.35);
 
+  /* The product mark's second colour. Brand, not status — it never
+     carries a verdict, so it sits apart from the tones above. */
+  --v3-brand: #00D4A4;
+
   --v3-accent: #4D9EFF;
   --v3-accent-bg: rgba(77, 158, 255, 0.12);
   --v3-accent-border: rgba(77, 158, 255, 0.25);
