@@ -282,7 +282,7 @@ export function EvidencePanel({
           </dd>
 
           <dt className="text-slate-400">Both approvals required per</dt>
-          <dd className="text-slate-700">FU7-QA-GEN-080 + APL-GP-GEN-0023</dd>
+          <dd className="text-slate-700">FU7-QA-GEN-080 + QRA-GP-GEN-0023</dd>
         </dl>
       ) : null}
 

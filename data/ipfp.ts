@@ -152,7 +152,7 @@ const TPW_IPFP: StandaloneInstrument = {
   auditTrail: TPW_IPFP_AUDIT,
 };
 
-const TIAMO_SOP = "APL-CP-F-QCCI-GEN-0013";
+const TIAMO_SOP = "QRA-CP-F-QCCI-GEN-0013";
 
 /* -------------------------------------------------------------------------- */
 /* Titrator routine flags — TIA-F01 to TIA-F25                                */
@@ -655,13 +655,13 @@ const sections: Section[] = [
         flagReason:
           "TIA-F01 — the determination began while the cell was still conditioning. Additional titre was consumed by the conditioning, so the value reported is not the water content of the sample. Source: " + TIAMO_SOP + ".",
         flagAction:
-          "Raise PNC per APL-GP-GEN-0023. Analysis must be repeated. Source: " + TIAMO_SOP + ".",
+          "Raise PNC per QRA-GP-GEN-0023. Analysis must be repeated. Source: " + TIAMO_SOP + ".",
         source: "Tiamo 2.4",
       }),
       compliant({
         prefix: P,
         flagId: "TIA-F02",
-        sopReference: "APL-CP-F-QCCI-GEN-0013 TIA-F02",
+        sopReference: "QRA-CP-F-QCCI-GEN-0013 TIA-F02",
         label: "Determination version",
         reference: "Version 1",
         statusText: "Original",
@@ -669,7 +669,7 @@ const sections: Section[] = [
           "QRA read the determination version in Tiamo. Anything above 1 means the run was processed a second time, which needs a PNC behind it.",
         expected: "Version 1 (original)",
         actual: "Version 1 — original determination",
-        expectedSource: "APL-CP-F-QCCI-GEN-0013",
+        expectedSource: "QRA-CP-F-QCCI-GEN-0013",
         source: "Tiamo 2.4",
         comparison: "Determination version read against the original-run requirement",
       }),

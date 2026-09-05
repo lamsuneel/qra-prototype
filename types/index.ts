@@ -231,7 +231,7 @@ export interface CheckItem {
    */
   flagId?: string;
   /**
-   * The document the check comes from, e.g. "APL-CP-F-QCCI-GEN-0013". Every
+   * The document the check comes from, e.g. "QRA-CP-F-QCCI-GEN-0013". Every
    * entry carries one — an automated check the reviewer cannot trace back to
    * a named document is a check they have to take on trust.
    */
@@ -685,7 +685,7 @@ export const resultFor = (item: CheckItem): ItemResult => {
  * reviewer has to do it against the worksheet. Compliant entries ask for
  * nothing.
  */
-/** The PNC series raised for an unusable result — APL-GP-GEN-0023. */
+/** The PNC series raised for an unusable result — QRA-GP-GEN-0023. */
 export const PNC_PATTERN = /^PNC-\d{4}-\d{3,4}$/i;
 
 export const isValidPnc = (value: string): boolean =>

@@ -975,7 +975,7 @@ const batchBSections: Section[] = [
       flagReason:
         "An inactivated chemical entry was used in the analysis. Inactivated entries are withdrawn from use and should not appear in the usage record.",
       flagAction:
-        "Inactivation initiated. Second QC Section In-Charge approval required before this entry is valid. Verify the justification recorded against AC-7701 in LIMS. Both approvals required per FU7-QA-GEN-080 + APL-GP-GEN-0023.",
+        "Inactivation initiated. Second QC Section In-Charge approval required before this entry is valid. Verify the justification recorded against AC-7701 in LIMS. Both approvals required per FU7-QA-GEN-080 + QRA-GP-GEN-0023.",
       inactivationStatus: "Initiated",
       inactivationReason: "Container seal integrity not assured",
       inactivationInitiatedBy: "S. Deshmukh, QC Section In-Charge",
@@ -1496,13 +1496,13 @@ const batchBSections: Section[] = [
          sample's own. */
       compliant({
         flagId: "TIA-F01",
-        sopReference: "APL-CP-F-QCCI-GEN-0013",
+        sopReference: "QRA-CP-F-QCCI-GEN-0013",
         label: "Conditioning state at determination start",
         reference: "COND BUSY not detected",
         statusText: "Clean start",
         expected: "Conditioning complete before the determination starts",
         actual: "Determination #001 started at 08:44:02 with conditioning complete",
-        expectedSource: "APL-CP-F-QCCI-GEN-0013",
+        expectedSource: "QRA-CP-F-QCCI-GEN-0013",
         comparison: "No COND BUSY entry between conditioning stopped and determination start",
         source: "Tiamo 2.4",
       }),

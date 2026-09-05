@@ -3,7 +3,7 @@
  *
  * Transcribed from the site's audit trail SOPs — FU7-QA-GEN-080 for the
  * chromatography data system and the non-CDS instruments, and
- * APL-CP-F-QCCI-GEN-0013 for the titrators. The rules live here rather than
+ * QRA-CP-F-QCCI-GEN-0013 for the titrators. The rules live here rather than
  * inside a batch because they belong to the site, not to any one analysis:
  * a batch entry names the rule it answers to, and this is where the rule
  * says what it means.
@@ -18,11 +18,11 @@ export const SOP = {
   CHEMICALS: "FU7-QA-GEN-080 §4.5.1",
   INSTRUMENTS: "FU7-QA-GEN-080 §4.5.2",
   /** Titrator audit trail review. */
-  TIAMO: "APL-CP-F-QCCI-GEN-0013",
+  TIAMO: "QRA-CP-F-QCCI-GEN-0013",
   /** LIMS data. */
   LIMS: "CQA-CP-QC-GEN-0010",
   /** The notification raised when a result cannot stand. */
-  PNC: "APL-GP-GEN-0023",
+  PNC: "QRA-GP-GEN-0023",
   /** Material release/reject review checklist — raw and packing material. */
   MATERIAL_CHECKLIST: "CQA-CP-GEN-042",
   /** Non-CDS instruments: the audit trail arrives as a PDF in LIMS. */

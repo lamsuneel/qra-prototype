@@ -131,7 +131,7 @@ export function ConditionalPassRow({
         <div className="mt-2 text-[11px] text-slate-400">
           Source: {rule.id} —{" "}
           <DocumentLink
-            reference={item.sopReference ?? "APL-CP-F-QCCI-GEN-0013"}
+            reference={item.sopReference ?? "QRA-CP-F-QCCI-GEN-0013"}
             tooltip
           />
         </div>

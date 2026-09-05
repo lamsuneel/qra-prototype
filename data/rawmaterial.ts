@@ -549,7 +549,7 @@ const sections: Section[] = [
       flagReason:
         "Lot TEA-2025-04 was inactivated on 03-Aug-2026 but the inactivation has not been authorised. Until it is, there is no record of who withdrew the reagent from service or why, and the entry was still available to the analysis.",
       flagAction:
-        "Second QC Section In-Charge approval required. Do not release until both approvals recorded. Confirm whether the reagent was used after it was inactivated. Both approvals required per FU7-QA-GEN-080 + APL-GP-GEN-0023.",
+        "Second QC Section In-Charge approval required. Do not release until both approvals recorded. Confirm whether the reagent was used after it was inactivated. Both approvals required per FU7-QA-GEN-080 + QRA-GP-GEN-0023.",
       details: [
         { label: "Lot number", value: "TEA-2025-04" },
         { label: "Manufacturer", value: "Spectrochem" },
@@ -703,7 +703,7 @@ const sections: Section[] = [
       compliant({
         prefix: P,
         flagId: "TIA-F01",
-        sopReference: "APL-CP-F-QCCI-GEN-0013 TIA-F01",
+        sopReference: "QRA-CP-F-QCCI-GEN-0013 TIA-F01",
         label: "Conditioning state at determination start",
         reference: "COND BUSY not detected",
         statusText: "Clean start",
@@ -711,7 +711,7 @@ const sections: Section[] = [
           "QRA read the Tiamo audit trail for a determination started with COND BUSY — a prohibited entry, because conditioning still running consumes titre the reading does not account for.",
         expected: "Not present",
         actual: "Not present — determination started clean",
-        expectedSource: "APL-CP-F-QCCI-GEN-0013",
+        expectedSource: "QRA-CP-F-QCCI-GEN-0013",
         source: "Tiamo 2.4",
         comparison:
           "No COND BUSY entry between conditioning stopped and determination start",
@@ -719,7 +719,7 @@ const sections: Section[] = [
       compliant({
         prefix: P,
         flagId: "TIA-F02",
-        sopReference: "APL-CP-F-QCCI-GEN-0013 TIA-F02",
+        sopReference: "QRA-CP-F-QCCI-GEN-0013 TIA-F02",
         label: "Determination version",
         reference: "Version 1",
         statusText: "Original",
@@ -727,7 +727,7 @@ const sections: Section[] = [
           "QRA read the determination version in Tiamo. Anything above 1 means the run was processed a second time, which needs a PNC behind it.",
         expected: "Version 1 (original)",
         actual: "Version 1 — original determination",
-        expectedSource: "APL-CP-F-QCCI-GEN-0013",
+        expectedSource: "QRA-CP-F-QCCI-GEN-0013",
         source: "Tiamo 2.4",
         comparison: "Determination version read against the original-run requirement",
       }),
