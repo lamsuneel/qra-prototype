@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useMemo, useState } from "react";
-import { notFound, useRouter } from "next/navigation";
+import { notFound, redirect, useRouter } from "next/navigation";
 import { Inter, JetBrains_Mono } from "next/font/google";
 
 import {
@@ -107,20 +107,50 @@ const openingItem = (section: Section): CheckItem =>
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * The batch every thin fixture falls back to, and the bar it has to clear.
+ *
+ * Some ARs in the demo data carry a single parameter, which draws a journey
+ * map with one node row and reads as a broken screen rather than as a batch
+ * with nothing wrong in it. Those hand over to the one batch that fills the
+ * workspace, and say so rather than pretending the reviewer asked for it.
+ */
+const DEMO_FALLBACK_AR = "07-FP-26-0122";
+const MIN_PARAMETERS = 5;
+
 export default function V3ReviewPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ ar: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { ar } = use(params);
-  const batch = getBatch(decodeURIComponent(ar));
+  const { from } = use(searchParams);
+  const requested = decodeURIComponent(ar);
+  const batch = getBatch(requested);
 
-  if (!batch) notFound();
+  /* The guard is on the fallback itself, not just on the request: if that
+     batch is ever thinned below the bar this would otherwise redirect to
+     itself forever. */
+  if (!batch || batch.parameters.length < MIN_PARAMETERS) {
+    if (requested === DEMO_FALLBACK_AR) notFound();
+    redirect(
+      `/review/${DEMO_FALLBACK_AR}?from=${encodeURIComponent(requested)}`,
+    );
+  }
 
-  return <Workspace batch={batch} />;
+  return <Workspace batch={batch} standingIn={from} />;
 }
 
-function Workspace({ batch }: { batch: Batch }) {
+function Workspace({
+  batch,
+  standingIn,
+}: {
+  batch: Batch;
+  /** The AR the reviewer actually asked for, when this is a stand-in. */
+  standingIn?: string;
+}) {
   const router = useRouter();
   const {
     profile,
@@ -311,7 +341,13 @@ function Workspace({ batch }: { batch: Batch }) {
       <PageTitle title={`${batch.arNumber} — Review Workspace`} />
 
       <div className="shrink-0">
-        <DarkTopbar />
+        <DarkTopbar
+          notice={
+            standingIn
+              ? `Demo data — ${standingIn} has no full review fixture`
+              : undefined
+          }
+        />
       </div>
 
       <V3JourneyMap groups={groups} onSelect={selectSection} />

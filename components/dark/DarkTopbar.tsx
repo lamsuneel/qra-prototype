@@ -21,6 +21,7 @@ import { SearchIcon } from "./Icons";
 export function DarkTopbar({
   user,
   search = true,
+  notice,
 }: {
   /**
    * Who the bar names. Given where the screen speaks for one office rather
@@ -34,6 +35,13 @@ export function DarkTopbar({
   };
   /** The AR search. Off on screens that are not about a single batch. */
   search?: boolean;
+  /**
+   * A standing caveat about the screen below — currently that its batch is a
+   * stand-in. It sits in the bar rather than in the page because it qualifies
+   * everything on the page, and it is worded as demo data rather than as an
+   * error, which is what it is.
+   */
+  notice?: string;
 } = {}) {
   const { profile } = useReview();
 
@@ -93,6 +101,15 @@ export function DarkTopbar({
           <div className="h-5 w-px shrink-0 bg-[var(--v3-border-strong)]" />
         )}
       </div>
+
+      {notice ? (
+        <span
+          role="status"
+          className="mx-4 flex min-w-0 items-center gap-2 truncate rounded-[4px] border border-[var(--v3-advisory-border)] bg-[var(--v3-advisory-bg)] px-2.5 py-1 text-[10px] font-semibold tracking-[0.04em] text-[var(--v3-advisory)] uppercase"
+        >
+          {notice}
+        </span>
+      ) : null}
 
       <div className="flex items-center gap-2.5">
         <div className="text-right">

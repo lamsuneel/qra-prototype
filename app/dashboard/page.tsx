@@ -98,6 +98,15 @@ const leadBatchFor = (domain: Domain): Batch | undefined =>
       URGENCY[a.slaStatus] - URGENCY[b.slaStatus],
   )[0];
 
+/**
+ * The batches the dashboard offers, named rather than derived.
+ *
+ * A sort would re-rank these whenever a fixture changed, which is how the
+ * list came to lead on a batch with nothing in it. The demo walks a fixed
+ * path, so the path is written down.
+ */
+const DEMO_PATH = ["07-FP-26-0122", "07-RM-26-4417", "07-FP-26-0121"];
+
 const MONTHS = [
   "January",
   "February",
@@ -135,13 +144,9 @@ export default function V3DashboardPage() {
     ? leadBatchFor(worstDomain.domain)
     : undefined;
 
-  const recent = [...ALL_BATCHES]
-    .sort(
-      (a, b) =>
-        URGENCY[a.slaStatus] - URGENCY[b.slaStatus] ||
-        flaggedItemsInBatch(b) - flaggedItemsInBatch(a),
-    )
-    .slice(0, 5);
+  const recent = DEMO_PATH.map((ar) =>
+    ALL_BATCHES.find((batch) => batch.arNumber === ar),
+  ).filter((batch): batch is Batch => batch !== undefined);
 
   return (
     <div
