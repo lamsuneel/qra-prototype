@@ -248,7 +248,7 @@ export default function SummaryPage() {
             <div>
               <dt className="text-[11px] text-slate-400">Evidence Record ID</dt>
               <dd className="mt-0.5 font-mono text-xs font-semibold text-navy">
-                QRA-{batch.arNumber.replace(/\D/g, "")}-001
+                NT-{batch.arNumber.replace(/\D/g, "")}-001
               </dd>
             </div>
             <Field label="Created" value="30-Jul-2026 · 09:45 AM" />

@@ -45,7 +45,7 @@ export const attendanceCheck = (
     source: "HRMS System",
     comparison: verified
       ? "The HRMS attendance record covers the day the analysis is recorded against"
-      : "QRA could not retrieve an HRMS record for the day of analysis",
+      : "NeuraTrace could not retrieve an HRMS record for the day of analysis",
     /* No record fetched is not the same as absent. It is amber, and the
        reviewer opens HRMS themselves — which is a different question from a
        missing prescribed quantity, so it asks in its own words. */
@@ -88,7 +88,8 @@ export const empowerAuditTrail = (
       label: "Results stored values reconcile",
       statusText: "Reconciled",
       expected: "# Results stored matches the injections reported",
-      actual: "# Results stored 12, matching the 12 injections in the sample set",
+      actual:
+        "# Results stored 12, matching the 12 injections in the sample set",
       expectedSource: SOP.EMPOWER,
       source: "Waters Empower",
       comparison: "Stored result count read against the sample set",
@@ -139,7 +140,8 @@ export const empowerAuditTrail = (
       actual: "No deletion entries in the audit trail",
       expectedSource: SOP.EMPOWER,
       source: "Waters Empower",
-      comparison: "Audit trail read for deleted results, channels or injections",
+      comparison:
+        "Audit trail read for deleted results, channels or injections",
     }),
     compliant({
       prefix,
@@ -148,7 +150,8 @@ export const empowerAuditTrail = (
       label: "System audit trail",
       statusText: "No discrepancy",
       expected: "No discrepancy in the system audit trail",
-      actual: "System audit trail read for the analysis window — no discrepancy",
+      actual:
+        "System audit trail read for the analysis window — no discrepancy",
       expectedSource: SOP.EMPOWER,
       source: "Waters Empower",
       comparison: "System audit trail read across the acquisition window",
@@ -188,7 +191,8 @@ export const empowerAuditTrail = (
           exceptionType: "Reprocessed Run",
           label: "Reprocessed run detected",
           subLabel: "Evaluate the reason and document it before proceeding",
-          expected: "No reprocessed or repetitive runs without a documented reason",
+          expected:
+            "No reprocessed or repetitive runs without a documented reason",
           actual: options.reprocessed,
           expectedSource: SOP.EMPOWER,
           comparison:
@@ -207,7 +211,8 @@ export const empowerAuditTrail = (
           actual: "No run was processed more than once",
           expectedSource: SOP.EMPOWER,
           source: "Waters Empower",
-          comparison: "Processing history read for repeated processing of a run",
+          comparison:
+            "Processing history read for repeated processing of a run",
         }),
   );
 

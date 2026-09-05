@@ -58,7 +58,7 @@ const siteDate = (date: Date) =>
  * Everything the reviewer has to answer for, worst first.
  *
  * Blocking and advisory entries are listed together because the record is
- * read as one list of what QRA could not settle on its own — the tone on each
+ * read as one list of what NeuraTrace could not settle on its own — the tone on each
  * row says which kind it is.
  */
 const findingsIn = (sections: Section[]) => {
@@ -268,7 +268,7 @@ function Summary({ batch }: { batch: Batch }) {
 
           <Row label="Evidence Record ID">
             <span className="font-mono text-[var(--v3-accent)]">
-              QRA-{batch.arNumber.replace(/\D/g, "")}-001
+              NT-{batch.arNumber.replace(/\D/g, "")}-001
             </span>
           </Row>
           <Row label="Created">

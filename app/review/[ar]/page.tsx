@@ -215,7 +215,7 @@ function Workspace({
   const blocking = countWhere(allItems, isException);
   /* Reviewer progress rather than a verdict: the checks sitting in sections
      nobody has closed yet. It overlaps the three counts above on purpose —
-     they say what QRA found, this says how much has been signed off. */
+     they say what NeuraTrace found, this says how much has been signed off. */
   const unreviewed = sections
     .filter((section) => sectionStatus(section.id) !== "REVIEWED")
     .reduce((total, section) => total + section.items.length, 0);

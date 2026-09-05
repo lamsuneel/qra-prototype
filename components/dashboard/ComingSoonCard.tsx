@@ -1,5 +1,5 @@
 /**
- * A domain QRA does not review yet.
+ * A domain NeuraTrace does not review yet.
  *
  * Deliberately not a Domain: it has no batches, no queue and no route, so
  * adding it to the domain list would put it into the batch lists, the search
@@ -51,7 +51,7 @@ export function ComingSoonCard({
       </div>
 
       <div className="border-t border-slate-200/80 pt-3 text-[11px] leading-relaxed text-slate-400">
-        {note ?? "Not yet available for review in QRA"}
+        {note ?? "Not yet available for review in NeuraTrace"}
       </div>
     </div>
   );

@@ -2,9 +2,9 @@ import { quantityComparison, resultFor, type CheckItem } from "@/types";
 import { V3_RESULT_LABEL, V3_RESULT_TONE, type V3Tone } from "./theme";
 
 /**
- * One line of what QRA read for an entry.
+ * One line of what NeuraTrace read for an entry.
  *
- * Result and timestamp are optional because most of what QRA reads is a fact
+ * Result and timestamp are optional because most of what NeuraTrace reads is a fact
  * rather than a verdict, and most facts in these systems are not stamped. A
  * row without them says so rather than borrowing a neighbour's.
  */
@@ -30,7 +30,7 @@ const QUANTITY_TONE: Record<string, V3Tone> = {
 };
 
 /**
- * Everything QRA read for one entry, as table rows.
+ * Everything NeuraTrace read for one entry, as table rows.
  *
  * Built from the entry rather than written per screen: the comparison it made
  * is always there, and each further block — a quantity check, an inactivation
@@ -170,7 +170,7 @@ export const evidenceRowsFor = (item: CheckItem): V3EvidenceRow[] => {
  * A first draft of the reviewer's observation, from the finding itself.
  *
  * Deliberately unfinished: it states what was found and where the rule comes
- * from, and stops at the investigation reference, which is the one thing QRA
+ * from, and stops at the investigation reference, which is the one thing NeuraTrace
  * cannot know and the reviewer must supply.
  */
 export const draftObservation = (item: CheckItem): string => {

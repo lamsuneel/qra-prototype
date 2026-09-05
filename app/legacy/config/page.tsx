@@ -129,7 +129,9 @@ export default function ConfigPage() {
                 <tr className="border-b border-slate-100 text-left text-slate-400">
                   <th className="px-4 py-2 font-medium">Automated Check</th>
                   <th className="px-4 py-2 font-medium">Source Document</th>
-                  <th className="px-4 py-2 font-medium">What QRA Compares</th>
+                  <th className="px-4 py-2 font-medium">
+                    What NeuraTrace Compares
+                  </th>
                 </tr>
               </thead>
               <tbody>

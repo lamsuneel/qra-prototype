@@ -45,7 +45,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--v3-font-mono" });
 /**
  * Blocking and advisory, split the way the review model already splits them:
  * a flagged or unusable entry stops the batch, while a condition to confirm
- * or a comparison QRA could not make is work still to do. The dashboard's two
+ * or a comparison NeuraTrace could not make is work still to do. The dashboard's two
  * numbers are those two states, not a new severity scheme laid over them.
  */
 const countIn = (batch: Batch, results: string[]): number =>

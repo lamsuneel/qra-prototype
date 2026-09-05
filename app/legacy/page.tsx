@@ -32,7 +32,7 @@ export default function LoginPage() {
         </span>
         <div>
           <div className="text-2xl leading-none font-bold tracking-tight text-navy">
-            QRA
+            NeuraTrace
           </div>
           <div className="mt-1 text-[11px] tracking-wide text-source-text">
             Quality Review Assistant
@@ -78,7 +78,7 @@ export default function LoginPage() {
       </p>
 
       <p className="absolute inset-x-0 bottom-4 text-center text-[11px] text-[#9CA3AF]">
-        QRA v2.1 — Demo Environment · Not for clinical use · {SITE_NAME}
+        NeuraTrace v2.1 — Demo Environment · Not for clinical use · {SITE_NAME}
       </p>
     </div>
   );

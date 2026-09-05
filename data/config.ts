@@ -16,7 +16,7 @@ import type {
  */
 
 export const CONFIG_CALLOUT =
-  "QRA is configured to this site SOPs, STPs, and product specifications. Every automated check in QRA traces back to a named document shown here. Configuration is managed by the QRA implementation team.";
+  "NeuraTrace is configured to this site SOPs, STPs, and product specifications. Every automated check in NeuraTrace traces back to a named document shown here. Configuration is managed by the NeuraTrace implementation team.";
 
 export const PRODUCT_SPECIFICATIONS: SpecRow[] = [
   {

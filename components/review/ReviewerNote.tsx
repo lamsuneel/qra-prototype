@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 /**
  * The reviewer's observation, and the only thing that unlocks a section.
  *
- * Two entries ask for one. A flagged entry asks because QRA compared the
+ * Two entries ask for one. A flagged entry asks because NeuraTrace compared the
  * record against the criterion and the comparison failed. An entry needing
- * verification asks for the opposite reason: QRA could not make the
+ * verification asks for the opposite reason: NeuraTrace could not make the
  * comparison at all, so the reviewer makes it against the worksheet and
  * records that they did. Same field, same gate, different colour — amber
  * reads as work outstanding, red as a finding.
@@ -145,7 +145,7 @@ export function ReviewerNote({
 }
 
 /**
- * The starting text on an entry QRA could not conclude. It states the check
+ * The starting text on an entry NeuraTrace could not conclude. It states the check
  * the reviewer is being asked to make, so an untouched field is never a
  * silent confirmation — they still have to press Confirm.
  */

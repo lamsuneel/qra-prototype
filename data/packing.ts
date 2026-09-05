@@ -1,4 +1,9 @@
-import type { Batch, Section, StandaloneInstrument, TestParameter } from "@/types";
+import type {
+  Batch,
+  Section,
+  StandaloneInstrument,
+  TestParameter,
+} from "@/types";
 import { compliant, flagged, section } from "./factories";
 import { attendanceCheck, nonCdsAuditTrail } from "./checks";
 
@@ -171,7 +176,8 @@ const sections: Section[] = [
         label: "HDPE identity by ATR-FTIR",
         reference: "Three sampling points",
         statusText: "Confirmed",
-        expected: "Correlation not less than 0.980 against REF-SPEC-HDPE-02 — STP-PM-FTIR-002",
+        expected:
+          "Correlation not less than 0.980 against REF-SPEC-HDPE-02 — STP-PM-FTIR-002",
         actual: "Mean correlation 0.991 across three scans",
         expectedSource: "STP-PM-FTIR-002",
         source: "Spectrum ES",
@@ -192,7 +198,8 @@ const sections: Section[] = [
         reference: "Issued 04-Feb-2026",
         statusText: "Current",
         expected: "Current library reference spectrum — SOP-PM-QC-001 §4.2",
-        actual: "REF-SPEC-HDPE-02 — current version, issued 04-Feb-2026, valid to 03-Feb-2027",
+        actual:
+          "REF-SPEC-HDPE-02 — current version, issued 04-Feb-2026, valid to 03-Feb-2027",
         expectedSource: "SOP-PM-QC-001 §4.2",
         source: "Caliber LIMS",
       }),
@@ -202,7 +209,8 @@ const sections: Section[] = [
         reference: "Cal. due 20-Oct-2026",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",
-        actual: "FTIR-2024-002 — calibrated 20-Apr-2026, due 20-Oct-2026, used 13:20 to 13:35",
+        actual:
+          "FTIR-2024-002 — calibrated 20-Apr-2026, due 20-Oct-2026, used 13:20 to 13:35",
         expectedSource: "SOP-INST-004",
         source: "Caliber LIMS",
       }),
@@ -252,7 +260,7 @@ const sections: Section[] = [
         reference: "Logbook LB-2026-PM-011",
         page: "Page 7",
         description: "Bottle dimensions — measured and recorded by hand",
-        note: "Height and neck diameter are taken with a vernier caliper and written into the departmental logbook. QRA has no electronic record to compare the transcribed values against.",
+        note: "Height and neck diameter are taken with a vernier caliper and written into the departmental logbook. NeuraTrace has no electronic record to compare the transcribed values against.",
       },
     },
   ),
@@ -281,7 +289,13 @@ const sections: Section[] = [
           "Confirm the grade against the supplier certificate for label roll LBL-2026-0771 and review ink coverage with the printing vendor. Record the finding against the batch and confirm whether the roll is to be rejected before it reaches the packing line.",
         table: {
           caption: "Barcode verification — five labels, ISO/IEC 15416",
-          columns: ["Label", "Overall grade", "Modulation", "Defects", "Minimum"],
+          columns: [
+            "Label",
+            "Overall grade",
+            "Modulation",
+            "Defects",
+            "Minimum",
+          ],
           rows: [
             { cells: ["1", "C (1.7)", "C", "C", "B (2.5)"], flagged: true },
             { cells: ["2", "C (1.8)", "C", "B", "B (2.5)"], flagged: true },
@@ -296,8 +310,10 @@ const sections: Section[] = [
         label: "Verifier calibration check before use",
         reference: "EAN-13 calibration card",
         statusText: "Verified",
-        expected: "Calibration card verified before the first scan — SOP-PM-QC-004 §5.1",
-        actual: "Calibration verified at 15:41 against the EAN-13 reference card",
+        expected:
+          "Calibration card verified before the first scan — SOP-PM-QC-004 §5.1",
+        actual:
+          "Calibration verified at 15:41 against the EAN-13 reference card",
         expectedSource: "SOP-PM-QC-004 §5.1",
         source: "Axicon Barcode Verifier",
       }),
@@ -306,8 +322,10 @@ const sections: Section[] = [
         label: "Barcode content — GTIN and batch",
         reference: "GS1-128",
         statusText: "Correct",
-        expected: "GTIN and batch number matching the packing order — SOP-PM-QC-004 §6.1",
-        actual: "GTIN 08901234567890, batch HDPE-2026-1147 — decoded correctly on all five labels",
+        expected:
+          "GTIN and batch number matching the packing order — SOP-PM-QC-004 §6.1",
+        actual:
+          "GTIN 08901234567890, batch HDPE-2026-1147 — decoded correctly on all five labels",
         expectedSource: "SOP-PM-QC-004 §6.1",
         source: "Axicon Barcode Verifier",
         details: [
@@ -353,7 +371,8 @@ const sections: Section[] = [
       reference: "Cal. due 18-Jan-2027",
       statusText: "Calibrated",
       expected: "Calibration due date after date of use — SOP-INST-004",
-      actual: "BAL-2024-011 — calibrated 18-Jul-2026, due 18-Jan-2027, used 14:05 to 14:38",
+      actual:
+        "BAL-2024-011 — calibrated 18-Jul-2026, due 18-Jan-2027, used 14:05 to 14:38",
       expectedSource: "SOP-INST-004",
       source: "Caliber LIMS",
     }),
@@ -382,7 +401,8 @@ const sections: Section[] = [
         label: "COA declared values against site specification",
         reference: "Resin grade and additives",
         statusText: "Consistent",
-        expected: "Declared resin grade and additive package as per the qualified supplier file",
+        expected:
+          "Declared resin grade and additive package as per the qualified supplier file",
         actual:
           "HDPE resin grade HD5502FA declared, matching the qualified supplier file; no additive change declared",
         expectedSource: "SOP-PM-QC-002 §4.4",
@@ -393,8 +413,9 @@ const sections: Section[] = [
       paperLogbook: {
         reference: "Supplier COA COA-MJT-PM-2026-0823",
         page: "Filed against GRN-2026-4471",
-        description: "Supplier certificate of analysis — paper document on file",
-        note: "The supplier issues this certificate on paper and it is filed in the goods receipt binder. The reviewer must confirm the document matches the consignment physically received; QRA cannot read it.",
+        description:
+          "Supplier certificate of analysis — paper document on file",
+        note: "The supplier issues this certificate on paper and it is filed in the goods receipt binder. The reviewer must confirm the document matches the consignment physically received; NeuraTrace cannot read it.",
       },
     },
   ),
@@ -424,7 +445,7 @@ export const PACKING_MATERIAL_BATCHES: Batch[] = [
   {
     id: "07-PM-26-8823",
     arNumber: "07-PM-26-8823",
-  limsStatus: "Pending QA Review",
+    limsStatus: "Pending QA Review",
     product: "HDPE Bottle 60ml",
     batchNumber: "HDPE-2026-1147",
     domain: "PACKING_MATERIAL",

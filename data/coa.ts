@@ -10,8 +10,8 @@ import type { Batch } from "@/types";
  * set: the number, the limit it was judged against, and where a reviewer had
  * to write something down.
  *
- * A COA is broader than a QRA review. It carries parameters that were tested
- * and released elsewhere (description, microbiology) alongside the ones QRA
+ * A COA is broader than a NeuraTrace review. It carries parameters that were tested
+ * and released elsewhere (description, microbiology) alongside the ones NeuraTrace
  * walked section by section, which is why these rows are stated here rather
  * than derived from the batch's review sections.
  */

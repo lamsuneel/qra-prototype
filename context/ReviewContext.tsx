@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * The single global state container for QRA.
+ * The single global state container for NeuraTrace.
  *
  * Everything lives in React memory: profile selection, reviewer notes, section
  * review status, batch status. No database, no backend, no API routes, no
@@ -210,7 +210,7 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
 
   /**
    * A section unlocks once everything outstanding in it has been answered:
-   * every flagged entry and every entry QRA could not conclude carries an
+   * every flagged entry and every entry NeuraTrace could not conclude carries an
    * observation, and every unusable result carries a PNC number. Sections
    * where everything came back compliant unlock immediately.
    */

@@ -2,7 +2,7 @@ import type { V3EvidenceRow } from "./evidence";
 import { V3_TONE } from "./theme";
 
 /**
- * What QRA read, one row per fact.
+ * What NeuraTrace read, one row per fact.
  *
  * Result and timestamp are blanked with a dash rather than filled: an empty
  * cell would read as an oversight, and a borrowed value would read as a

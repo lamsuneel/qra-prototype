@@ -10,7 +10,7 @@ import { V3_RESULT_LABEL, V3_RESULT_TONE, V3_TONE } from "./theme";
  *
  * Taken from the entry own expanded record where it keeps one, because that
  * is what the reviewer would read off the source system. Where it keeps none,
- * the comparison QRA made stands in its place. Nothing is invented to fill a
+ * the comparison NeuraTrace made stands in its place. Nothing is invented to fill a
  * cell: a card with four facts shows four.
  */
 const gridFor = (item: CheckItem): { label: string; value: string }[] => {
@@ -38,7 +38,7 @@ const gridFor = (item: CheckItem): { label: string; value: string }[] => {
  *
  * Collapsed it states its verdict and nothing else, because a reviewer
  * scanning a clean section is counting greens rather than reading them.
- * Open, it shows what QRA read and offers the only action a compliant entry
+ * Open, it shows what NeuraTrace read and offers the only action a compliant entry
  * has: agreeing with it.
  */
 export function V3EntryCard({

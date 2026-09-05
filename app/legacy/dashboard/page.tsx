@@ -58,7 +58,7 @@ export default function DashboardPage() {
           ))}
 
           {/*
-            The review modules QRA does not cover yet. Display only — no
+            The review modules NeuraTrace does not cover yet. Display only — no
             route, no queue, and deliberately not Domains, so none of them
             reaches the batch lists, the search index or the management
             breakdown as an empty shell.

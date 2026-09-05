@@ -250,7 +250,12 @@ const titratorRoutineChecks = (
   prefix: string,
   facts: TitratorFacts,
 ): CheckItem[] => {
-  const clean = (flagId: string, label: string, expected: string, actual: string) =>
+  const clean = (
+    flagId: string,
+    label: string,
+    expected: string,
+    actual: string,
+  ) =>
     compliant({
       prefix,
       flagId,
@@ -349,7 +354,10 @@ const titratorRoutineChecks = (
           label: "Required order",
           value: "Determination start before weight print start (Karl Fischer)",
         },
-        { label: "Result", value: "✓ Determination started before weight print" },
+        {
+          label: "Result",
+          value: "✓ Determination started before weight print",
+        },
       ],
     }),
     clean(
@@ -472,8 +480,10 @@ const sections: Section[] = [
         prefix: P,
         label: "Temperature excursion above the accelerated condition limit",
         reference: "DEV-2026-SCH-0023",
-        expected: "40 °C ± 2 °C throughout the storage period — ICH Q1A(R2), SOP-STB-CHM-001",
-        actual: "43.7 °C on 05-Mar-2026 and 44.2 °C on 19-Mar-2026 in chamber SCH-04",
+        expected:
+          "40 °C ± 2 °C throughout the storage period — ICH Q1A(R2), SOP-STB-CHM-001",
+        actual:
+          "43.7 °C on 05-Mar-2026 and 44.2 °C on 19-Mar-2026 in chamber SCH-04",
         expectedSource: "SOP-STB-CHM-001",
         source: "Caliber LIMS — Manual Entry",
         comparison:
@@ -486,8 +496,14 @@ const sections: Section[] = [
           caption: "Readings outside the qualified condition",
           columns: ["Date", "Temperature", "Humidity", "Limit"],
           rows: [
-            { cells: ["05-Mar-2026", "43.7 °C", "71.4 % RH", "40 °C ± 2 °C"], flagged: true },
-            { cells: ["19-Mar-2026", "44.2 °C", "70.8 % RH", "40 °C ± 2 °C"], flagged: true },
+            {
+              cells: ["05-Mar-2026", "43.7 °C", "71.4 % RH", "40 °C ± 2 °C"],
+              flagged: true,
+            },
+            {
+              cells: ["19-Mar-2026", "44.2 °C", "70.8 % RH", "40 °C ± 2 °C"],
+              flagged: true,
+            },
           ],
         },
       }),
@@ -507,14 +523,22 @@ const sections: Section[] = [
         label: "Relative humidity — storage period statistics",
         reference: "13 fortnightly readings",
         statusText: "Within limits",
-        expected: "75 % RH ± 5 % RH throughout the storage period — ICH Q1A(R2)",
-        actual: "Mean 74.3 % RH, minimum 70.8 % RH, maximum 75.3 % RH — all readings within limits",
+        expected:
+          "75 % RH ± 5 % RH throughout the storage period — ICH Q1A(R2)",
+        actual:
+          "Mean 74.3 % RH, minimum 70.8 % RH, maximum 75.3 % RH — all readings within limits",
         expectedSource: "SOP-STB-CHM-001",
         source: "Caliber LIMS — Manual Entry",
         details: [
-          { label: "Chamber", value: "SCH-04, Thermolab accelerated stability chamber" },
+          {
+            label: "Chamber",
+            value: "SCH-04, Thermolab accelerated stability chamber",
+          },
           { label: "Condition", value: "75 % RH plus or minus 5 % RH" },
-          { label: "Readings taken", value: "13, fortnightly from 05-Feb-2026" },
+          {
+            label: "Readings taken",
+            value: "13, fortnightly from 05-Feb-2026",
+          },
           { label: "Mean", value: "74.3 % RH" },
           { label: "Minimum", value: "70.8 % RH on 19-Mar-2026" },
           { label: "Maximum", value: "75.3 % RH on 14-May-2026" },
@@ -527,7 +551,8 @@ const sections: Section[] = [
         label: "Chamber SCH-04 qualification",
         reference: "Requalified 24-Mar-2026",
         statusText: "Qualified",
-        expected: "Chamber qualified and mapped, within requalification interval — SOP-STB-CHM-001 §3",
+        expected:
+          "Chamber qualified and mapped, within requalification interval — SOP-STB-CHM-001 §3",
         actual:
           "SCH-04 requalified 24-Mar-2026 after compressor replacement, next due 24-Mar-2027",
         expectedSource: "SOP-STB-CHM-001 §3",
@@ -537,7 +562,10 @@ const sections: Section[] = [
     {
       standaloneInstrument: CHAMBER_LOG_RECORD,
       chamberReadings: CHAMBER_READINGS,
-      chamberLimits: { temperature: "40 °C ± 2 °C", humidity: "75 % RH ± 5 % RH" },
+      chamberLimits: {
+        temperature: "40 °C ± 2 °C",
+        humidity: "75 % RH ± 5 % RH",
+      },
     },
   ),
 
@@ -567,8 +595,10 @@ const sections: Section[] = [
       label: "Assay across the study timepoints",
       reference: "Initial, 3-month, 6-month",
       statusText: "Within limits",
-      expected: "95.0 % to 105.0 % of label claim at every timepoint — STP-STB-ASSAY-001",
-      actual: "Initial 100.2 %, 3-month 99.8 %, 6-month 99.1 % — a 1.1 % decline across the study",
+      expected:
+        "95.0 % to 105.0 % of label claim at every timepoint — STP-STB-ASSAY-001",
+      actual:
+        "Initial 100.2 %, 3-month 99.8 %, 6-month 99.1 % — a 1.1 % decline across the study",
       expectedSource: "STP-STB-ASSAY-001",
       source: "Waters Empower",
       table: {
@@ -595,7 +625,8 @@ const sections: Section[] = [
       prefix: P,
       label: "System suitability — five replicate injections",
       statusText: "Compliant",
-      expected: "Tailing NMT 2.0, plates NLT 2000, RSD NMT 2.0 % — STP-STB-ASSAY-001",
+      expected:
+        "Tailing NMT 2.0, plates NLT 2000, RSD NMT 2.0 % — STP-STB-ASSAY-001",
       actual: "Tailing 1.14, plates 6710, replicate RSD 0.36 %",
       expectedSource: "STP-STB-ASSAY-001",
       source: "Caliber LIMS — Manual Entry",
@@ -613,7 +644,8 @@ const sections: Section[] = [
         label: "Weighing Balance BAL-003",
         reference: "Cal. due 21-Dec-2026",
         statusText: "Calibrated",
-        expected: "Calibration current and within tolerance at date of use — SOP-INST-004",
+        expected:
+          "Calibration current and within tolerance at date of use — SOP-INST-004",
         actual:
           "BAL-003 — calibrated 21-Jun-2026, due 21-Dec-2026, daily check 199.9999 g against a 200 g test weight",
         expectedSource: "SOP-INST-004",
@@ -623,10 +655,16 @@ const sections: Section[] = [
           { label: "Instrument ID", value: "BAL-003" },
           { label: "Make and model", value: "Sartorius Cubis II MSA225S" },
           { label: "Software", value: "Sartorius QApp 4.2" },
-          { label: "Calibration status", value: "Calibrated — within interval" },
+          {
+            label: "Calibration status",
+            value: "Calibrated — within interval",
+          },
           { label: "Last calibrated", value: "21-Jun-2026" },
           { label: "Calibration due", value: "21-Dec-2026" },
-          { label: "Daily check", value: "199.9999 g against a 200 g test weight, tolerance ± 0.2 mg" },
+          {
+            label: "Daily check",
+            value: "199.9999 g against a 200 g test weight, tolerance ± 0.2 mg",
+          },
           { label: "Record held in", value: "Caliber LIMS" },
         ],
       }),
@@ -693,7 +731,8 @@ const sections: Section[] = [
       label: "Any unspecified impurity",
       reference: "6-month timepoint",
       statusText: "Within limits",
-      expected: "Any unspecified impurity not more than 0.10 % — STP-STB-RS-001",
+      expected:
+        "Any unspecified impurity not more than 0.10 % — STP-STB-RS-001",
       actual: "Largest unspecified impurity 0.06 % at relative retention 1.42",
       expectedSource: "STP-STB-RS-001",
       source: "Waters Empower",
@@ -714,7 +753,7 @@ const sections: Section[] = [
         reference: "COND BUSY not detected",
         statusText: "Clean start",
         checkDescription:
-          "QRA read the Tiamo audit trail for a determination started with COND BUSY — a prohibited entry, because conditioning still running consumes titre the reading does not account for.",
+          "NeuraTrace read the Tiamo audit trail for a determination started with COND BUSY — a prohibited entry, because conditioning still running consumes titre the reading does not account for.",
         expected: "Not present",
         actual: "Not present — determination started clean",
         expectedSource: "QRA-CP-F-QCCI-GEN-0013",
@@ -730,12 +769,13 @@ const sections: Section[] = [
         reference: "Version 1",
         statusText: "Original",
         checkDescription:
-          "QRA read the determination version in Tiamo. Anything above 1 means the run was processed a second time, which needs a PNC behind it.",
+          "NeuraTrace read the determination version in Tiamo. Anything above 1 means the run was processed a second time, which needs a PNC behind it.",
         expected: "Version 1 (original)",
         actual: "Version 1 — original determination",
         expectedSource: "QRA-CP-F-QCCI-GEN-0013",
         source: "Tiamo 2.4",
-        comparison: "Determination version read against the original-run requirement",
+        comparison:
+          "Determination version read against the original-run requirement",
       }),
       compliant({
         prefix: P,
@@ -761,7 +801,8 @@ const sections: Section[] = [
         label: "Drift check before first determination",
         reference: "2.8 µg/min",
         statusText: "Within limits",
-        expected: "Drift not more than 10 µg/min before titration — SOP-KF-002 §6.1",
+        expected:
+          "Drift not more than 10 µg/min before titration — SOP-KF-002 §6.1",
         actual: "Drift 2.8 µg/min recorded at 09:07",
         expectedSource: "SOP-KF-002 §6.1",
         source: "Tiamo 2.4",
@@ -770,17 +811,43 @@ const sections: Section[] = [
         prefix: P,
         label: "Karl Fischer Titrator KFT-2024-005",
         auditTrailSequence: [
-          { step: 1, label: "Conditioning started", timestamp: "11-Aug-2026 11:02:40", status: "ok" },
-          { step: 2, label: "Analysis started", timestamp: "11-Aug-2026 11:04:12", status: "ok" },
-          { step: 3, label: "Weight added", timestamp: "11-Aug-2026 11:08:47", status: "ok" },
-          { step: 4, label: "Conditioning stopped", timestamp: "11-Aug-2026 11:15:02", status: "ok" },
-          { step: 5, label: "Finished", timestamp: "11-Aug-2026 11:16:03", status: "ok" },
+          {
+            step: 1,
+            label: "Conditioning started",
+            timestamp: "11-Aug-2026 11:02:40",
+            status: "ok",
+          },
+          {
+            step: 2,
+            label: "Analysis started",
+            timestamp: "11-Aug-2026 11:04:12",
+            status: "ok",
+          },
+          {
+            step: 3,
+            label: "Weight added",
+            timestamp: "11-Aug-2026 11:08:47",
+            status: "ok",
+          },
+          {
+            step: 4,
+            label: "Conditioning stopped",
+            timestamp: "11-Aug-2026 11:15:02",
+            status: "ok",
+          },
+          {
+            step: 5,
+            label: "Finished",
+            timestamp: "11-Aug-2026 11:16:03",
+            status: "ok",
+          },
         ],
         serialContinuity: { range: "Trial #001 – #002" },
         reference: "Cal. due 12-Jan-2027",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",
-        actual: "KFT-2024-005 — calibrated 12-Jul-2026, due 12-Jan-2027, used 09:05 to 09:21",
+        actual:
+          "KFT-2024-005 — calibrated 12-Jul-2026, due 12-Jan-2027, used 09:05 to 09:21",
         expectedSource: "SOP-INST-004",
         source: "Caliber LIMS",
       }),
@@ -808,7 +875,8 @@ const sections: Section[] = [
         label: "Dissolution at 45 minutes",
         reference: "6 vessels",
         statusText: "Within limits",
-        expected: "Not less than Q = 80 % dissolved at 45 minutes — STP-STB-DISS-001",
+        expected:
+          "Not less than Q = 80 % dissolved at 45 minutes — STP-STB-DISS-001",
         actual: "Mean 93.7 % dissolved, lowest vessel 91.9 %, RSD 1.3 %",
         expectedSource: "STP-STB-DISS-001",
         source: "LabSolutions UV",
@@ -831,7 +899,8 @@ const sections: Section[] = [
         label: "Dissolution trend across timepoints",
         reference: "Initial, 3-month, 6-month",
         statusText: "Within limits",
-        expected: "Not less than Q = 80 % at 45 minutes at every timepoint — STP-STB-DISS-001",
+        expected:
+          "Not less than Q = 80 % at 45 minutes at every timepoint — STP-STB-DISS-001",
         actual: "Initial 96.1 %, 3-month 94.9 %, 6-month 93.7 % mean dissolved",
         expectedSource: "STP-STB-DISS-001",
         source: "LabSolutions UV",
@@ -849,12 +918,35 @@ const sections: Section[] = [
         prefix: P,
         label: "UV Spectrophotometer UV-2024-02",
         auditTrailSequence: [
-          { step: 1, label: "Auto-zero / Baseline zero", timestamp: "06-Aug-2026 10:17:30", status: "ok" },
-          { step: 2, label: "Method loaded", timestamp: "06-Aug-2026 10:16:47", status: "ok" },
-          { step: 3, label: "Vessel readings 1 to 6", timestamp: "06-Aug-2026 11:05:14", status: "ok" },
-          { step: 4, label: "End", timestamp: "06-Aug-2026 11:12:20", status: "ok" },
+          {
+            step: 1,
+            label: "Auto-zero / Baseline zero",
+            timestamp: "06-Aug-2026 10:17:30",
+            status: "ok",
+          },
+          {
+            step: 2,
+            label: "Method loaded",
+            timestamp: "06-Aug-2026 10:16:47",
+            status: "ok",
+          },
+          {
+            step: 3,
+            label: "Vessel readings 1 to 6",
+            timestamp: "06-Aug-2026 11:05:14",
+            status: "ok",
+          },
+          {
+            step: 4,
+            label: "End",
+            timestamp: "06-Aug-2026 11:12:20",
+            status: "ok",
+          },
         ],
-        serialContinuity: { range: "Trial #001 – #004", gap: "Gap detected: #003 missing" },
+        serialContinuity: {
+          range: "Trial #001 – #004",
+          gap: "Gap detected: #003 missing",
+        },
         comparison: "Audit trail sequence read against the method",
         flagReason:
           "The LabSolutions UV run opens on an auto-zero and closes on End as required, but trial #003 is absent from the reviewed run. A missing trial number means a determination was made and not carried into the record, or the numbering was reused.",
@@ -863,7 +955,8 @@ const sections: Section[] = [
         reference: "Cal. due 14-Dec-2026",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",
-        actual: "UV-2024-02 — calibrated 14-Jun-2026, due 14-Dec-2026, used 10:15 to 11:12",
+        actual:
+          "UV-2024-02 — calibrated 14-Jun-2026, due 14-Dec-2026, used 10:15 to 11:12",
         expectedSource: "SOP-INST-004",
         source: "Caliber LIMS",
       }),
@@ -889,12 +982,31 @@ const sections: Section[] = [
         expectedSource: "STP-STB-APP-001",
         source: "Paper Logbook",
         table: {
-          caption: "Appearance across timepoints — transcribed from the logbook",
+          caption:
+            "Appearance across timepoints — transcribed from the logbook",
           columns: ["Timepoint", "Pull date", "Observation"],
           rows: [
-            { cells: ["Initial", "05-Feb-2026", "White to off-white, no defects"] },
-            { cells: ["3-month", "05-May-2026", "White to off-white, no change"] },
-            { cells: ["6-month", "05-Aug-2026", "White to off-white, no change"] },
+            {
+              cells: [
+                "Initial",
+                "05-Feb-2026",
+                "White to off-white, no defects",
+              ],
+            },
+            {
+              cells: [
+                "3-month",
+                "05-May-2026",
+                "White to off-white, no change",
+              ],
+            },
+            {
+              cells: [
+                "6-month",
+                "05-Aug-2026",
+                "White to off-white, no change",
+              ],
+            },
           ],
         },
       }),
@@ -903,8 +1015,10 @@ const sections: Section[] = [
         label: "Container closure condition",
         reference: "HDPE bottle with induction seal",
         statusText: "Intact",
-        expected: "Closure intact, desiccant present, no seal breach — STP-STB-APP-001 §5",
-        actual: "Induction seal intact on all containers, desiccant present and free-flowing",
+        expected:
+          "Closure intact, desiccant present, no seal breach — STP-STB-APP-001 §5",
+        actual:
+          "Induction seal intact on all containers, desiccant present and free-flowing",
         expectedSource: "STP-STB-APP-001 §5",
         source: "Paper Logbook",
       }),
@@ -914,7 +1028,7 @@ const sections: Section[] = [
         reference: "Logbook LB-2026-ST-002",
         page: "Page 8",
         description: "Appearance at pull — observed and recorded by hand",
-        note: "Appearance is a visual check made at the pull bench and written into the stability logbook against the initial retained sample. QRA has no image or electronic record to compare the description against.",
+        note: "Appearance is a visual check made at the pull bench and written into the stability logbook against the initial retained sample. NeuraTrace has no image or electronic record to compare the description against.",
       },
     },
   ),
@@ -936,7 +1050,8 @@ const sections: Section[] = [
       sopReference: "FU7-QA-GEN-080 — Stability Window",
       reference: "Long-term 25 °C / 60 % RH",
       statusText: "Within window",
-      expected: "Pulled within ±45 days of the scheduled date — long-term condition",
+      expected:
+        "Pulled within ±45 days of the scheduled date — long-term condition",
       actual: "Scheduled 01-Aug-2026, pulled 03-Aug-2026 — 2 days late",
       expectedSource: "FU7-QA-GEN-080 — Stability Window",
       source: "Caliber LIMS",
@@ -957,7 +1072,8 @@ const sections: Section[] = [
       sopReference: "FU7-QA-GEN-080 — Stability Window",
       reference: "Accelerated 40 °C / 75 % RH",
       statusText: "Within window",
-      expected: "Pulled within ±30 days of the scheduled date — accelerated condition",
+      expected:
+        "Pulled within ±30 days of the scheduled date — accelerated condition",
       actual: "Scheduled 05-Aug-2026, pulled 06-Aug-2026 — 1 day late",
       expectedSource: "FU7-QA-GEN-080 — Stability Window",
       source: "Caliber LIMS",
@@ -978,7 +1094,7 @@ export const STABILITY_BATCHES: Batch[] = [
   {
     id: "07-ST-26-0089",
     arNumber: "07-ST-26-0089",
-  limsStatus: "Sample In-Charge Review",
+    limsStatus: "Sample In-Charge Review",
     product: "Amoxicillin 250mg — 6-Month Accelerated",
     batchNumber: "AMX-2026-0288",
     domain: "STABILITY",

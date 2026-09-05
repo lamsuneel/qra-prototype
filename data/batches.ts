@@ -48,7 +48,7 @@ const sopFor = (spec: {
   label: string;
   source?: SourceSystem;
   sopReference?: string;
-  /** What QRA checked, in its own words, where the derived sentence is not enough. */
+  /** What NeuraTrace checked, in its own words, where the derived sentence is not enough. */
   checkDescription?: string;
 }): string => {
   if (spec.sopReference) return spec.sopReference;
@@ -89,7 +89,7 @@ interface CompliantSpec {
   flagId?: string;
   /** The document the check comes from. */
   sopReference?: string;
-  /** What QRA checked, in its own words, where the derived sentence is not enough. */
+  /** What NeuraTrace checked, in its own words, where the derived sentence is not enough. */
   checkDescription?: string;
   /** Set where the result cannot be used at all — a PNC number is required. */
   severity?: "HARD_INVALID";
@@ -110,7 +110,7 @@ interface CompliantSpec {
   usageSource?: string;
   potencySource?: string;
   source?: SourceSystem;
-  /** Everything QRA read for this entry, shown when the row is expanded. */
+  /** Everything NeuraTrace read for this entry, shown when the row is expanded. */
   details?: DetailField[];
   requiresQuantityCheck?: boolean;
   prescribedQty?: string;
@@ -180,7 +180,7 @@ interface FlaggedSpec {
   flagId?: string;
   /** The document the check comes from. */
   sopReference?: string;
-  /** What QRA checked, in its own words, where the derived sentence is not enough. */
+  /** What NeuraTrace checked, in its own words, where the derived sentence is not enough. */
   checkDescription?: string;
   /** Set where the result cannot be used at all — a PNC number is required. */
   severity?: "HARD_INVALID";
@@ -210,7 +210,7 @@ interface FlaggedSpec {
   flagAction: string;
   auditTrailSequence?: AuditTrailStep[];
   serialContinuity?: SerialContinuity;
-  /** Everything QRA read for this entry, shown when the row is expanded. */
+  /** Everything NeuraTrace read for this entry, shown when the row is expanded. */
   details?: DetailField[];
   source?: SourceSystem;
 }
@@ -1523,7 +1523,7 @@ const batchBSections: Section[] = [
       /*
        * PASS-TIA-01. The trail records the titration stopping and starting
        * again, which is what the method asks for when solution is added
-       * mid-run — and also what it records when somebody interfered. QRA
+       * mid-run — and also what it records when somebody interfered. NeuraTrace
        * cannot read the method, so the reviewer says which it was.
        */
       compliant({
@@ -1791,7 +1791,7 @@ const batchBSections: Section[] = [
     [
       flagged({
         /*
-         * QRA read this from the analytical data during review and surfaced
+         * NeuraTrace read this from the analytical data during review and surfaced
          * it. It does not claim to have prevented anything, and it makes no
          * recommendation about the batch — the reviewer decides what follows.
          */

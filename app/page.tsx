@@ -9,19 +9,19 @@ import { PageTitle } from "@/components/layout/PageTitle";
 import { useReview } from "@/context/ReviewContext";
 import { V3_PROFILES, storeV3Profile } from "@/components/dark/profiles";
 import type { V3Profile } from "@/components/dark/profiles";
-import { DarkWordmark } from "@/components/dark/Wordmark";
+import { NeuraTraceLockup } from "@/components/dark/Logo";
 import { V3_THEME_CSS } from "@/components/dark/theme";
 
-/* The design's two faces, scoped to the v3 subtree. */
+/* The design's two faces, scoped to this subtree. */
 const inter = Inter({ subsets: ["latin"], variable: "--v3-font-sans" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--v3-font-mono" });
 
-/** The rule under the wordmark and again above the small print. */
+/** The rule under the masthead and again above the small print. */
 function Separator() {
   return (
     <div
       aria-hidden="true"
-      className="h-px w-[480px] max-w-full bg-[var(--v3-border-default)]"
+      className="h-px w-[520px] max-w-full bg-[var(--v3-border-default)]"
     />
   );
 }
@@ -56,33 +56,28 @@ export default function LoginPage() {
       <PageTitle />
 
       {/* Masthead ------------------------------------------------------- */}
-      <div className="flex flex-col items-center">
-        <div className="flex items-center gap-[14px]">
-          <span className="flex size-[52px] shrink-0 items-center justify-center rounded-[10px] border border-[var(--v3-border-default)] bg-[var(--v3-bg-surface)] text-[20px] font-bold tracking-[-0.5px] text-[var(--v3-text-primary)]">
-            N<span className="text-[var(--v3-brand)]">T</span>
-          </span>
-          <DarkWordmark className="text-[28px] font-bold tracking-[-0.6px]" />
-        </div>
+      <div className="mb-12 flex flex-col items-center">
+        {/* No href: this screen is where the logo leads from everywhere else. */}
+        <NeuraTraceLockup />
 
-        <p className="mt-1.5 text-center text-[13px] tracking-[0.01em] text-[var(--v3-text-secondary)]">
-          Quality Review Assistant
+        <p className="mt-2.5 text-center text-[12px] tracking-[0.06em] text-[var(--v3-text-secondary)] uppercase">
+          Analytical Batch Release Review
         </p>
 
-        <div className="my-6">
+        <div className="my-7">
           <Separator />
         </div>
 
-        <h1 className="text-center text-[14px] font-medium text-[var(--v3-text-primary)]">
-          Select your profile to continue
+        <h1 className="text-center text-[15px] font-medium text-[var(--v3-text-primary)]">
+          Select your profile
         </h1>
-        <p className="mt-1 text-center text-[11px] text-[var(--v3-text-muted)] italic">
-          Pharmaceutical QA analytical batch release review &middot; {SITE_NAME}{" "}
-          demo
+        <p className="mt-1.5 text-center text-[11px] text-[var(--v3-text-muted)] italic">
+          {SITE_NAME} &middot; Demo
         </p>
       </div>
 
       {/* The three desks ------------------------------------------------ */}
-      <div className="mt-8 flex flex-row gap-4">
+      <div className="flex flex-row gap-5">
         {V3_PROFILES.map((profile, index) => {
           const isChosen = chosen === profile.id;
           /* The clicked card stays nearly lit while the others step back, so
@@ -101,27 +96,27 @@ export default function LoginPage() {
               disabled={chosen !== null}
               aria-label={`Sign in as ${profile.name}, ${profile.role}`}
               style={{ animationDelay: `${(index + 1) * 60}ms` }}
-              className={`v3-fade-up group relative flex w-[200px] cursor-pointer flex-col items-center rounded-[16px] border border-[var(--v3-border-default)] bg-[var(--v3-bg-card)] px-7 py-8 transition-all duration-150 ease-in-out hover:-translate-y-0.5 hover:border-[var(--v3-border-strong)] hover:bg-[var(--v3-bg-card-hover)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-[var(--v3-accent)] active:translate-y-0 active:shadow-none disabled:pointer-events-none disabled:cursor-wait ${fade}`}
+              className={`v3-fade-up group relative flex w-[210px] cursor-pointer flex-col items-center rounded-[16px] border border-[var(--v3-border-default)] bg-[var(--v3-bg-card)] px-8 py-9 transition-all duration-150 ease-in-out hover:-translate-y-0.5 hover:border-[var(--v3-border-strong)] hover:bg-[var(--v3-bg-card-hover)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-[var(--v3-accent)] active:translate-y-0 active:shadow-none active:duration-[80ms] disabled:pointer-events-none disabled:cursor-wait ${fade}`}
             >
               <span
-                className="flex size-16 shrink-0 items-center justify-center rounded-full text-[18px] font-bold text-white"
+                className="flex size-[68px] shrink-0 items-center justify-center rounded-full text-[20px] font-bold text-white"
                 style={{ background: profile.avatarColour }}
               >
                 {profile.initials}
               </span>
 
-              <span className="mt-4 text-center text-[14px] leading-snug font-semibold text-[var(--v3-text-primary)]">
+              <span className="mt-4 text-center text-[15px] leading-[1.3] font-semibold text-[var(--v3-text-primary)]">
                 {profile.name}
               </span>
-              <span className="mt-1 text-center text-[11px] text-[var(--v3-text-secondary)]">
+              <span className="mt-1 text-center text-[12px] text-[var(--v3-text-secondary)]">
                 {profile.role}
               </span>
-              <span className="mt-0.5 text-center text-[10px] text-[var(--v3-text-muted)]">
+              <span className="mt-1 text-center text-[10px] text-[var(--v3-text-muted)]">
                 {profile.sub}
               </span>
 
               <span
-                className="mt-3 rounded-[4px] border px-2 py-0.5 text-[8px] font-semibold tracking-[0.06em] uppercase"
+                className="mt-3 rounded-[4px] border px-2 py-[3px] text-[8px] font-semibold tracking-[0.08em] uppercase"
                 style={{
                   background: profile.badgeBg,
                   borderColor: profile.badgeBorder,
@@ -136,16 +131,16 @@ export default function LoginPage() {
       </div>
 
       {/* Small print ----------------------------------------------------- */}
-      <div className="mt-12 flex flex-col items-center">
+      <div className="mt-14 flex flex-col items-center">
         <p className="text-center text-[11px] text-[var(--v3-text-muted)]">
           {SITE_NAME} &middot; Demo Environment
         </p>
         <div className="my-4">
           <Separator />
         </div>
-        <p className="text-center text-[10px] leading-[1.8] text-[var(--v3-text-muted)]">
-          NeuraTrace v1.0 &mdash; Demo Environment &middot; Not for clinical use
-          &middot; {SITE_NAME}
+        <p className="text-center text-[10px] leading-[1.9] text-[var(--v3-text-muted)]">
+          NeuraTrace v1.0 &middot; Demo Environment &middot; Not for clinical
+          use &middot; {SITE_NAME}
         </p>
       </div>
     </div>

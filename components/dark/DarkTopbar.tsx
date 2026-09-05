@@ -10,7 +10,9 @@ import {
   subscribeToV3Profile,
 } from "./profiles";
 import { SearchIcon } from "./Icons";
-import { DarkWordmark } from "./Wordmark";
+import Link from "next/link";
+
+import { NeuraTraceGlyph, NeuraTraceWordmark } from "./Logo";
 
 /**
  * The v3 top bar.
@@ -73,12 +75,23 @@ export function DarkTopbar({
   return (
     <header className="sticky top-0 z-10 flex h-12 items-center justify-between border-b border-[var(--v3-border-default)] bg-[var(--v3-bg-surface)] px-6">
       <div className="flex items-center gap-4">
-        <div>
-          <DarkWordmark className="text-[16px] leading-none font-bold" />
-          <div className="mt-[3px] text-[8px] font-medium tracking-[0.08em] text-[var(--v3-text-secondary)] uppercase">
-            Quality Review Assistant
-          </div>
-        </div>
+        {/* The logo is the one thing on every screen, so it is where a
+            reviewer reaches to get out of wherever they are. Here that means
+            back to the desks, which is also how you change which one you are
+            sitting at. */}
+        <Link
+          href="/"
+          aria-label="NeuraTrace — back to profile selection"
+          className="flex items-center gap-2.5 rounded-[6px] transition-opacity duration-[120ms] hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-[var(--v3-accent)]"
+        >
+          <NeuraTraceGlyph box={30} mark={26} />
+          <span>
+            <NeuraTraceWordmark width={104} />
+            <span className="mt-[2px] block text-[8px] font-medium tracking-[0.08em] text-[var(--v3-text-secondary)] uppercase">
+              Quality Review Assistant
+            </span>
+          </span>
+        </Link>
 
         {search ? (
           <>

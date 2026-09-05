@@ -40,7 +40,7 @@ export function ReviewSidebar({
    */
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return;
-    console.groupCollapsed(`QRA exception counts — ${batch.arNumber}`);
+    console.groupCollapsed(`NeuraTrace exception counts — ${batch.arNumber}`);
     for (const parameter of batch.parameters) {
       const contributors = exceptionContributors(batch, parameter.id);
       console.log(

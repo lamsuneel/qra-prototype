@@ -187,7 +187,7 @@ export default function BatchListPage() {
                     <td className="px-4 py-3 text-[13px] text-slate-900">
                       {batch.product}
                       {/* Where LIMS has got to, which is not the same question
-                          as how far QRA's own review has got. */}
+                          as how far NeuraTrace's own review has got. */}
                       <div className="mt-1">
                         <LimsStatusBadge
                           status={batch.limsStatus}

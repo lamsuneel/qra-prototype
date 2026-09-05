@@ -20,7 +20,7 @@ export const NAVY: [number, number, number] = [31, 56, 100];
 
 /** The same disclaimer on every page of every report: nothing measures a person. */
 export const FOOTER_NOTE =
-  "Cycle time measures total process time from review opened to authorisation. Individual reviewer activity is not tracked. This report is generated from QRA and is intended for internal quality review purposes.";
+  "Cycle time measures total process time from review opened to authorisation. Individual reviewer activity is not tracked. This report is generated from NeuraTrace and is intended for internal quality review purposes.";
 
 export interface Layout {
   doc: jsPDF;
@@ -126,7 +126,7 @@ export const coverHeader = (doc: jsPDF, subtitle: string) => {
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.text("QRA — Quality Review Assistant", MARGIN, 15);
+  doc.text("NeuraTrace — Quality Review Assistant", MARGIN, 15);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(12);
   doc.text(subtitle, MARGIN, 25);

@@ -59,12 +59,12 @@ export const buildAuditReport = (generatedBy: string): jsPDF => {
   layout.y += 8;
   paragraph(
     layout,
-    "This report summarises the analytical batch release review performance for the period shown. All data is sourced from Caliber LIMS, Waters Empower, and connected standalone instruments via QRA. Individual reviewer activity is not tracked. Cycle time is measured from review opened to authorisation.",
+    "This report summarises the analytical batch release review performance for the period shown. All data is sourced from Caliber LIMS, Waters Empower, and connected standalone instruments via NeuraTrace. Individual reviewer activity is not tracked. Cycle time is measured from review opened to authorisation.",
   );
 
   /* Signatures sit at the foot of the cover, above the footer note. */
   signatureBlock(layout, [
-    "Prepared by QRA system:",
+    "Prepared by NeuraTrace system:",
     "Reviewed by (QA Head):",
     "Approved by (Site Director):",
   ]);

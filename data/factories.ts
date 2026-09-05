@@ -31,7 +31,7 @@ const sopFor = (spec: {
   label: string;
   source?: SourceSystem;
   sopReference?: string;
-  /** What QRA checked, in its own words, where the derived sentence is not enough. */
+  /** What NeuraTrace checked, in its own words, where the derived sentence is not enough. */
   checkDescription?: string;
 }): string => {
   if (spec.sopReference) return spec.sopReference;
@@ -72,7 +72,7 @@ export interface CompliantSpec {
   flagId?: string;
   /** The document the check comes from. */
   sopReference?: string;
-  /** What QRA checked, in its own words, where the derived sentence is not enough. */
+  /** What NeuraTrace checked, in its own words, where the derived sentence is not enough. */
   checkDescription?: string;
   /** Set where the result cannot be used at all — a PNC number is required. */
   severity?: "HARD_INVALID";
@@ -94,7 +94,7 @@ export interface CompliantSpec {
   potencySource?: string;
   source: SourceSystem;
   table?: EvidenceTable;
-  /** Everything QRA read for this entry, shown when the row is expanded. */
+  /** Everything NeuraTrace read for this entry, shown when the row is expanded. */
   details?: DetailField[];
   requiresQuantityCheck?: boolean;
   prescribedQty?: string;
@@ -165,7 +165,7 @@ export interface FlaggedSpec {
   flagId?: string;
   /** The document the check comes from. */
   sopReference?: string;
-  /** What QRA checked, in its own words, where the derived sentence is not enough. */
+  /** What NeuraTrace checked, in its own words, where the derived sentence is not enough. */
   checkDescription?: string;
   /** Set where the result cannot be used at all — a PNC number is required. */
   severity?: "HARD_INVALID";
@@ -195,7 +195,7 @@ export interface FlaggedSpec {
   flagAction: string;
   auditTrailSequence?: AuditTrailStep[];
   serialContinuity?: SerialContinuity;
-  /** Everything QRA read for this entry, shown when the row is expanded. */
+  /** Everything NeuraTrace read for this entry, shown when the row is expanded. */
   details?: DetailField[];
   source: SourceSystem;
   table?: EvidenceTable;

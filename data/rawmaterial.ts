@@ -1,5 +1,10 @@
 import type {
-  CheckItem, Batch, Section, StandaloneInstrument, TestParameter } from "@/types";
+  CheckItem,
+  Batch,
+  Section,
+  StandaloneInstrument,
+  TestParameter,
+} from "@/types";
 import { compliant, flagged, section } from "./factories";
 import { attendanceCheck, nonCdsAuditTrail } from "./checks";
 import { SOP } from "./rules";
@@ -219,7 +224,12 @@ const titratorRoutineChecks = (
   prefix: string,
   facts: TitratorFacts,
 ): CheckItem[] => {
-  const clean = (flagId: string, label: string, expected: string, actual: string) =>
+  const clean = (
+    flagId: string,
+    label: string,
+    expected: string,
+    actual: string,
+  ) =>
     compliant({
       prefix,
       flagId,
@@ -318,7 +328,10 @@ const titratorRoutineChecks = (
           label: "Required order",
           value: "Determination start before weight print start (Karl Fischer)",
         },
-        { label: "Result", value: "✓ Determination started before weight print" },
+        {
+          label: "Result",
+          value: "✓ Determination started before weight print",
+        },
       ],
     }),
     clean(
@@ -441,7 +454,8 @@ const sections: Section[] = [
         prefix: P,
         label: "FTIR spectral correlation below acceptance threshold",
         reference: "Correlation 0.942",
-        expected: "Correlation coefficient not less than 0.980 — STP-RM-FTIR-001 §7.4",
+        expected:
+          "Correlation coefficient not less than 0.980 — STP-RM-FTIR-001 §7.4",
         actual: "Correlation coefficient 0.942 against REF-SPEC-AMX-04",
         expectedSource: "STP-RM-FTIR-001 §7.4",
         source: "Spectrum ES",
@@ -453,10 +467,22 @@ const sections: Section[] = [
           "Confirm sample preparation and KBr disc quality with the analyst, then review the repeat scan in the Spectrum ES audit trail. If correlation remains below 0.980, raise a material investigation before the batch is dispositioned.",
         table: {
           caption: "Identity scans — session of 11-Aug-2026",
-          columns: ["Scan", "Preparation", "Correlation", "Threshold", "Outcome"],
+          columns: [
+            "Scan",
+            "Preparation",
+            "Correlation",
+            "Threshold",
+            "Outcome",
+          ],
           rows: [
             {
-              cells: ["Scan 1", "KBr disc, 32 scans", "0.942", "0.980", "Below threshold"],
+              cells: [
+                "Scan 1",
+                "KBr disc, 32 scans",
+                "0.942",
+                "0.980",
+                "Below threshold",
+              ],
               flagged: true,
             },
             {
@@ -478,17 +504,27 @@ const sections: Section[] = [
         reference: "Issued 12-Mar-2026",
         statusText: "Current",
         expected: "Current library reference spectrum — SOP-RM-QC-001 §4.2",
-        actual: "REF-SPEC-AMX-04 — current version, issued 12-Mar-2026, valid to 11-Mar-2027",
+        actual:
+          "REF-SPEC-AMX-04 — current version, issued 12-Mar-2026, valid to 11-Mar-2027",
         expectedSource: "SOP-RM-QC-001 §4.2",
         source: "Caliber LIMS",
         details: [
           { label: "Spectrum ID", value: "REF-SPEC-AMX-04" },
           { label: "Material", value: "Amoxicillin Trihydrate, USP grade" },
-          { label: "Library", value: "Site FTIR identity library, revision 11" },
-          { label: "Acquisition mode", value: "KBr transmission, 32 scans, 4 cm-1" },
+          {
+            label: "Library",
+            value: "Site FTIR identity library, revision 11",
+          },
+          {
+            label: "Acquisition mode",
+            value: "KBr transmission, 32 scans, 4 cm-1",
+          },
           { label: "Issued", value: "12-Mar-2026" },
           { label: "Valid to", value: "11-Mar-2027" },
-          { label: "Supersedes", value: "REF-SPEC-AMX-03, retired 12-Mar-2026" },
+          {
+            label: "Supersedes",
+            value: "REF-SPEC-AMX-03, retired 12-Mar-2026",
+          },
           { label: "Status in LIMS", value: "Current, no open change control" },
         ],
       }),
@@ -501,7 +537,8 @@ const sections: Section[] = [
         quantityComparison: "WITHIN TOLERANCE",
         reference: "Lot KBR-2024-031",
         expected: "Active entry, within expiry — SOP-CHEM-003",
-        actual: "Potassium bromide IR grade — Lot KBR-2024-031 — active, expiry 31-Dec-2026",
+        actual:
+          "Potassium bromide IR grade — Lot KBR-2024-031 — active, expiry 31-Dec-2026",
         expectedSource: "SOP-CHEM-003",
         source: "Caliber LIMS",
       }),
@@ -512,7 +549,8 @@ const sections: Section[] = [
         reference: "Cal. due 20-Oct-2026",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",
-        actual: "FTIR-2024-002 — calibrated 20-Apr-2026, due 20-Oct-2026, used 10:12 to 10:27",
+        actual:
+          "FTIR-2024-002 — calibrated 20-Apr-2026, due 20-Oct-2026, used 10:12 to 10:27",
         expectedSource: "SOP-INST-004",
         source: "Caliber LIMS",
       }),
@@ -535,7 +573,8 @@ const sections: Section[] = [
       requiresQuantityCheck: true,
       prescribedQty: "5 mL",
       actualQty: "5 mL",
-      expected: "Inactivation authorised before the entry leaves service — SOP-CHEM-003 §7",
+      expected:
+        "Inactivation authorised before the entry leaves service — SOP-CHEM-003 §7",
       actual:
         "Triethylamine HPLC grade — Lot TEA-2025-04 — inactivated 03-Aug-2026, authorisation not recorded",
       expectedSource: "SOP-CHEM-003 §7",
@@ -553,10 +592,16 @@ const sections: Section[] = [
       details: [
         { label: "Lot number", value: "TEA-2025-04" },
         { label: "Manufacturer", value: "Spectrochem" },
-        { label: "Reason for inactivation", value: "Recorded as decanted to a secondary container" },
+        {
+          label: "Reason for inactivation",
+          value: "Recorded as decanted to a secondary container",
+        },
         { label: "Inactivated on", value: "03-Aug-2026" },
         { label: "Authorised by", value: "Not recorded" },
-        { label: "Status in LIMS", value: "Inactivated, authorisation outstanding" },
+        {
+          label: "Status in LIMS",
+          value: "Inactivated, authorisation outstanding",
+        },
       ],
     }),
     compliant({
@@ -567,7 +612,8 @@ const sections: Section[] = [
       actualQty: "450 mL",
       reference: "Lot AC-2024-0441",
       expected: "Active entry, within expiry — SOP-CHEM-003",
-      actual: "Acetonitrile HPLC grade — Lot AC-2024-0441 — active, expiry 30-Nov-2026",
+      actual:
+        "Acetonitrile HPLC grade — Lot AC-2024-0441 — active, expiry 30-Nov-2026",
       expectedSource: "SOP-CHEM-003",
       source: "Caliber LIMS",
     }),
@@ -580,7 +626,8 @@ const sections: Section[] = [
       quantityComparison: "WITHIN TOLERANCE",
       reference: "Lot PH-2024-0892",
       expected: "Active entry, within expiry — SOP-CHEM-003",
-      actual: "Potassium dihydrogen phosphate — Lot PH-2024-0892 — active, expiry 15-Aug-2027",
+      actual:
+        "Potassium dihydrogen phosphate — Lot PH-2024-0892 — active, expiry 15-Aug-2027",
       expectedSource: "SOP-CHEM-003",
       source: "Caliber LIMS",
     }),
@@ -623,7 +670,8 @@ const sections: Section[] = [
       quantityComparison: "WITHIN TOLERANCE",
       reference: "STD-2026-0812-A/B",
       statusText: "Verified",
-      expected: "Duplicate standard preparations agreeing within 2.0 % — STP-RM-ASSAY-001",
+      expected:
+        "Duplicate standard preparations agreeing within 2.0 % — STP-RM-ASSAY-001",
       actual: "STD-A 100.3 %, STD-B 99.9 % — difference 0.4 %",
       expectedSource: "STP-RM-ASSAY-001",
       source: "Waters Empower",
@@ -644,7 +692,8 @@ const sections: Section[] = [
       reference: "Cal. due 05-Dec-2026",
       statusText: "Calibrated",
       expected: "Calibration due date after date of use — SOP-INST-004",
-      actual: "BAL-2024-007 — calibrated 05-Jun-2026, due 05-Dec-2026, used 09:10 to 09:48",
+      actual:
+        "BAL-2024-007 — calibrated 05-Jun-2026, due 05-Dec-2026, used 09:10 to 09:48",
       expectedSource: "SOP-INST-004",
       source: "Caliber LIMS",
     }),
@@ -664,7 +713,8 @@ const sections: Section[] = [
       prefix: P,
       label: "System suitability — five replicate injections",
       statusText: "Compliant",
-      expected: "Tailing NMT 2.0, plates NLT 2000, RSD NMT 2.0 % — STP-RM-ASSAY-001",
+      expected:
+        "Tailing NMT 2.0, plates NLT 2000, RSD NMT 2.0 % — STP-RM-ASSAY-001",
       actual: "Tailing 1.18, plates 6420, replicate RSD 0.42 %",
       expectedSource: "STP-RM-ASSAY-001",
       source: "Caliber LIMS — Manual Entry",
@@ -708,7 +758,7 @@ const sections: Section[] = [
         reference: "COND BUSY not detected",
         statusText: "Clean start",
         checkDescription:
-          "QRA read the Tiamo audit trail for a determination started with COND BUSY — a prohibited entry, because conditioning still running consumes titre the reading does not account for.",
+          "NeuraTrace read the Tiamo audit trail for a determination started with COND BUSY — a prohibited entry, because conditioning still running consumes titre the reading does not account for.",
         expected: "Not present",
         actual: "Not present — determination started clean",
         expectedSource: "QRA-CP-F-QCCI-GEN-0013",
@@ -724,12 +774,13 @@ const sections: Section[] = [
         reference: "Version 1",
         statusText: "Original",
         checkDescription:
-          "QRA read the determination version in Tiamo. Anything above 1 means the run was processed a second time, which needs a PNC behind it.",
+          "NeuraTrace read the determination version in Tiamo. Anything above 1 means the run was processed a second time, which needs a PNC behind it.",
         expected: "Version 1 (original)",
         actual: "Version 1 — original determination",
         expectedSource: "QRA-CP-F-QCCI-GEN-0013",
         source: "Tiamo 2.4",
-        comparison: "Determination version read against the original-run requirement",
+        comparison:
+          "Determination version read against the original-run requirement",
       }),
       compliant({
         prefix: P,
@@ -755,7 +806,8 @@ const sections: Section[] = [
         label: "Drift check before first determination",
         reference: "3.1 µg/min",
         statusText: "Within limits",
-        expected: "Drift not more than 10 µg/min before titration — SOP-KF-002 §6.1",
+        expected:
+          "Drift not more than 10 µg/min before titration — SOP-KF-002 §6.1",
         actual: "Drift 3.1 µg/min recorded at 11:04",
         expectedSource: "SOP-KF-002 §6.1",
         source: "Tiamo 2.4",
@@ -764,17 +816,43 @@ const sections: Section[] = [
         prefix: P,
         label: "Karl Fischer Titrator KFT-2024-005",
         auditTrailSequence: [
-          { step: 1, label: "Conditioning started", timestamp: "11-Aug-2026 11:02:40", status: "ok" },
-          { step: 2, label: "Analysis started", timestamp: "11-Aug-2026 11:04:12", status: "ok" },
-          { step: 3, label: "Weight added", timestamp: "11-Aug-2026 11:08:47", status: "ok" },
-          { step: 4, label: "Conditioning stopped", timestamp: "11-Aug-2026 11:15:02", status: "ok" },
-          { step: 5, label: "Finished", timestamp: "11-Aug-2026 11:16:03", status: "ok" },
+          {
+            step: 1,
+            label: "Conditioning started",
+            timestamp: "11-Aug-2026 11:02:40",
+            status: "ok",
+          },
+          {
+            step: 2,
+            label: "Analysis started",
+            timestamp: "11-Aug-2026 11:04:12",
+            status: "ok",
+          },
+          {
+            step: 3,
+            label: "Weight added",
+            timestamp: "11-Aug-2026 11:08:47",
+            status: "ok",
+          },
+          {
+            step: 4,
+            label: "Conditioning stopped",
+            timestamp: "11-Aug-2026 11:15:02",
+            status: "ok",
+          },
+          {
+            step: 5,
+            label: "Finished",
+            timestamp: "11-Aug-2026 11:16:03",
+            status: "ok",
+          },
         ],
         serialContinuity: { range: "Trial #001 – #002" },
         reference: "Cal. due 12-Jan-2027",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",
-        actual: "KFT-2024-005 — calibrated 12-Jul-2026, due 12-Jan-2027, used 11:02 to 11:16",
+        actual:
+          "KFT-2024-005 — calibrated 12-Jul-2026, due 12-Jan-2027, used 11:02 to 11:16",
         expectedSource: "SOP-INST-004",
         source: "Caliber LIMS",
       }),
@@ -822,7 +900,8 @@ const sections: Section[] = [
         label: "Optical alignment and background",
         reference: "12 units",
         statusText: "Verified",
-        expected: "Background not more than 20 units before measurement — SOP-PSD-001 §5",
+        expected:
+          "Background not more than 20 units before measurement — SOP-PSD-001 §5",
         actual: "Alignment verified, background 12 units recorded at 11:42",
         expectedSource: "SOP-PSD-001 §5",
         source: "Mastersizer 3000",
@@ -834,7 +913,8 @@ const sections: Section[] = [
         reference: "Cal. due 28-Feb-2027",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",
-        actual: "PSD-2023-001 — calibrated 28-Aug-2025, due 28-Feb-2027, used 11:40 to 11:51",
+        actual:
+          "PSD-2023-001 — calibrated 28-Aug-2025, due 28-Feb-2027, used 11:40 to 11:51",
         expectedSource: "SOP-INST-004",
         source: "Caliber LIMS",
       }),
@@ -864,7 +944,8 @@ const sections: Section[] = [
         reference: "Qtegra run ICP-2026-0331",
         statusText: "Within limits",
         expected: "Not more than 0.5 ppm — ICH Q3D Option 1, oral daily dose",
-        actual: "Below quantitation limit, transcribed from logbook LB-2026-RM-003 Page 4",
+        actual:
+          "Below quantitation limit, transcribed from logbook LB-2026-RM-003 Page 4",
         expectedSource: "ICH Q3D",
         source: "Paper Logbook",
       }),
@@ -884,7 +965,8 @@ const sections: Section[] = [
         reference: "Qtegra run ICP-2026-0331",
         statusText: "Within limits",
         expected: "Not more than 3.0 ppm — ICH Q3D Option 1, oral daily dose",
-        actual: "Below quantitation limit, transcribed from logbook LB-2026-RM-003 Page 4",
+        actual:
+          "Below quantitation limit, transcribed from logbook LB-2026-RM-003 Page 4",
         expectedSource: "ICH Q3D",
         source: "Paper Logbook",
       }),
@@ -894,7 +976,7 @@ const sections: Section[] = [
         reference: "Logbook LB-2026-RM-003",
         page: "Page 4",
         description: "Heavy metals by ICP — results recorded by hand",
-        note: "The Qtegra ICP at this site does not write to LIMS, so run ICP-2026-0331 was transcribed into the departmental logbook. QRA has no electronic record to compare against.",
+        note: "The Qtegra ICP at this site does not write to LIMS, so run ICP-2026-0331 was transcribed into the departmental logbook. NeuraTrace has no electronic record to compare against.",
       },
     },
   ),
@@ -920,7 +1002,12 @@ const sections: Section[] = [
     "psd",
     "Particle Analyser Audit Trail",
     2,
-    nonCdsAuditTrail(P, "Mastersizer 3000", "Mastersizer 3000", "Run #001 – #004"),
+    nonCdsAuditTrail(
+      P,
+      "Mastersizer 3000",
+      "Mastersizer 3000",
+      "Run #001 – #004",
+    ),
   ),
 
   /*
@@ -940,7 +1027,7 @@ const sections: Section[] = [
         reference: "IC-2002 · run of 11-Aug-2026",
         statusText: "Within limits",
         checkDescription:
-          "QRA read the sulphate result from Magic Net via LIMS and compared it against STP-RM-IC-004. Sulphate carried into the synthesis forms insoluble salts that report as an unknown impurity downstream, which is why the limit sits where it does.",
+          "NeuraTrace read the sulphate result from Magic Net via LIMS and compared it against STP-RM-IC-004. Sulphate carried into the synthesis forms insoluble salts that report as an unknown impurity downstream, which is why the limit sits where it does.",
         expected: "Not more than 0.020 % w/w — STP-RM-IC-004",
         actual: "0.012 % w/w",
         expectedSource: "STP-RM-IC-004",
@@ -948,7 +1035,10 @@ const sections: Section[] = [
         comparison: "Result read against the specification limit",
         details: [
           { label: "Instrument ID", value: "IC-2002" },
-          { label: "Make and model", value: "Metrohm 940 Professional IC Vario" },
+          {
+            label: "Make and model",
+            value: "Metrohm 940 Professional IC Vario",
+          },
           { label: "Software", value: "Magic Net 4.2" },
           { label: "Calibration status", value: "Current — within interval" },
           { label: "Last calibrated", value: "10-May-2026" },
@@ -1001,7 +1091,8 @@ const correctedSections: Section[] = [
       actualQty: "500 mL",
       quantityComparison: "MATCH",
       expected: "Active entry, within expiry — SOP-CHEM-003",
-      actual: "Methanol HPLC grade — Lot MET-2025-118 — active, expiry 31-Mar-2027",
+      actual:
+        "Methanol HPLC grade — Lot MET-2025-118 — active, expiry 31-Mar-2027",
       expectedSource: "SOP-CHEM-003",
       source: "Caliber LIMS",
     }),
@@ -1032,7 +1123,7 @@ const correctedSections: Section[] = [
       quantityComparison: "WITHIN TOLERANCE",
       statusText: "Corrected",
       checkDescription:
-        "QRA read the working standard lot against the usage record. This is the entry the batch was sent back for: the wrong lot number was recorded against a correct weighing, so the result was right and its traceability was not.",
+        "NeuraTrace read the working standard lot against the usage record. This is the entry the batch was sent back for: the wrong lot number was recorded against a correct weighing, so the result was right and its traceability was not.",
       expected: "Active lot, expiry on or after analysis date — SOP-STD-002",
       actual: "WST-2024-091 — active, expiry 30-Sep-2027, potency 99.8 %",
       expectedSource: "SOP-STD-002",
@@ -1041,7 +1132,10 @@ const correctedSections: Section[] = [
         "Lot number in the usage record now matches the standard actually weighed",
       details: [
         { label: "Standard number", value: "WST-2024-091" },
-        { label: "Previously recorded as", value: "WST-2024-089 — corrected 29-Aug-2026" },
+        {
+          label: "Previously recorded as",
+          value: "WST-2024-089 — corrected 29-Aug-2026",
+        },
         { label: "Assigned potency", value: "99.8 % on the anhydrous basis" },
         { label: "Status in LIMS", value: "Active" },
         { label: "Expiry date", value: "30-Sep-2027" },
@@ -1054,7 +1148,7 @@ export const RAW_MATERIAL_BATCHES: Batch[] = [
   {
     id: "07-RM-26-4417",
     arNumber: "07-RM-26-4417",
-  limsStatus: "Under QC Review",
+    limsStatus: "Under QC Review",
     product: "Amoxicillin Trihydrate API",
     batchNumber: "AMXAPI-2026-0088",
     domain: "RAW_MATERIAL",
@@ -1111,11 +1205,7 @@ export const RAW_MATERIAL_BATCHES: Batch[] = [
     analyst: "Priya Sharma",
     lastActivity: "29-Aug-2026 · 15:40",
     parameters: CORRECTED_PARAMETERS,
-    sections: withAttendance(
-      correctedSections,
-      "Priya Sharma",
-      "26-Aug-2026",
-    ),
+    sections: withAttendance(correctedSections, "Priya Sharma", "26-Aug-2026"),
     dataSources: ["Caliber LIMS", "HRMS System"],
   },
 ];

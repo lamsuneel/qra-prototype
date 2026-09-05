@@ -20,15 +20,15 @@ const CAL_DUE = /^Cal\. due (.+)$/;
 
 /**
  * An entry that is not flagged — either compliant, or waiting on a comparison
- * QRA could not make. A chemical or working standard has no fixed
+ * NeuraTrace could not make. A chemical or working standard has no fixed
  * specification: it is checked against the quantity the worksheet prescribes,
  * so without both figures the row reads amber, never green.
  *
- * QRA did the checking, so the reviewer is never required to open the row —
+ * NeuraTrace did the checking, so the reviewer is never required to open the row —
  * but the evidence is always one click away and the row says so. Expanding
  * has no effect on the section gate.
  *
- * An amber row is the exception: QRA could not make the comparison, so the
+ * An amber row is the exception: NeuraTrace could not make the comparison, so the
  * reviewer makes it against the worksheet and records that they did. Its note
  * field sits on the row rather than inside the evidence, because the gate
  * waits on it and nothing the gate waits on should be hidden behind a click.
@@ -106,10 +106,10 @@ export function CompliantRow({
                 )}
               >
                 {border
-                ? "Border Limit — Trend Evaluation Required"
-                : unverified
-                  ? "Needs Verification"
-                  : "Compliant"}
+                  ? "Border Limit — Trend Evaluation Required"
+                  : unverified
+                    ? "Needs Verification"
+                    : "Compliant"}
               </span>
             </div>
 

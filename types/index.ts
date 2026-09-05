@@ -1,5 +1,5 @@
 /**
- * QRA — Quality Review Assistant
+ * NeuraTrace — Quality Review Assistant
  * Shared type surface for the pre-pilot prototype.
  *
  * These interfaces mirror the shapes in the design-phase data model, but the
@@ -50,11 +50,11 @@ export type SectionStatus = "NOT_STARTED" | "IN_PROGRESS" | "REVIEWED";
  * whose check depends on a prescribed quantity cannot be shown as compliant
  * until both the prescribed and the actual quantity are present to compare.
  *
- * CONDITIONAL_PASS is the opposite case to NEEDS_VERIFICATION. There, QRA
+ * CONDITIONAL_PASS is the opposite case to NEEDS_VERIFICATION. There, NeuraTrace
  * has a rule but is missing a figure. Here it has the figure and the rule
  * both, and the rule says the entry is acceptable provided something else
  * holds that only a person can confirm — a titration interrupted and
- * continued is correct if the method calls for adding solution mid-run. QRA
+ * continued is correct if the method calls for adding solution mid-run. NeuraTrace
  * cannot read the method, so it says what it found, states the condition,
  * and waits to be told.
  *
@@ -244,16 +244,16 @@ export interface CheckItem {
   severity?: "HARD_INVALID";
 
   /**
-   * A quantitative result, so QRA can say how close to the limit it landed.
+   * A quantitative result, so NeuraTrace can say how close to the limit it landed.
    */
   borderLimit?: BorderLimit;
 
   /**
-   * An entry QRA could not conclude for a reason of its own, with the words
+   * An entry NeuraTrace could not conclude for a reason of its own, with the words
    * that reason needs. Without this every amber entry has to be amber for the
    * same reason as a chemical with a missing prescribed quantity, and says
    * so — which is wrong about attendance, and would be wrong about anything
-   * else QRA cannot fetch.
+   * else NeuraTrace cannot fetch.
    */
   verification?: {
     /** The line on the collapsed row. */
@@ -297,7 +297,7 @@ export interface CheckItem {
    * Reference and working standard records live in two Caliber LIMS modules:
    * usage in the standard record itself, the assigned value in the eLIMS
    * Reference Standard Audit Trail. Both are named so the reviewer — and an
-   * auditor — can see QRA read each of them.
+   * auditor — can see NeuraTrace read each of them.
    */
   usageSource?: string;
   potencySource?: string;
@@ -305,7 +305,7 @@ export interface CheckItem {
   result: ItemResult;
 
   /**
-   * One sentence saying what QRA compared and against what. Every item can
+   * One sentence saying what NeuraTrace compared and against what. Every item can
    * answer this; where it is not written out, it is derived from the fields
    * below so no entry is ever left without an explanation.
    */
@@ -359,7 +359,7 @@ export interface CheckItem {
   table?: EvidenceTable;
 
   /**
-   * Everything QRA read for this entry, shown when the reviewer expands the
+   * Everything NeuraTrace read for this entry, shown when the reviewer expands the
    * row. Where it is absent the expanded view is built from the fields above,
    * so every entry can still be inspected.
    */
@@ -442,7 +442,7 @@ export interface Batch {
   slaStatus: SlaStatus;
   slaLabel: string;
   status: BatchStatus;
-  /** Where the batch has got to in LIMS, independent of QRA's own review. */
+  /** Where the batch has got to in LIMS, independent of NeuraTrace's own review. */
   limsStatus: LimsStatus;
   /** Only meaningful at "Print Taken". */
   limsPrints?: number;
@@ -666,7 +666,7 @@ export const resultFor = (item: CheckItem): ItemResult => {
     return "NEEDS_VERIFICATION";
   }
 
-  /* Something else QRA could not conclude, carrying its own explanation. */
+  /* Something else NeuraTrace could not conclude, carrying its own explanation. */
   if (item.verification) return "NEEDS_VERIFICATION";
 
   /* Passes, but close enough to the limit that the trend has to be read
@@ -680,8 +680,8 @@ export const resultFor = (item: CheckItem): ItemResult => {
 
 /**
  * An entry the reviewer has to write against before the section can be
- * marked reviewed. Flagged, because QRA compared and the comparison failed;
- * or needing verification, because QRA could not compare at all and the
+ * marked reviewed. Flagged, because NeuraTrace compared and the comparison failed;
+ * or needing verification, because NeuraTrace could not compare at all and the
  * reviewer has to do it against the worksheet. Compliant entries ask for
  * nothing.
  */

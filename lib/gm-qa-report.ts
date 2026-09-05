@@ -71,11 +71,11 @@ export const buildOperationsReport = (generatedBy: string): jsPDF => {
   layout.y += 8;
   paragraph(
     layout,
-    "This report summarises the analytical sample pipeline status and quality event metrics for the period shown. Data is sourced from Caliber LIMS via QRA. Individual reviewer activity is not tracked. Cycle time is measured from review opened to authorisation.",
+    "This report summarises the analytical sample pipeline status and quality event metrics for the period shown. Data is sourced from Caliber LIMS via NeuraTrace. Individual reviewer activity is not tracked. Cycle time is measured from review opened to authorisation.",
   );
 
   signatureBlock(layout, [
-    "Prepared by QRA system:",
+    "Prepared by NeuraTrace system:",
     "Reviewed by (GM-QA):",
     "Approved by (QA Head):",
   ]);

@@ -1,5 +1,10 @@
 import type {
-  CheckItem, Batch, Section, StandaloneInstrument, TestParameter } from "@/types";
+  CheckItem,
+  Batch,
+  Section,
+  StandaloneInstrument,
+  TestParameter,
+} from "@/types";
 import { compliant, flagged, section } from "./factories";
 import { attendanceCheck, empowerAuditTrail } from "./checks";
 import { SOP } from "./rules";
@@ -187,7 +192,12 @@ const titratorRoutineChecks = (
   prefix: string,
   facts: TitratorFacts,
 ): CheckItem[] => {
-  const clean = (flagId: string, label: string, expected: string, actual: string) =>
+  const clean = (
+    flagId: string,
+    label: string,
+    expected: string,
+    actual: string,
+  ) =>
     compliant({
       prefix,
       flagId,
@@ -286,7 +296,10 @@ const titratorRoutineChecks = (
           label: "Required order",
           value: "Determination start before weight print start (Karl Fischer)",
         },
-        { label: "Result", value: "✓ Determination started before weight print" },
+        {
+          label: "Result",
+          value: "✓ Determination started before weight print",
+        },
       ],
     }),
     clean(
@@ -427,7 +440,8 @@ const sections: Section[] = [
       reference: "87.4 % of label claim",
       expected:
         "Each individual location between 90.0 % and 110.0 % of label claim — STP-IPFP-BU-002 §8.2",
-      actual: "Location 7 at 87.4 % of label claim; the other nine locations within range",
+      actual:
+        "Location 7 at 87.4 % of label claim; the other nine locations within range",
       expectedSource: "STP-IPFP-BU-002 §8.2",
       source: "Waters Empower",
       comparison:
@@ -461,18 +475,28 @@ const sections: Section[] = [
       label: "Relative standard deviation across locations",
       reference: "10 locations",
       statusText: "Within limits",
-      expected: "RSD not more than 5.0 % across all locations — STP-IPFP-BU-002 §8.2",
+      expected:
+        "RSD not more than 5.0 % across all locations — STP-IPFP-BU-002 §8.2",
       actual: "RSD 4.2 % across the ten sampling locations",
       expectedSource: "STP-IPFP-BU-002 §8.2",
       source: "Waters Empower",
       details: [
-        { label: "Locations sampled", value: "10, per the blender sampling plan" },
+        {
+          label: "Locations sampled",
+          value: "10, per the blender sampling plan",
+        },
         { label: "Mean of locations", value: "98.7 % of label claim" },
         { label: "Standard deviation", value: "4.15 % of label claim" },
         { label: "RSD", value: "4.2 %" },
         { label: "Limit", value: "Not more than 5.0 %" },
-        { label: "Sampling device", value: "Side-sampling thief, 10 mL cavity" },
-        { label: "Blend stage", value: "Post-lubrication, 5 minutes at 12 rpm" },
+        {
+          label: "Sampling device",
+          value: "Side-sampling thief, 10 mL cavity",
+        },
+        {
+          label: "Blend stage",
+          value: "Post-lubrication, 5 minutes at 12 rpm",
+        },
         { label: "Analysed on", value: "03-Aug-2026 · 11:20 AM to 16:05 PM" },
       ],
     }),
@@ -490,7 +514,8 @@ const sections: Section[] = [
       prefix: P,
       label: "System suitability — five replicate injections",
       statusText: "Compliant",
-      expected: "Tailing NMT 2.0, plates NLT 2000, RSD NMT 2.0 % — STP-IPFP-BU-002",
+      expected:
+        "Tailing NMT 2.0, plates NLT 2000, RSD NMT 2.0 % — STP-IPFP-BU-002",
       actual: "Tailing 1.21, plates 5980, replicate RSD 0.58 %",
       expectedSource: "STP-IPFP-BU-002",
       source: "Caliber LIMS — Manual Entry",
@@ -501,8 +526,12 @@ const sections: Section[] = [
    * Nothing fired here: the blend finding is in the result itself, not in
    * what was done to it afterwards.
    */
-  section("blend", "Empower Audit Trail", 2, empowerAuditTrail("emp-ipfp-blend")),
-
+  section(
+    "blend",
+    "Empower Audit Trail",
+    2,
+    empowerAuditTrail("emp-ipfp-blend"),
+  ),
 
   /* --- Tablet Weight Variation ------------------------------------------- */
   section("weight", "Weight Variation Result", 1, [
@@ -512,7 +541,8 @@ const sections: Section[] = [
       reference: "20 tablets",
       statusText: "Within limits",
       expected: "Each tablet between 247 mg and 253 mg — STP-IPFP-WGT-001",
-      actual: "Mean 250.1 mg, RSD 0.8 %, all 20 tablets within 248.2 mg to 252.0 mg",
+      actual:
+        "Mean 250.1 mg, RSD 0.8 %, all 20 tablets within 248.2 mg to 252.0 mg",
       expectedSource: "STP-IPFP-WGT-001",
       source: "Caliber LIMS",
       table: {
@@ -532,7 +562,8 @@ const sections: Section[] = [
       reference: "Cal. due 22-Dec-2026",
       statusText: "Calibrated",
       expected: "Calibration due date after date of use — SOP-INST-004",
-      actual: "BAL-2024-005 — calibrated 22-Jun-2026, due 22-Dec-2026, used 10:40 to 11:05",
+      actual:
+        "BAL-2024-005 — calibrated 22-Jun-2026, due 22-Dec-2026, used 10:40 to 11:05",
       expectedSource: "SOP-INST-004",
       source: "Caliber LIMS",
     }),
@@ -549,7 +580,8 @@ const sections: Section[] = [
         label: "Weighing Balance BAL-002",
         reference: "Cal. due 09-Jan-2027",
         statusText: "Calibrated",
-        expected: "Calibration current and within tolerance at date of use — SOP-INST-004",
+        expected:
+          "Calibration current and within tolerance at date of use — SOP-INST-004",
         actual:
           "BAL-002 — calibrated 09-Jul-2026, due 09-Jan-2027, daily check 99.9998 g against a 100 g test weight",
         expectedSource: "SOP-INST-004",
@@ -559,10 +591,16 @@ const sections: Section[] = [
           { label: "Instrument ID", value: "BAL-002" },
           { label: "Make and model", value: "Metrohm Precisa 320XB" },
           { label: "Software", value: "Metrohm BalanceLink 3.1" },
-          { label: "Calibration status", value: "Calibrated — within interval" },
+          {
+            label: "Calibration status",
+            value: "Calibrated — within interval",
+          },
           { label: "Last calibrated", value: "09-Jul-2026" },
           { label: "Calibration due", value: "09-Jan-2027" },
-          { label: "Daily check", value: "99.9998 g against a 100 g test weight, tolerance ± 1 mg" },
+          {
+            label: "Daily check",
+            value: "99.9998 g against a 100 g test weight, tolerance ± 1 mg",
+          },
           { label: "Record held in", value: "Caliber LIMS" },
         ],
       }),
@@ -600,7 +638,8 @@ const sections: Section[] = [
       reference: "Cal. due 15-Oct-2026",
       statusText: "Calibrated",
       expected: "Calibration due date after date of use — SOP-INST-004",
-      actual: "DIS-2023-004 — calibrated 15-Apr-2026, due 15-Oct-2026, used 12:10 to 12:35",
+      actual:
+        "DIS-2023-004 — calibrated 15-Apr-2026, due 15-Oct-2026, used 12:10 to 12:35",
       expectedSource: "SOP-INST-004",
       source: "Caliber LIMS",
     }),
@@ -653,9 +692,13 @@ const sections: Section[] = [
         comparison:
           "The Tiamo audit trail records COND BUSY at the moment the determination started",
         flagReason:
-          "TIA-F01 — the determination began while the cell was still conditioning. Additional titre was consumed by the conditioning, so the value reported is not the water content of the sample. Source: " + TIAMO_SOP + ".",
+          "TIA-F01 — the determination began while the cell was still conditioning. Additional titre was consumed by the conditioning, so the value reported is not the water content of the sample. Source: " +
+          TIAMO_SOP +
+          ".",
         flagAction:
-          "Raise PNC per QRA-GP-GEN-0023. Analysis must be repeated. Source: " + TIAMO_SOP + ".",
+          "Raise PNC per QRA-GP-GEN-0023. Analysis must be repeated. Source: " +
+          TIAMO_SOP +
+          ".",
         source: "Tiamo 2.4",
       }),
       compliant({
@@ -666,19 +709,21 @@ const sections: Section[] = [
         reference: "Version 1",
         statusText: "Original",
         checkDescription:
-          "QRA read the determination version in Tiamo. Anything above 1 means the run was processed a second time, which needs a PNC behind it.",
+          "NeuraTrace read the determination version in Tiamo. Anything above 1 means the run was processed a second time, which needs a PNC behind it.",
         expected: "Version 1 (original)",
         actual: "Version 1 — original determination",
         expectedSource: "QRA-CP-F-QCCI-GEN-0013",
         source: "Tiamo 2.4",
-        comparison: "Determination version read against the original-run requirement",
+        comparison:
+          "Determination version read against the original-run requirement",
       }),
       compliant({
         prefix: P,
         label: "Drift check before first determination",
         reference: "4.6 µg/min",
         statusText: "Within limits",
-        expected: "Drift not more than 10 µg/min before titration — SOP-KF-002 §6.1",
+        expected:
+          "Drift not more than 10 µg/min before titration — SOP-KF-002 §6.1",
         actual: "Drift 4.6 µg/min recorded at 14:24",
         expectedSource: "SOP-KF-002 §6.1",
         source: "Tiamo 2.4",
@@ -687,17 +732,43 @@ const sections: Section[] = [
         prefix: P,
         label: "Karl Fischer Coulometer KFA-2004-01",
         auditTrailSequence: [
-          { step: 1, label: "Conditioning started", timestamp: "03-Aug-2026 14:23:40", status: "ok" },
-          { step: 2, label: "Analysis started", timestamp: "03-Aug-2026 14:24:02", status: "ok" },
-          { step: 3, label: "Weight added", timestamp: "03-Aug-2026 14:29:44", status: "ok" },
-          { step: 4, label: "Conditioning stopped", timestamp: "03-Aug-2026 14:40:10", status: "ok" },
-          { step: 5, label: "Finished", timestamp: "03-Aug-2026 14:40:32", status: "ok" },
+          {
+            step: 1,
+            label: "Conditioning started",
+            timestamp: "03-Aug-2026 14:23:40",
+            status: "ok",
+          },
+          {
+            step: 2,
+            label: "Analysis started",
+            timestamp: "03-Aug-2026 14:24:02",
+            status: "ok",
+          },
+          {
+            step: 3,
+            label: "Weight added",
+            timestamp: "03-Aug-2026 14:29:44",
+            status: "ok",
+          },
+          {
+            step: 4,
+            label: "Conditioning stopped",
+            timestamp: "03-Aug-2026 14:40:10",
+            status: "ok",
+          },
+          {
+            step: 5,
+            label: "Finished",
+            timestamp: "03-Aug-2026 14:40:32",
+            status: "ok",
+          },
         ],
         serialContinuity: { range: "Trial #001 – #003" },
         reference: "Cal. due 08-Feb-2027",
         statusText: "Calibrated",
         expected: "Calibration due date after date of use — SOP-INST-004",
-        actual: "KFA-2004-01 — calibrated 08-Aug-2026, due 08-Feb-2027, used 14:22 to 14:43",
+        actual:
+          "KFA-2004-01 — calibrated 08-Aug-2026, due 08-Feb-2027, used 14:22 to 14:43",
         expectedSource: "SOP-INST-004",
         source: "Caliber LIMS",
       }),
@@ -729,7 +800,8 @@ const sections: Section[] = [
         label: "Tablet Processing Workstation TPW-002",
         reference: "Cal. due 17-Dec-2026",
         statusText: "Calibrated",
-        expected: "Calibration current and within tolerance at date of use — SOP-INST-004",
+        expected:
+          "Calibration current and within tolerance at date of use — SOP-INST-004",
         actual:
           "TPW-002 — calibrated 17-Jun-2026, due 17-Dec-2026, daily check 79.9 N against an 80 N hardness reference",
         expectedSource: "SOP-INST-004",
@@ -739,12 +811,25 @@ const sections: Section[] = [
           { label: "Instrument ID", value: "TPW-002" },
           { label: "Make and model", value: "Tablet Processing Workstation" },
           { label: "Software", value: "TPW" },
-          { label: "Records", value: "Tablet hardness, friability and disintegration" },
-          { label: "Calibration status", value: "Calibrated — within interval" },
+          {
+            label: "Records",
+            value: "Tablet hardness, friability and disintegration",
+          },
+          {
+            label: "Calibration status",
+            value: "Calibrated — within interval",
+          },
           { label: "Last calibrated", value: "17-Jun-2026" },
           { label: "Calibration due", value: "17-Dec-2026" },
-          { label: "Daily check", value: "79.9 N against an 80 N hardness reference, tolerance ± 2 N" },
-          { label: "In-process hardness", value: "Read at the press and written into logbook LB-2026-IPFP-007" },
+          {
+            label: "Daily check",
+            value: "79.9 N against an 80 N hardness reference, tolerance ± 2 N",
+          },
+          {
+            label: "In-process hardness",
+            value:
+              "Read at the press and written into logbook LB-2026-IPFP-007",
+          },
           { label: "Record held in", value: "Caliber LIMS" },
         ],
       }),
@@ -764,7 +849,8 @@ const sections: Section[] = [
         reference: "10 tablets",
         statusText: "Within limits",
         expected: "70 N to 100 N — STP-IPFP-HRD-001",
-        actual: "Mean 82 N, range 76 N to 89 N, transcribed from logbook LB-2026-IPFP-007",
+        actual:
+          "Mean 82 N, range 76 N to 89 N, transcribed from logbook LB-2026-IPFP-007",
         expectedSource: "STP-IPFP-HRD-001",
         source: "Paper Logbook",
         table: {
@@ -799,8 +885,9 @@ const sections: Section[] = [
       paperLogbook: {
         reference: "Logbook LB-2026-IPFP-007",
         page: "Page 12",
-        description: "Tablet hardness — measured at the press and recorded by hand",
-        note: "The hardness tester on the compression floor is not connected to LIMS, so in-process readings are written into the line logbook. QRA has no electronic record to compare the transcribed values against.",
+        description:
+          "Tablet hardness — measured at the press and recorded by hand",
+        note: "The hardness tester on the compression floor is not connected to LIMS, so in-process readings are written into the line logbook. NeuraTrace has no electronic record to compare the transcribed values against.",
       },
     },
   ),
@@ -810,7 +897,7 @@ export const IPFP_BATCHES: Batch[] = [
   {
     id: "07-IPFP-26-0122",
     arNumber: "07-IPFP-26-0122",
-  limsStatus: "Under Test",
+    limsStatus: "Under Test",
     product: "Amoxicillin 250mg — Compression Stage",
     batchNumber: "AMX-2026-0341-C03",
     domain: "IPFP",
@@ -825,6 +912,11 @@ export const IPFP_BATCHES: Batch[] = [
     lastActivity: "Yesterday 16:40",
     parameters: IPFP_PARAMETERS,
     sections: withAttendance(sections, "Rajesh Iyer", "03-Aug-2026", []),
-    dataSources: ["Caliber LIMS", "Waters Empower", "Tiamo 2.4", "Paper Logbook"],
+    dataSources: [
+      "Caliber LIMS",
+      "Waters Empower",
+      "Tiamo 2.4",
+      "Paper Logbook",
+    ],
   },
 ];

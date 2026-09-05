@@ -13,7 +13,7 @@ import { AuditTrailTimeline } from "./AuditTrailTimeline";
 /**
  * The evidence visibility principle, in one component.
  *
- * Every review item — compliant or flagged — exposes what QRA checked, what
+ * Every review item — compliant or flagged — exposes what NeuraTrace checked, what
  * was expected and where that came from, what was actually recorded and where
  * that came from, how the two compared, and why the item carries the status it
  * does. Compliant and flagged differ only in what follows the result: a
@@ -82,7 +82,7 @@ const checkedSentence = (item: CheckItem): string => {
     ? `the requirement in ${item.expectedSource}`
     : "the applicable specification";
 
-  return `QRA read the recorded value for ${item.label} from ${item.source} and compared it against ${against}.`;
+  return `NeuraTrace read the recorded value for ${item.label} from ${item.source} and compared it against ${against}.`;
 };
 
 const comparisonFor = (item: CheckItem): string => {
@@ -203,7 +203,7 @@ export function EvidencePanel({
 
       <div className="mb-3">
         <div className="mb-1 text-[10px] font-semibold tracking-wider text-source-text uppercase">
-          What QRA checked
+          What NeuraTrace checked
         </div>
         <p className="text-[13px] leading-relaxed text-slate-700">
           {checkedSentence(item)}

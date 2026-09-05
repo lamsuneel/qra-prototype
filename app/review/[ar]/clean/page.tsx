@@ -68,7 +68,7 @@ const stateFor = (section: Section): V3NodeState => {
   return "compliant";
 };
 
-/** A section every check in which QRA settled as compliant. */
+/** A section every check in which NeuraTrace settled as compliant. */
 const isCleanSection = (section: Section) =>
   section.items.length > 0 && section.items.every(isClear);
 
@@ -76,7 +76,7 @@ const isCleanSection = (section: Section) =>
  * Where a clean review opens.
  *
  * The screen has to land somewhere every check is passing, and it finds that
- * place in the batch rather than being told it: the first parameter QRA
+ * place in the batch rather than being told it: the first parameter NeuraTrace
  * settled end to end, and inside that the clean section carrying the most
  * checks, because that is the one that shows what a clean section looks like.
  * A batch with nothing clean in it falls back to its first section, and the

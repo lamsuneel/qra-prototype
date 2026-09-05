@@ -26,7 +26,7 @@ export function RightPanel({ batch }: { batch: Batch }) {
   ).length;
 
   /* What is actually blocking the reviewer, across the whole batch — flags
-     and entries QRA could not conclude both wait on a note. */
+     and entries NeuraTrace could not conclude both wait on a note. */
   const unnoted = reviewableSections(batch)
     .flatMap((section) => section.items)
     .filter((item) =>

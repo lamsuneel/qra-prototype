@@ -31,7 +31,7 @@ export function TopNav({ batch }: { batch?: Batch }) {
           Q
         </span>
         <span className="text-[15px] font-bold tracking-tight text-white">
-          QRA
+          NeuraTrace
         </span>
       </button>
 

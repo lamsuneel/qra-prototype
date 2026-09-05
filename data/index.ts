@@ -106,7 +106,7 @@ export const exceptionContributors = (
 /**
  * Where a review should open: the first section carrying anything the
  * reviewer has to deal with — a flag, an unusable result, a condition to
- * confirm, or a comparison QRA could not make. Falls back to the first
+ * confirm, or a comparison NeuraTrace could not make. Falls back to the first
  * section when everything in scope is clean.
  *
  * Given a parameter it answers for that parameter, which is what the sidebar

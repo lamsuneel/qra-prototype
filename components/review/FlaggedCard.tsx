@@ -17,7 +17,7 @@ import { ReviewerNote } from "./ReviewerNote";
 
 /**
  * A flagged entry. It carries the same evidence structure as a compliant one —
- * what QRA checked, expected against actual with their sources, comparison and
+ * what NeuraTrace checked, expected against actual with their sources, comparison and
  * result — and then the three things only a flagged item needs: why it was
  * flagged, what the reviewer has to do, and their observation.
  *

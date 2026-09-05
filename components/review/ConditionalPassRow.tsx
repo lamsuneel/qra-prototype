@@ -8,7 +8,7 @@ import { SourceBadge } from "./Badges";
 import { EvidencePanel, evidenceKind } from "./EvidencePanel";
 
 /**
- * An entry the rule set accepts provided something holds that QRA cannot
+ * An entry the rule set accepts provided something holds that NeuraTrace cannot
  * read for itself.
  *
  * A titration interrupted and continued is exactly what the audit trail

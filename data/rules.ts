@@ -1,5 +1,5 @@
 /**
- * The compliance rule set QRA checks against.
+ * The compliance rule set NeuraTrace checks against.
  *
  * Transcribed from the site's audit trail SOPs — FU7-QA-GEN-080 for the
  * chromatography data system and the non-CDS instruments, and
@@ -52,12 +52,14 @@ export interface AcceptabilityRule {
 export const ACCEPTABILITY_RULES: AcceptabilityRule[] = [
   {
     id: "PASS-TIA-01",
-    found: "Determination interrupted → Determination continued → Determination finished",
+    found:
+      "Determination interrupted → Determination continued → Determination finished",
     condition: "Method specifies additional solution during titration",
   },
   {
     id: "PASS-TIA-02",
-    found: "Determination series interrupted → series continued → series finished",
+    found:
+      "Determination series interrupted → series continued → series finished",
     condition: "Full sequence present",
   },
   {
